@@ -1,0 +1,29 @@
+package router
+
+import (
+	"gcw/config"
+	"gcw/handler"
+	"gcw/repository"
+	"gcw/service"
+	"os"
+
+	"github.com/gin-gonic/gin"
+)
+
+var (
+	database       = config.SetupDatabaseConnection()
+	userRepository = repository.NewUserRepository(database)
+	authService    = service.NewAuthService(userRepository)
+	jwtService     = service.NewJwtService()
+
+	authHandler = handler.NewAuthHandler(authService, jwtService)
+)
+
+func SetupRouter(r *gin.Engine) {
+	api_base_url := os.Getenv("API_BASE_URL")
+	router := r.Group(api_base_url)
+	router.GET("/ping")
+
+	// admin_api_base_url := os.Getenv("ADMIN_API_BASE_URL")
+	// admin_router := r.Group(admin_api_base_url)
+}
