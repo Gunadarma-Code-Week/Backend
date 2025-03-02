@@ -3,6 +3,7 @@ package handler
 import (
 	"gcw/dto"
 	"gcw/helper"
+	"gcw/helper/log"
 	"gcw/service"
 	"net/http"
 
@@ -33,7 +34,9 @@ func (h *authHandler) Ping(c *gin.Context) {
 
 func (h *authHandler) Register(c *gin.Context) {
 	register := &dto.UserRequestDTO{}
+
 	if err := c.Bind(register); err != nil {
+		log.Low("AuthHandler.Register", "BAD_REQUEST", err.Error())
 		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
 		return
 	}
@@ -41,6 +44,7 @@ func (h *authHandler) Register(c *gin.Context) {
 	user, err := h.authService.Register(register)
 
 	if err != nil {
+		log.High("AuthHandler.Register", "INTERNAL_SERVER_ERROR", err.Error())
 		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
 		return
 	}
