@@ -42,12 +42,15 @@ func (h *authHandler) Login(c *gin.Context) {
 		return
 	}
 	user, err := h.authService.FindByUsername(login.Username)
+
 	if err != nil {
+		logging.Low("AuthHandler.Login", "INTERNAL_SERVER_ERROR", "Username Not Found")
 		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Username tidak ditemukan", err.Error()))
 		return
 	}
 
 	if res := (h.authService.VerifyPassword(user.Password, login.Password)); !res {
+		logging.Low("AuthHandler.Login", "INTERNAL_SERVER_ERROR", "Wrong Password")
 		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Pssword salah", "wrong password"))
 		return
 	}
