@@ -3,8 +3,9 @@ package handler
 import (
 	"gcw/dto"
 	"gcw/helper"
-	"gcw/helper/log"
+	"gcw/helper/logging"
 	"gcw/service"
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -19,6 +20,7 @@ type authHandler struct {
 type AuthHandler interface {
 	Ping(*gin.Context)
 	Register(*gin.Context)
+	Login(*gin.Context)
 }
 
 func NewAuthHandler(as service.AuthService, js service.JwtService) AuthHandler {
@@ -29,14 +31,41 @@ func NewAuthHandler(as service.AuthService, js service.JwtService) AuthHandler {
 }
 
 func (h *authHandler) Ping(c *gin.Context) {
+	log.Printf("Berhasil Ping")
 	c.JSON(http.StatusOK, gin.H{"success": "ping"})
+}
+
+func (h *authHandler) Login(c *gin.Context) {
+	login := &dto.LoginDTO{}
+	if err := c.Bind(login); err != nil {
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
+		return
+	}
+	user, err := h.authService.FindByUsername(login.Username)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Username tidak ditemukan", err.Error()))
+		return
+	}
+
+	if res := (h.authService.VerifyPassword(user.Password, login.Password)); !res {
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Pssword salah", "wrong password"))
+		return
+	}
+
+	token := h.jwtService.GenerateToken(user.Username)
+
+	response := &dto.UserResponseDTO{}
+	smapping.FillStruct(response, smapping.MapFields(user))
+	response.AccessToken = token
+
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("success", response))
 }
 
 func (h *authHandler) Register(c *gin.Context) {
 	register := &dto.UserRequestDTO{}
 
 	if err := c.Bind(register); err != nil {
-		log.Low("AuthHandler.Register", "BAD_REQUEST", err.Error())
+		logging.Low("AuthHandler.Register", "BAD_REQUEST", err.Error())
 		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
 		return
 	}
@@ -44,7 +73,7 @@ func (h *authHandler) Register(c *gin.Context) {
 	user, err := h.authService.Register(register)
 
 	if err != nil {
-		log.High("AuthHandler.Register", "INTERNAL_SERVER_ERROR", err.Error())
+		logging.High("AuthHandler.Register", "INTERNAL_SERVER_ERROR", err.Error())
 		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
 		return
 	}
