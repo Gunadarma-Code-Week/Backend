@@ -13,20 +13,26 @@ import (
 )
 
 type authHandler struct {
-	authService service.AuthService
-	jwtService  service.JwtService
+	authService  service.AuthService
+	jwtService   service.JwtService
+	emailService *service.EmailService
 }
 
-type AuthHandler interface {
-	Ping(*gin.Context)
-	Register(*gin.Context)
-	Login(*gin.Context)
-}
+// UNECESSARY USING INTERFACE IF JUST ONE IMPLEMENTATION, JUST USE STRUCT
+// u can remove entire interface, n reduce using pointer on unecessary usage just pass by value
+// it can reduce some memory usage / overhead
 
-func NewAuthHandler(as service.AuthService, js service.JwtService) AuthHandler {
+// type AuthHandler interface {
+// 	Ping(*gin.Context)
+// 	Register(*gin.Context)
+// 	Login(*gin.Context)
+// }
+
+func NewAuthHandler(as service.AuthService, js service.JwtService, es *service.EmailService) *authHandler {
 	return &authHandler{
-		authService: as,
-		jwtService:  js,
+		authService:  as,
+		jwtService:   js,
+		emailService: es,
 	}
 }
 
@@ -88,4 +94,15 @@ func (h *authHandler) Register(c *gin.Context) {
 	response.AccessToken = token
 
 	c.JSON(http.StatusOK, helper.CreateSuccessResponse("success", response))
+}
+
+// THIS JUST EXAMPLE, CAN USE THIS ON ANYWHERE
+func (h *authHandler) SendEmailVerificationExample(c *gin.Context) {
+	// use gorooutine to send email, so it will not blocking the main process
+	// u can use goroutine on any process that not need to wait the process
+	go h.emailService.SendEmailHTML("Email Verification", []string{"tes@mail.com"}, "template/email/verification.html", map[string]string{
+		"Code": "123456",
+	})
+
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("success", "Email verification has been sent, wait or try again"))
 }

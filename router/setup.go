@@ -15,8 +15,9 @@ var (
 	userRepository = repository.NewUserRepository(database)
 	authService    = service.NewAuthService(userRepository)
 	jwtService     = service.NewJwtService()
+	emailService   = service.NewEmailService()
 
-	authHandler = handler.NewAuthHandler(authService, jwtService)
+	authHandler = handler.NewAuthHandler(authService, jwtService, emailService)
 )
 
 func SetupRouter(r *gin.Engine) {
@@ -29,6 +30,7 @@ func SetupRouter(r *gin.Engine) {
 
 	router.POST("login", authHandler.Login)
 	router.POST("register", authHandler.Register)
+	router.POST("auth/send-mail-test", authHandler.SendEmailVerificationExample)
 
 	// admin_api_base_url := os.Getenv("ADMIN_API_BASE_URL")
 	// admin_router := r.Group(admin_api_base_url)
