@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"gcw/entity"
 	"os"
 
 	"github.com/joho/godotenv"
@@ -21,9 +22,6 @@ func SetupDatabaseConnection() *gorm.DB {
 	dbName := os.Getenv("DB_NAME")
 	dbPort := os.Getenv("DB_PORT")
 
-	print(dbName)
-	print(dbUser)
-
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable", dbHost, dbUser, dbPass, dbName, dbPort)
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
@@ -32,8 +30,12 @@ func SetupDatabaseConnection() *gorm.DB {
 		panic("Failed to create a connection to database")
 	}
 
-	if err := db.AutoMigrate(); err != nil {
-		panic(err)
+	if os.Getenv("ENVIRONMENT") != "production" {
+		if err := db.AutoMigrate(
+			&entity.User{},
+		); err != nil {
+			panic(err)
+		}
 	}
 	return db
 }
