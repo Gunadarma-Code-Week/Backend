@@ -33,6 +33,11 @@ func SetupDatabaseConnection() *gorm.DB {
 	if os.Getenv("ENVIRONMENT") != "production" {
 		if err := db.AutoMigrate(
 			&entity.User{},
+			&entity.UserRole{},
+			&entity.Team{},
+			&entity.Seminar{},
+			&entity.Profile{},
+			&entity.Event{},
 		); err != nil {
 			panic(err)
 		}

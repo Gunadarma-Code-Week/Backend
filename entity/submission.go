@@ -3,7 +3,7 @@ package entity
 import "time"
 
 type Submission struct {
-	ID_Submission string `gorm:"primaryKey; type:varchar(255)"`
+	ID_Submission uint64 `gorm:"primary_key:auto_increment"`
 	EventID       uint64 `gorm:"not null"`
 	TeamID        uint64 `gorm:"not null"`
 	FileURL       string `gorm:"type:text"`
