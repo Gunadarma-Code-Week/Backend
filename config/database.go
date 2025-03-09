@@ -38,6 +38,10 @@ func SetupDatabaseConnection() *gorm.DB {
 			&entity.Seminar{},
 			&entity.Profile{},
 			&entity.Event{},
+			&entity.Announcement{},
+			&entity.Judge{},
+			&entity.Score{},
+			&entity.Submission{},
 		); err != nil {
 			panic(err)
 		}

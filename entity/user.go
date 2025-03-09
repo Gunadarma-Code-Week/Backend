@@ -9,7 +9,7 @@ type User struct {
 	Password string `gorm:"text; not null"`
 
 	RoleID uint64   `gorm:"not null"` // Kolom untuk join ke tabel User_Role
-	Role   UserRole `gorm:"foreignKey:RoleID;references:ID_Role"`
+	Role   UserRole `gorm:"foreignKey:RoleID"`
 
 	CreatedAt time.Time
 	UpdatedAt time.Time
