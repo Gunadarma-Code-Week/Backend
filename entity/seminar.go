@@ -6,8 +6,8 @@ type Seminar struct {
 	ID_Seminar uint64 `gorm:"primary_key:auto_increment"`
 	Name       string `gorm:"varchar(255); not null"`
 
-	ID_Event uint64 `gorm:"not null"`
-	Event    Event  `gorm:"foreignKey:ID_Event;references:ID_Event"`
+	ID_Events uint64 `gorm:"not null"`
+	Event     Event  `gorm:"foreignKey:ID_Events;references:ID_Event"`
 
 	Users []User `gorm:"many2many:users_member"`
 

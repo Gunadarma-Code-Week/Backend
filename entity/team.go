@@ -11,8 +11,8 @@ type Team struct {
 	ID_LeadTeam uint64 `gorm:"not null"`
 	UserLead    User   `gorm:"foreignKey:ID_LeadTeam;references:ID"`
 
-	ID_Event uint64 `gorm:"not null"`
-	Event    Event  `gorm:"foreignKey:ID_Event;references:ID_Event"`
+	ID_Events uint64 `gorm:"not null"`
+	Event     Event  `gorm:"foreignKey:ID_Events;references:ID_Event"`
 
 	Users []User `gorm:"many2many:team_users"`
 

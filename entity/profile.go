@@ -15,7 +15,7 @@ type Profile struct {
 	Institusi  string    `gorm:"varchar(55); not null"`
 
 	UserID uint64   `gorm:"not null"` // Kolom untuk join ke tabel User_Role
-	User   UserRole `gorm:"foreignKey:UserID;references:ID"`
+	User   UserRole `gorm:"foreignKey:UserID;references:ID_Role"`
 
 	CreatedAt time.Time
 	UpdatedAt time.Time
