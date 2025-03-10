@@ -7,8 +7,10 @@ type UserResponseDTO struct {
 }
 
 type UserRequestDTO struct {
+	Email    string `json:"email"`
 	Username string `json:"username"`
 	Password string `json:"password"`
+	RoleID   uint64 `json:"role_id"`
 }
 
 type LoginDTO struct {
