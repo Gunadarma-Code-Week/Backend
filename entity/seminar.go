@@ -4,12 +4,10 @@ import "time"
 
 type Seminar struct {
 	ID_Seminar uint64 `gorm:"primary_key:auto_increment"`
-	Name       string `gorm:"varchar(255); not null"`
+	ID_Tiket   string `gorm:"varchar(255); not null"`
 
-	ID_Event uint64 `gorm:"not null"`
-	Event    Event  `gorm:"foreignKey:ID_Event"`
-
-	Users []User `gorm:"many2many:users_member"`
+	IDUser uint64 `gorm:"not null"`
+	User   User   `gorm:"foreignKey:IDUser"`
 
 	CreatedAt time.Time
 	UpdatedAt time.Time
