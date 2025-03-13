@@ -12,8 +12,8 @@ type User struct {
 	RoleID uint64   `gorm:"not null"` // Kolom untuk join ke tabel User_Role
 	Role   UserRole `gorm:"foreignKey:RoleID"`
 
-	IDTeam uint64 `gorm:"not null"`
-	Team   Team   `gorm:"foreignKey:IDTeam"`
+	IDTeam *uint64
+	Team   Team `gorm:"foreignKey:IDTeam"`
 
 	CreatedAt time.Time
 	UpdatedAt time.Time

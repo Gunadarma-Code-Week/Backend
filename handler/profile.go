@@ -17,7 +17,8 @@ type profileHandler struct {
 }
 
 type ProfileHandler interface {
-	getProfile(*gin.Context)
+	GetProfile(*gin.Context)
+	Create(*gin.Context)
 }
 
 func GateProfileHandler(service service.ProfileService) ProfileHandler {
@@ -26,7 +27,7 @@ func GateProfileHandler(service service.ProfileService) ProfileHandler {
 	}
 }
 
-func (h *profileHandler) getProfile(c *gin.Context) {
+func (h *profileHandler) GetProfile(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id_user"), 0, 0)
 
 	if err != nil {

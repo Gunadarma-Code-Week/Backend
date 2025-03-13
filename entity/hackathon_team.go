@@ -10,8 +10,8 @@ type HackathonTeam struct {
 	GithubProjectUrl string `gorm:"varchar(255); not null"`
 	PitchDeckUrl     string `gorm:"varchar(255); not null"`
 
-	IDTeam uint64 `gorm:"not null"`
-	Team   Team   `gorm:"foreignKey:IDTeam"`
+	IDTeam uint64
+	Team   Team `gorm:"foreignKey:IDTeam"`
 
 	CreatedAt time.Time
 	UpdatedAt time.Time

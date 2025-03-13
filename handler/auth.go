@@ -79,6 +79,8 @@ func (h *authHandler) Register(c *gin.Context) {
 		return
 	}
 
+	print(register)
+
 	user, err := h.authService.Register(register)
 
 	if err != nil {
