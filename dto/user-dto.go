@@ -2,7 +2,7 @@ package dto
 
 type UserResponseDTO struct {
 	ID          uint64 `json:"id"`
-	Username    string `json:"username"`
+	Email       string `json:"email"`
 	AccessToken string `json:"access_token"`
 }
 
@@ -15,6 +15,6 @@ type UserRequestDTO struct {
 }
 
 type LoginDTO struct {
-	Username string `json:"username"`
+	Email    string `json:"email"`
 	Password string `json:"password"`
 }

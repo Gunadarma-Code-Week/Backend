@@ -20,6 +20,7 @@ type AuthService interface {
 	Register(*dto.UserRequestDTO) (*entity.User, error)
 	IsDuplicateUsername(string) bool
 	FindByUsername(string) (*entity.User, error)
+	FindByEmail(string) (*entity.User, error)
 	VerifyPassword(string, string) bool
 }
 
@@ -27,6 +28,16 @@ func NewAuthService(ur repository.UserRepository) AuthService {
 	return &authService{
 		userRepository: ur,
 	}
+}
+
+func (s *authService) FindByEmail(email string) (*entity.User, error) {
+	user := &entity.User{}
+	err := s.userRepository.FindByEmail(email, user)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
 }
 
 func (s *authService) FindByUsername(username string) (*entity.User, error) {

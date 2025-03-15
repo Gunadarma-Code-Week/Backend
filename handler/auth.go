@@ -47,11 +47,11 @@ func (h *authHandler) Login(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
 		return
 	}
-	user, err := h.authService.FindByUsername(login.Username)
+	user, err := h.authService.FindByEmail(login.Email)
 
 	if err != nil {
-		logging.Low("AuthHandler.Login", "INTERNAL_SERVER_ERROR", "Username Not Found")
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Username tidak ditemukan", err.Error()))
+		logging.Low("AuthHandler.Login", "INTERNAL_SERVER_ERROR", "Email Not Found")
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Email tidak ditemukan", err.Error()))
 		return
 	}
 
@@ -61,7 +61,7 @@ func (h *authHandler) Login(c *gin.Context) {
 		return
 	}
 
-	token := h.jwtService.GenerateToken(user.Username)
+	token := h.jwtService.GenerateToken(user.Email)
 
 	response := &dto.UserResponseDTO{}
 	smapping.FillStruct(response, smapping.MapFields(user))

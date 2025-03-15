@@ -37,9 +37,9 @@ func getSecretKey() string {
 	return secretKey
 }
 
-func (j *jwtService) GenerateToken(Username string) string {
+func (j *jwtService) GenerateToken(Email string) string {
 	claims := &jwtCustomClaim{
-		Username,
+		Email,
 		jwt.StandardClaims{
 			ExpiresAt: time.Now().AddDate(1, 0, 0).Unix(),
 			Issuer:    j.issuer,
