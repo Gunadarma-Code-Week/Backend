@@ -53,7 +53,7 @@ func main() {
 	r := gin.Default()
 
 	// CORS ORIGIN
-	r.Use(middleware.CORSMiddleware)
+	r.Use(middleware.CORSMiddleware())
 
 	router.SetupRouter(r)
 
