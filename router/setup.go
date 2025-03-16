@@ -13,16 +13,19 @@ import (
 var (
 	database = config.SetupDatabaseConnection()
 
-	userRepository    = repository.NewUserRepository(database)
-	profileRepository = repository.GateProfileRepository(database)
+	userRepository         = repository.NewUserRepository(database)
+	profileRepository      = repository.GateProfileRepository(database)
+	registrationRepository = repository.GateRegistrationRepository(database)
 
-	authService    = service.NewAuthService(userRepository)
-	profileService = service.GateProfileService(profileRepository)
-	jwtService     = service.NewJwtService()
-	emailService   = service.NewEmailService()
+	authService         = service.NewAuthService(userRepository)
+	profileService      = service.GateProfileService(profileRepository)
+	registrationService = service.GatRegistrationService(registrationRepository)
+	jwtService          = service.NewJwtService()
+	emailService        = service.NewEmailService()
 
-	authHandler    = handler.NewAuthHandler(authService, jwtService, emailService)
-	profileHandler = handler.GateProfileHandler(profileService)
+	authHandler         = handler.NewAuthHandler(authService, jwtService, emailService)
+	profileHandler      = handler.GateProfileHandler(profileService)
+	registrationHandler = handler.GateRegistrationHandler(registrationService)
 )
 
 func SetupRouter(r *gin.Engine) {
@@ -37,8 +40,14 @@ func SetupRouter(r *gin.Engine) {
 	router.POST("register", authHandler.Register)
 	router.POST("auth/send-mail-test", authHandler.SendEmailVerificationExample)
 
-	// router.POST("profile/post", profileHandler.Create)
-	// router.GET("profile/get", profileHandler.GetProfile)
+	// Registration Route
+
+	router.POST("registration_team_hackathon", registrationHandler.Create)
+
+	// Profile Route
+
+	router.POST("profile/post", profileHandler.Create)
+	router.GET("profile/get", profileHandler.GetProfile)
 
 	// admin_api_base_url := os.Getenv("ADMIN_API_BASE_URL")
 	// admin_router := r.Group(admin_api_base_url)

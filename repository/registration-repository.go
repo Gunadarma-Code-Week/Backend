@@ -12,6 +12,7 @@ type registrationRepository struct {
 
 type RegistrationRepository interface {
 	Create(*entity.Team) error
+	CreateTeam(*entity.HackathonTeam) error
 }
 
 func GateRegistrationRepository(db *gorm.DB) RegistrationRepository {
@@ -21,6 +22,14 @@ func GateRegistrationRepository(db *gorm.DB) RegistrationRepository {
 }
 
 func (r *registrationRepository) Create(u *entity.Team) error {
+	res := r.DB.Create(&u)
+	if err := res.Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *registrationRepository) CreateTeam(u *entity.HackathonTeam) error {
 	res := r.DB.Create(&u)
 	if err := res.Error; err != nil {
 		return err
