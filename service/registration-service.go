@@ -16,6 +16,8 @@ type registrationService struct {
 type RegistrationService interface {
 	Create(*dto.RegistrationResponseWithJoinCode) (*entity.Team, error)
 	CreateTeam(*dto.RegistrationResponseHackathon) (*entity.HackathonTeam, error)
+	UpdateUser(uint64, uint64) (*entity.User, error)
+	UpdateUserJoinCode(string, uint64) (*entity.User, error)
 }
 
 func GatRegistrationService(repo repository.RegistrationRepository) RegistrationService {
@@ -36,7 +38,30 @@ func (s *registrationService) Create(registrationDTO *dto.RegistrationResponseWi
 		logging.Warn("RegistrationService.Create", "INTERNAL_SERVER_ERROR", err.Error())
 		return nil, err
 	}
+
 	return registration, nil
+}
+
+func (s *registrationService) UpdateUser(id_team uint64, id_user uint64) (*entity.User, error) {
+	user := &entity.User{}
+
+	if err := s.registrationRepository.UpdateUserTeam(user, id_team, id_user); err != nil {
+		logging.Warn("RegistrationService.Create", "INTERNAL_SERVER_ERROR", err.Error())
+		return nil, err
+	}
+
+	return user, nil
+}
+
+func (s *registrationService) UpdateUserJoinCode(code string, id_user uint64) (*entity.User, error) {
+	user := &entity.User{}
+
+	if err := s.registrationRepository.UpdateUserTeamJoinCode(user, code, id_user); err != nil {
+		logging.Warn("RegistrationService.Create", "INTERNAL_SERVER_ERROR", err.Error())
+		return nil, err
+	}
+
+	return user, nil
 }
 
 func (s *registrationService) CreateTeam(registrationDTO *dto.RegistrationResponseHackathon) (*entity.HackathonTeam, error) {

@@ -8,17 +8,18 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/mashingan/smapping"
 )
 
 type registrationHandler struct {
 	registrationService service.RegistrationService
 }
 
-type RegistrationHandler interface {
-	Create(*gin.Context)
-}
+// type RegistrationHandler interface {
+// 	Create(*gin.Context)
+// }
 
-func GateRegistrationHandler(service service.RegistrationService) RegistrationHandler {
+func GateRegistrationHandler(service service.RegistrationService) *registrationHandler {
 	return &registrationHandler{
 		registrationService: service,
 	}
@@ -57,10 +58,39 @@ func (h *registrationHandler) Create(c *gin.Context) {
 		return
 	}
 
+	if _, err := h.registrationService.UpdateUser(id_team, team.ID_LeadTeam); err != nil {
+		logging.Low("RegistrationHandler.Create", "BAD_REQUEST", err.Error())
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
+		return
+	}
+
 	combinedResponse := dto.RegistrationCombinedResponse{
 		Registration:  team,
 		HackathonTeam: hackathonTeam,
 	}
 
 	c.JSON(http.StatusCreated, helper.CreateSuccessResponse("Success create data", combinedResponse))
+}
+
+func (h *registrationHandler) UserJoinTeam(c *gin.Context) {
+	registrationDto := &dto.JoinTeam{}
+
+	if err := c.ShouldBind(registrationDto); err != nil {
+		logging.Low("ProfileHandler.Create", "BAD_REQUEST", err.Error())
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
+		return
+	}
+
+	_, err := h.registrationService.UpdateUserJoinCode(registrationDto.TeamCode, registrationDto.IDUser)
+
+	response := &dto.JoinTeam{}
+	smapping.FillStruct(response, smapping.MapFields(registrationDto))
+
+	if err != nil {
+		logging.Low("ProfileHandler.Create", "BAD_REQUEST", err.Error())
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
+		return
+	}
+
+	c.JSON(http.StatusCreated, helper.CreateSuccessResponse("Success create data", response))
 }

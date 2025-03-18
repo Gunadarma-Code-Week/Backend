@@ -43,6 +43,7 @@ func SetupRouter(r *gin.Engine) {
 	// Registration Route
 
 	router.POST("registration_team_hackathon", registrationHandler.Create)
+	router.POST("registration_user_hackathon", registrationHandler.UserJoinTeam)
 
 	// Profile Route
 

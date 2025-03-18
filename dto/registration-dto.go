@@ -16,12 +16,12 @@ type RegistrationResponseWithJoinCode struct {
 }
 
 type RegistrationResponseHackathon struct {
-	Stage            string `json:"stage"`
-	Status           string `json:"status"`
-	ProposalUrl      string `json:"proposal_url"`
-	GithubProjectUrl string `json:"github_project_url"`
-	PitchDeckUrl     string `json:"pitch_deck_url"`
-	IDTeam           uint64 `json:"id_team,omitempty"`
+	Stage            string  `json:"stage"`
+	Status           string  `json:"status"`
+	ProposalUrl      *string `json:"proposal_url"`
+	GithubProjectUrl *string `json:"github_project_url"`
+	PitchDeckUrl     *string `json:"pitch_deck_url"`
+	IDTeam           uint64  `json:"id_team,omitempty"`
 }
 
 type RegistrationRequestHackathon struct {
@@ -32,4 +32,9 @@ type RegistrationRequestHackathon struct {
 type RegistrationCombinedResponse struct {
 	Registration  RegistrationResponseWithJoinCode `json:"registration"`
 	HackathonTeam RegistrationResponseHackathon    `json:"hackathon_team"`
+}
+
+type JoinTeam struct {
+	TeamCode string `json:"team_code"`
+	IDUser   uint64 `json:"id_user"`
 }
