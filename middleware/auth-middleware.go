@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"gcw/entity"
 	"gcw/helper"
 	"gcw/helper/logging"
 	"gcw/service"
@@ -16,6 +17,7 @@ type authMiddleware struct {
 
 type AuthMiddleware interface {
 	JwtAuthMiddleware(*gin.Context)
+	MustUpdatedUserProfile(*gin.Context)
 }
 
 func NewAuthMiddleware(as *service.AuthService, js *service.JwtService) AuthMiddleware {
@@ -61,5 +63,17 @@ func (m *authMiddleware) JwtAuthMiddleware(c *gin.Context) {
 	}
 
 	c.Set("user", user)
+	c.Next()
+}
+
+func (m *authMiddleware) MustUpdatedUserProfile(c *gin.Context) {
+	userAuth := c.MustGet("user").(*entity.User)
+
+	if !userAuth.ProfileHasUpdated {
+		c.JSON(400, helper.CreateErrorResponse("error", "profile has not been updated"))
+		c.Abort()
+		return
+	}
+
 	c.Next()
 }

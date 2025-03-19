@@ -60,6 +60,49 @@ func (h *authHandler) ValidateGoogleIdToken(c *gin.Context) {
 	c.JSON(http.StatusOK, helper.CreateSuccessResponse("success", response))
 }
 
+// regenerate the token
+func (h *authHandler) RefreshToken(c *gin.Context) {
+	refreshTokenDTO := &dto.RefreshTokenDTO{}
+	if err := c.Bind(refreshTokenDTO); err != nil {
+		logging.Low("AuthHandler.Login", "BAD_REQUEST", err.Error())
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
+		return
+	}
+
+	claims, err := h.jwtService.GetClaimsByRefreshToken(refreshTokenDTO.RefreshToken)
+	if err != nil {
+		logging.High("AuthHandler.Login", "INVALID_TOKEN", err.Error())
+		c.JSON(401, helper.CreateErrorResponse("error", "invalid token"))
+		return
+	}
+
+	email, ok := claims["email"].(string)
+	if !ok {
+		c.JSON(401, helper.CreateErrorResponse("error", "email not found in token"))
+		return
+	}
+
+	user, err := h.authService.FindByEmail(email)
+	if err != nil {
+		logging.High("AuthHandler.Login", "USER_NOT_FOUND", err.Error())
+		c.JSON(401, helper.CreateErrorResponse("error", "user not found"))
+		return
+	}
+
+	token := h.jwtService.GenerateToken(user)
+	refreshToken := h.jwtService.GenerateRefreshToken(user)
+
+	userResponse := &dto.UserResponseDTO{}
+	smapping.FillStruct(userResponse, smapping.MapFields(user))
+
+	response := &dto.AuthResponseDTO{}
+	response.User = *userResponse
+	response.AccessToken = token
+	response.RefreshToken = refreshToken
+
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("success", response))
+}
+
 // THIS JUST EXAMPLE, CAN USE THIS ON ANYWHERE
 func (h *authHandler) SendEmailVerificationExample(c *gin.Context) {
 	// use gorooutine to send email, so it will not blocking the main process

@@ -36,7 +36,6 @@ func SetupDatabaseConnection() *gorm.DB {
 			&entity.UserRole{},
 			&entity.Team{},
 			&entity.Seminar{},
-			&entity.Profile{},
 			&entity.HackathonTeam{},
 			&entity.CPTeam{},
 		); err != nil {

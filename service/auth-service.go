@@ -42,6 +42,14 @@ func (s *AuthService) GetUserByGoogleIdToken(idToken string) (*entity.User, erro
 
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			user.Email = email
+
+			name, ok := payload.Claims["name"].(string)
+			if ok {
+				user.Name = name
+			} else {
+				user.Name = email
+			}
+
 			err = s.userRepository.Create(user)
 			if err != nil {
 				return nil, err
