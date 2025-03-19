@@ -1,36 +1,60 @@
 package service
 
 import (
+	"context"
 	"errors"
-	"gcw/dto"
 	"gcw/entity"
 	"gcw/repository"
-	"log"
+	"os"
 
-	"github.com/mashingan/smapping"
-	"golang.org/x/crypto/bcrypt"
+	"google.golang.org/api/idtoken"
 	"gorm.io/gorm"
 )
 
-type authService struct {
+type AuthService struct {
 	userRepository repository.UserRepository
+	googleClientId string
 }
 
-type AuthService interface {
-	Register(*dto.UserRequestDTO) (*entity.User, error)
-	IsDuplicateUsername(string) bool
-	FindByUsername(string) (*entity.User, error)
-	FindByEmail(string) (*entity.User, error)
-	VerifyPassword(string, string) bool
-}
-
-func NewAuthService(ur repository.UserRepository) AuthService {
-	return &authService{
+func NewAuthService(ur repository.UserRepository) *AuthService {
+	return &AuthService{
 		userRepository: ur,
+		googleClientId: os.Getenv("GOOGLE_CLIENT_ID"),
 	}
 }
 
-func (s *authService) FindByEmail(email string) (*entity.User, error) {
+func (s *AuthService) GetUserByGoogleIdToken(idToken string) (*entity.User, error) {
+	user := &entity.User{}
+	ctx := context.Background()
+
+	payload, err := idtoken.Validate(ctx, idToken, s.googleClientId)
+	if err != nil {
+		return nil, err
+	}
+
+	email, ok := payload.Claims["email"].(string)
+	if !ok {
+		return nil, errors.New("email not found in google id token")
+	}
+
+	err = s.userRepository.FindByEmail(email, user)
+	if err != nil {
+
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			user.Email = email
+			err = s.userRepository.Create(user)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		return nil, err
+	}
+
+	return user, nil
+}
+
+func (s *AuthService) FindByEmail(email string) (*entity.User, error) {
 	user := &entity.User{}
 	err := s.userRepository.FindByEmail(email, user)
 	if err != nil {
@@ -38,55 +62,4 @@ func (s *authService) FindByEmail(email string) (*entity.User, error) {
 	}
 
 	return user, nil
-}
-
-func (s *authService) FindByUsername(username string) (*entity.User, error) {
-	user := &entity.User{}
-	err := s.userRepository.FindByUsername(username, user)
-	if err != nil {
-		return nil, err
-	}
-
-	return user, nil
-}
-
-func (s *authService) IsDuplicateUsername(username string) bool {
-	user := &entity.User{}
-	err := s.userRepository.FindByUsername(username, user)
-	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
-		return false
-	}
-	return true
-}
-
-func (s *authService) Register(u *dto.UserRequestDTO) (*entity.User, error) {
-	user := &entity.User{}
-	if err := smapping.FillStruct(user, smapping.MapFields(u)); err != nil {
-		return nil, err
-	}
-	user.Password = hashPassword([]byte(user.Password))
-	if err := s.userRepository.Create(user); err != nil {
-		return nil, err
-	}
-	return user, nil
-}
-
-func (s *authService) VerifyPassword(hashedPwd string, plainPassword string) bool {
-	byteHash := []byte(hashedPwd)
-	bytePwd := []byte(plainPassword)
-	err := bcrypt.CompareHashAndPassword(byteHash, bytePwd)
-	if err != nil {
-		log.Println(err)
-		return false
-	}
-	return true
-}
-
-func hashPassword(password []byte) string {
-	hash, err := bcrypt.GenerateFromPassword(password, bcrypt.MinCost)
-	if err != nil {
-		log.Println(err)
-		panic("Failed to hash a password")
-	}
-	return string(hash)
 }

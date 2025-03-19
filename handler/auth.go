@@ -13,22 +13,12 @@ import (
 )
 
 type authHandler struct {
-	authService  service.AuthService
-	jwtService   service.JwtService
+	authService  *service.AuthService
+	jwtService   *service.JwtService
 	emailService *service.EmailService
 }
 
-// UNECESSARY USING INTERFACE IF JUST ONE IMPLEMENTATION, JUST USE STRUCT
-// u can remove entire interface, n reduce using pointer on unecessary usage just pass by value
-// it can reduce some memory usage / overhead
-
-// type AuthHandler interface {
-// 	Ping(*gin.Context)
-// 	Register(*gin.Context)
-// 	Login(*gin.Context)
-// }
-
-func NewAuthHandler(as service.AuthService, js service.JwtService, es *service.EmailService) *authHandler {
+func NewAuthHandler(as *service.AuthService, js *service.JwtService, es *service.EmailService) *authHandler {
 	return &authHandler{
 		authService:  as,
 		jwtService:   js,
@@ -41,57 +31,31 @@ func (h *authHandler) Ping(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": "ping"})
 }
 
-func (h *authHandler) Login(c *gin.Context) {
-	login := &dto.LoginDTO{}
+func (h *authHandler) ValidateGoogleIdToken(c *gin.Context) {
+	login := &dto.ValidateGoogleIdTokenDTO{}
 	if err := c.Bind(login); err != nil {
+		logging.Low("AuthHandler.Login", "BAD_REQUEST", err.Error())
 		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
 		return
 	}
-	user, err := h.authService.FindByEmail(login.Email)
 
+	user, err := h.authService.GetUserByGoogleIdToken(login.GoogleIdToken)
 	if err != nil {
-		logging.Low("AuthHandler.Login", "INTERNAL_SERVER_ERROR", "Email Not Found")
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Email tidak ditemukan", err.Error()))
-		return
-	}
-
-	if res := (h.authService.VerifyPassword(user.Password, login.Password)); !res {
-		logging.Low("AuthHandler.Login", "INTERNAL_SERVER_ERROR", "Wrong Password")
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Pssword salah", "wrong password"))
-		return
-	}
-
-	token := h.jwtService.GenerateToken(user.Email)
-
-	response := &dto.UserResponseDTO{}
-	smapping.FillStruct(response, smapping.MapFields(user))
-	response.AccessToken = token
-
-	c.JSON(http.StatusOK, helper.CreateSuccessResponse("success", response))
-}
-
-func (h *authHandler) Register(c *gin.Context) {
-	register := &dto.UserRequestDTO{}
-
-	if err := c.Bind(register); err != nil {
-		logging.Low("AuthHandler.Register", "BAD_REQUEST", err.Error())
+		logging.High("AuthHandler.Login", "INTERNAL_SERVER_ERROR", err.Error())
 		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
 		return
 	}
 
-	user, err := h.authService.Register(register)
+	token := h.jwtService.GenerateToken(user)
+	refreshToken := h.jwtService.GenerateRefreshToken(user)
 
-	if err != nil {
-		logging.High("AuthHandler.Register", "INTERNAL_SERVER_ERROR", err.Error())
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
-		return
-	}
+	userResponse := &dto.UserResponseDTO{}
+	smapping.FillStruct(userResponse, smapping.MapFields(user))
 
-	token := h.jwtService.GenerateToken(user.Username)
-
-	response := &dto.UserResponseDTO{}
-	smapping.FillStruct(response, smapping.MapFields(user))
+	response := &dto.AuthResponseDTO{}
+	response.User = *userResponse
 	response.AccessToken = token
+	response.RefreshToken = refreshToken
 
 	c.JSON(http.StatusOK, helper.CreateSuccessResponse("success", response))
 }

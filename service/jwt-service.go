@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"gcw/entity"
 	"os"
 	"time"
 
@@ -9,21 +10,19 @@ import (
 )
 
 type jwtCustomClaim struct {
-	Username string `json:"username"`
+	UserId uint64 `json:"user_id"`
+	Email  string `json:"email"`
+	Role   string `json:"role"`
+
 	jwt.StandardClaims
 }
-type jwtService struct {
+type JwtService struct {
 	secretKey string
 	issuer    string
 }
 
-type JwtService interface {
-	GenerateToken(string) string
-	GetClaimsByToken(string) (jwt.MapClaims, error)
-}
-
-func NewJwtService() JwtService {
-	return &jwtService{
+func NewJwtService() *JwtService {
+	return &JwtService{
 		secretKey: getSecretKey(),
 		issuer:    "url-shortener",
 	}
@@ -37,11 +36,13 @@ func getSecretKey() string {
 	return secretKey
 }
 
-func (j *jwtService) GenerateToken(Email string) string {
+func (j *JwtService) GenerateToken(user *entity.User) string {
 	claims := &jwtCustomClaim{
-		Email,
-		jwt.StandardClaims{
-			ExpiresAt: time.Now().AddDate(1, 0, 0).Unix(),
+		Email:  user.Email,
+		Role:   *user.Role,
+		UserId: user.ID,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(time.Hour * 3).Unix(),
 			Issuer:    j.issuer,
 			IssuedAt:  time.Now().Unix(),
 		},
@@ -54,7 +55,27 @@ func (j *jwtService) GenerateToken(Email string) string {
 	return t
 }
 
-func (j *jwtService) validateToken(token string) (*jwt.Token, error) {
+func (j *JwtService) GenerateRefreshToken(user *entity.User) string {
+	claims := &jwtCustomClaim{
+		Email:  user.Email,
+		Role:   *user.Role,
+		UserId: user.ID,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(time.Hour * 3).Unix(),
+			Issuer:    j.issuer,
+			IssuedAt:  time.Now().Unix(),
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	t, err := token.SignedString([]byte(j.secretKey))
+	if err != nil {
+		panic(err)
+	}
+	return t
+}
+
+func (j *JwtService) validateToken(token string) (*jwt.Token, error) {
 	return jwt.Parse(token, func(t_ *jwt.Token) (interface{}, error) {
 		if _, ok := t_.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method %v", t_.Header["alg"])
@@ -63,7 +84,7 @@ func (j *jwtService) validateToken(token string) (*jwt.Token, error) {
 	})
 }
 
-func (j *jwtService) GetClaimsByToken(token string) (jwt.MapClaims, error) {
+func (j *JwtService) GetClaimsByToken(token string) (jwt.MapClaims, error) {
 	aToken, err := j.validateToken(token)
 	if err != nil {
 		return nil, err

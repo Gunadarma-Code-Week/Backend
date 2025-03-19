@@ -3,6 +3,7 @@ package router
 import (
 	"gcw/config"
 	"gcw/handler"
+	"gcw/middleware"
 	"gcw/repository"
 	"gcw/service"
 	"os"
@@ -26,6 +27,8 @@ var (
 	authHandler         = handler.NewAuthHandler(authService, jwtService, emailService)
 	profileHandler      = handler.GateProfileHandler(profileService)
 	registrationHandler = handler.GateRegistrationHandler(registrationService)
+
+	authMiddleware = middleware.NewAuthMiddleware(authService, jwtService)
 )
 
 func SetupRouter(r *gin.Engine) {
@@ -36,14 +39,18 @@ func SetupRouter(r *gin.Engine) {
 
 	// Authentication Route
 
-	router.POST("login", authHandler.Login)
-	router.POST("register", authHandler.Register)
+	router.POST("validate-google-id-token", authHandler.ValidateGoogleIdToken)
 	router.POST("auth/send-mail-test", authHandler.SendEmailVerificationExample)
 
 	// Registration Route
 
-	router.POST("registration_team_hackathon", registrationHandler.Create)
-	router.POST("registration_user_hackathon", registrationHandler.UserJoinTeam)
+	auth := router.Group("auth")
+	auth.Use(authMiddleware.JwtAuthMiddleware)
+
+	auth.GET("/ping", authHandler.Ping)
+
+	auth.POST("registration_team_hackathon", registrationHandler.Create)
+	auth.POST("registration_user_hackathon", registrationHandler.UserJoinTeam)
 
 	// Profile Route
 
