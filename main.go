@@ -13,10 +13,8 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-)
 
-var (
-	database = config.SetupDatabaseConnection()
+	_ "github.com/joho/godotenv/autoload"
 )
 
 func createLogFile() (*os.File, error) {
@@ -37,7 +35,11 @@ func createLogFile() (*os.File, error) {
 }
 
 func main() {
+	// if err := godotenv.Load(); err != nil {
+	// 	panic("Failed to load env file")
+	// }
 
+	database := config.SetupDatabaseConnection()
 	defer config.CloseDatabaseConnection(database)
 
 	file, err := createLogFile()

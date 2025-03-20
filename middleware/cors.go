@@ -7,12 +7,12 @@ import (
 )
 
 func CORSMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		origin := os.Getenv("CORS_ORIGIN")
-		if origin == "" {
-			origin = "http://localhost:3000"
-		}
+	origin := os.Getenv("CORS_ORIGIN")
+	if origin == "" {
+		origin = "http://localhost:3000"
+	}
 
+	return func(c *gin.Context) {
 		c.Writer.Header().Set("Access-Control-Allow-Origin", origin)
 		c.Writer.Header().Set("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, x-token, cache-control")
 		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
