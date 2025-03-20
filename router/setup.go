@@ -38,28 +38,27 @@ func SetupRouter(r *gin.Engine) {
 	router.GET("/ping", authHandler.Ping)
 
 	// Authentication Route
+	auth := router.Group("auth")
+	auth.POST("validate-google-id-token", authHandler.ValidateGoogleIdToken)
+	auth.POST("send-mail-test", authHandler.SendEmailVerificationExample)
 
-	router.POST("validate-google-id-token", authHandler.ValidateGoogleIdToken)
-	router.POST("refresh-token", authHandler.RefreshToken)
-	router.POST("auth/send-mail-test", authHandler.SendEmailVerificationExample)
+	mustAuth := router.Group("")
+	mustAuth.Use(authMiddleware.JwtAuthMiddleware)
+	mustAuth.GET("mustauth/ping", authHandler.Ping)
 
-	// Registration Route
+	// Profile Route
+	profile := mustAuth.Group("profile")
+	profile.GET("my", userHandler.GetMyProfile)
+	profile.POST("my", userHandler.UpdateMyProfile)
 
-	auth := router.Group("")
-	auth.Use(authMiddleware.JwtAuthMiddleware)
-
-	auth.GET("/auth/ping", authHandler.Ping)
-
-	auth.GET("my-profile", userHandler.GetMyProfile)
-	auth.POST("my-profile", userHandler.UpdateMyProfile)
-
-	mustUpdatedProfile := auth.Group("")
+	mustUpdatedProfile := mustAuth.Group("")
 	mustUpdatedProfile.Use(authMiddleware.MustUpdatedUserProfile)
+	mustUpdatedProfile.GET("mustauth/authupdate/ping", authHandler.Ping)
 
-	mustUpdatedProfile.GET("/authupdate/ping", authHandler.Ping)
-
-	mustUpdatedProfile.POST("registration_team_hackathon", registrationHandler.Create)
-	mustUpdatedProfile.POST("registration_user_hackathon", registrationHandler.UserJoinTeam)
+	// Team Registrasion
+	teamRegistration := mustUpdatedProfile.Group("team/registration")
+	teamRegistration.POST("hackathon", registrationHandler.Create)
+	teamRegistration.POST("hackathon/join", registrationHandler.UserJoinTeam)
 
 	// Profile Route
 

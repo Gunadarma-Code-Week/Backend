@@ -46,10 +46,6 @@ func NewJwtService() *JwtService {
 }
 
 func (j *JwtService) GenerateToken(user *entity.User) string {
-
-	fmt.Println(j.secretKey)
-	fmt.Println(j.refreshKey)
-
 	claims := &jwtCustomClaim{
 		Email:  user.Email,
 		Role:   user.Role,

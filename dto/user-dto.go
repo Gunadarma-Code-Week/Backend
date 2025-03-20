@@ -14,6 +14,9 @@ type UserResponseDTO struct {
 	BirthPlace string     `json:"birth_place"`
 	BirthDate  *time.Time `json:"birth_date"`
 	Institusi  string     `json:"institusi"`
+
+	ProfileHasUpdated bool `json:"profile_has_updated"`
+	DataHasVerified   bool `json:"data_has_verified"`
 }
 
 type UpdateUserProfileDTO struct {
