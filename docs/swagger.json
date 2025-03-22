@@ -1,0 +1,247 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "This is a sample server for GCW API.",
+        "title": "GCW API",
+        "contact": {},
+        "version": "1.0"
+    },
+    "host": "localhost:8000",
+    "basePath": "/api/v1/gcw/resources",
+    "paths": {
+        "/auth/invalidate-cookie": {
+            "post": {
+                "description": "Invalidate Cookie",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Invalidate Cookie",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/helper.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/validate-google-id-token": {
+            "post": {
+                "description": "Validate Google ID Token (Login)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Validate Google ID Token",
+                "parameters": [
+                    {
+                        "description": "Google ID Token",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ValidateGoogleIdTokenDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/helper.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.AuthResponseDTO"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/profile/my": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Get My Profile Data",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/helper.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.UserResponseDTO"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Update My Profile Data",
+                "parameters": [
+                    {
+                        "description": "Update User Profile",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdateUserProfileDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/helper.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.UserResponseDTO"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "dto.AuthResponseDTO": {
+            "type": "object",
+            "properties": {
+                "user": {
+                    "$ref": "#/definitions/dto.UserResponseDTO"
+                }
+            }
+        },
+        "dto.UpdateUserProfileDTO": {
+            "type": "object",
+            "required": [
+                "birth_date",
+                "birth_place",
+                "gender",
+                "institusi",
+                "name",
+                "nim"
+            ],
+            "properties": {
+                "birth_date": {
+                    "type": "string"
+                },
+                "birth_place": {
+                    "type": "string"
+                },
+                "gender": {
+                    "type": "string"
+                },
+                "institusi": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "nim": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.UserResponseDTO": {
+            "type": "object",
+            "properties": {
+                "birth_date": {
+                    "type": "string"
+                },
+                "birth_place": {
+                    "type": "string"
+                },
+                "data_has_verified": {
+                    "type": "boolean"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "gender": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "institusi": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "nim": {
+                    "type": "string"
+                },
+                "profile_has_updated": {
+                    "type": "boolean"
+                },
+                "role": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.ValidateGoogleIdTokenDTO": {
+            "type": "object",
+            "required": [
+                "google_id_token"
+            ],
+            "properties": {
+                "google_id_token": {
+                    "type": "string"
+                }
+            }
+        },
+        "helper.Response": {
+            "type": "object",
+            "properties": {
+                "data": {},
+                "errors": {},
+                "message": {
+                    "type": "string"
+                },
+                "success": {
+                    "type": "boolean"
+                }
+            }
+        }
+    }
+}

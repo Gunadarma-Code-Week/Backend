@@ -15,6 +15,11 @@ import (
 	"github.com/gin-gonic/gin"
 
 	_ "github.com/joho/godotenv/autoload"
+
+	_ "gcw/docs"
+
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func createLogFile() (*os.File, error) {
@@ -34,11 +39,14 @@ func createLogFile() (*os.File, error) {
 	return file, nil
 }
 
-func main() {
-	// if err := godotenv.Load(); err != nil {
-	// 	panic("Failed to load env file")
-	// }
+// @title GCW API
+// @version 1.0
+// @description This is a sample server for GCW API.
 
+// @host localhost:8000
+// @BasePath /api/v1/gcw/resources
+
+func main() {
 	database := config.SetupDatabaseConnection()
 	defer config.CloseDatabaseConnection(database)
 
@@ -53,6 +61,9 @@ func main() {
 	log.SetOutput(file)
 
 	r := gin.Default()
+
+	ginSwagger.URL("http://localhost:8000/swagger/doc.json") // The url pointing to API definition
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// CORS ORIGIN
 	r.Use(middleware.CORSMiddleware())

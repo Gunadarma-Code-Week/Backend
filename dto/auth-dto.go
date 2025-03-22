@@ -1,9 +1,7 @@
 package dto
 
 type AuthResponseDTO struct {
-	AccessToken  string          `json:"access_token"`
-	RefreshToken string          `json:"refresh_token"`
-	User         UserResponseDTO `json:"user"`
+	User UserResponseDTO `json:"user"`
 }
 
 type ValidateGoogleIdTokenDTO struct {

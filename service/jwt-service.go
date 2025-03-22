@@ -2,18 +2,17 @@ package service
 
 import (
 	"fmt"
+	"gcw/dto"
 	"gcw/entity"
 	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt"
+	"github.com/mashingan/smapping"
 )
 
 type jwtCustomClaim struct {
-	UserId uint64 `json:"user_id"`
-	Email  string `json:"email"`
-	Role   string `json:"role"`
-
+	dto.UserResponseDTO
 	jwt.StandardClaims
 }
 type JwtService struct {
@@ -46,10 +45,11 @@ func NewJwtService() *JwtService {
 }
 
 func (j *JwtService) GenerateToken(user *entity.User) string {
+	userResponseDTO := dto.UserResponseDTO{}
+	smapping.FillStruct(&userResponseDTO, smapping.MapFields(user))
+
 	claims := &jwtCustomClaim{
-		Email:  user.Email,
-		Role:   user.Role,
-		UserId: user.ID,
+		UserResponseDTO: userResponseDTO,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(time.Hour * 3).Unix(),
 			Issuer:    j.issuer,
@@ -57,17 +57,19 @@ func (j *JwtService) GenerateToken(user *entity.User) string {
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	t, err := token.SignedString([]byte(j.secretKey))
+	signedToken, err := token.SignedString([]byte(j.secretKey))
 	if err != nil {
 		panic(err)
 	}
-	return t
+	return signedToken
 }
 
 func (j *JwtService) GenerateRefreshToken(user *entity.User) string {
+	userResponseDTO := dto.UserResponseDTO{}
+	smapping.FillStruct(&userResponseDTO, smapping.MapFields(user))
+
 	refreshClaims := &jwtCustomClaim{
-		Email:  user.Email,
-		UserId: user.ID,
+		UserResponseDTO: userResponseDTO,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().AddDate(0, 0, 3).Unix(),
 			Issuer:    j.issuer,
@@ -76,11 +78,11 @@ func (j *JwtService) GenerateRefreshToken(user *entity.User) string {
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshClaims)
-	t, err := token.SignedString([]byte(j.refreshKey))
+	signedToken, err := token.SignedString([]byte(j.refreshKey))
 	if err != nil {
 		panic(err)
 	}
-	return t
+	return signedToken
 }
 
 func (j *JwtService) validateToken(token string, isRefresh bool) (*jwt.Token, error) {

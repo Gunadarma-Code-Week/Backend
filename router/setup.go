@@ -37,10 +37,8 @@ func SetupRouter(r *gin.Engine) {
 
 	router.GET("/ping", authHandler.Ping)
 
-	// Authentication Route
-	auth := router.Group("auth")
-	auth.POST("validate-google-id-token", authHandler.ValidateGoogleIdToken)
-	auth.POST("send-mail-test", authHandler.SendEmailVerificationExample)
+	// Auth Router /auth
+	SetupAuthRouter(router)
 
 	mustAuth := router.Group("")
 	mustAuth.Use(authMiddleware.JwtAuthMiddleware)

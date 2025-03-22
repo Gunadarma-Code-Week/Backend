@@ -23,6 +23,10 @@ func NewUserHandler(us *service.UserService) *UserHandler {
 	}
 }
 
+// @Summary Get My Profile Data
+// @Produce  json
+// @Success 200 {object} helper.Response{data=dto.UserResponseDTO}
+// @Router /profile/my [get]
 func (h *UserHandler) GetMyProfile(c *gin.Context) {
 	userAuth, ok := c.MustGet("user").(*entity.User)
 	if !ok {
@@ -37,6 +41,12 @@ func (h *UserHandler) GetMyProfile(c *gin.Context) {
 	c.JSON(http.StatusOK, helper.CreateSuccessResponse("success", user))
 }
 
+// @Summary Update My Profile Data
+// @Accept json
+// @Produce  json
+// @Param request body dto.UpdateUserProfileDTO true "Update User Profile"
+// @Success 200 {object} helper.Response{data=dto.UserResponseDTO}
+// @Router /profile/my [post]
 func (h *UserHandler) UpdateMyProfile(c *gin.Context) {
 	userUpdateDTO := &dto.UpdateUserProfileDTO{}
 	if err := c.Bind(userUpdateDTO); err != nil {

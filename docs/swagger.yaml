@@ -1,0 +1,154 @@
+basePath: /api/v1/gcw/resources
+definitions:
+  dto.AuthResponseDTO:
+    properties:
+      user:
+        $ref: '#/definitions/dto.UserResponseDTO'
+    type: object
+  dto.UpdateUserProfileDTO:
+    properties:
+      birth_date:
+        type: string
+      birth_place:
+        type: string
+      gender:
+        type: string
+      institusi:
+        type: string
+      name:
+        type: string
+      nim:
+        type: string
+    required:
+    - birth_date
+    - birth_place
+    - gender
+    - institusi
+    - name
+    - nim
+    type: object
+  dto.UserResponseDTO:
+    properties:
+      birth_date:
+        type: string
+      birth_place:
+        type: string
+      data_has_verified:
+        type: boolean
+      email:
+        type: string
+      gender:
+        type: string
+      id:
+        type: integer
+      institusi:
+        type: string
+      name:
+        type: string
+      nim:
+        type: string
+      profile_has_updated:
+        type: boolean
+      role:
+        type: string
+    type: object
+  dto.ValidateGoogleIdTokenDTO:
+    properties:
+      google_id_token:
+        type: string
+    required:
+    - google_id_token
+    type: object
+  helper.Response:
+    properties:
+      data: {}
+      errors: {}
+      message:
+        type: string
+      success:
+        type: boolean
+    type: object
+host: localhost:8000
+info:
+  contact: {}
+  description: This is a sample server for GCW API.
+  title: GCW API
+  version: "1.0"
+paths:
+  /auth/invalidate-cookie:
+    post:
+      consumes:
+      - application/json
+      description: Invalidate Cookie
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/helper.Response'
+      summary: Invalidate Cookie
+  /auth/validate-google-id-token:
+    post:
+      consumes:
+      - application/json
+      description: Validate Google ID Token (Login)
+      parameters:
+      - description: Google ID Token
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ValidateGoogleIdTokenDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.AuthResponseDTO'
+              type: object
+      summary: Validate Google ID Token
+  /profile/my:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.UserResponseDTO'
+              type: object
+      summary: Get My Profile Data
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Update User Profile
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateUserProfileDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.UserResponseDTO'
+              type: object
+      summary: Update My Profile Data
+swagger: "2.0"
