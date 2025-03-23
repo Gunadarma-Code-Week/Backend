@@ -18,11 +18,15 @@ var (
 	// profileRepository      = repository.GateProfileRepository(database)
 	registrationRepository = repository.GateRegistrationRepository(database)
 
-	authService         = service.NewAuthService(userRepository)
-	userService         = service.NewUserService(userRepository)
-	registrationService = service.GatRegistrationService(registrationRepository)
 	jwtService          = service.NewJwtService()
 	emailService        = service.NewEmailService()
+	domJudgeService     = service.NewDomJudgeService()
+	authService         = service.NewAuthService(userRepository)
+	userService         = service.NewUserService(userRepository)
+	registrationService = service.NewRegistrationService(
+		registrationRepository,
+		domJudgeService,
+	)
 
 	authHandler         = handler.NewAuthHandler(authService, jwtService, emailService)
 	userHandler         = handler.NewUserHandler(userService)
@@ -55,9 +59,10 @@ func SetupRouter(r *gin.Engine) {
 
 	// Team Registrasion
 	teamRegistration := mustUpdatedProfile.Group("team/registration")
-	teamRegistration.POST("hackathon", registrationHandler.Create)
-	teamRegistration.POST("hackathon/join", registrationHandler.UserJoinTeam)
-
+	teamRegistration.POST("hackathon", registrationHandler.RegistrationHackathonTeam)
+	teamRegistration.POST("cp", registrationHandler.RegistrationCPTeam)
+	teamRegistration.GET("find/{join_code}", registrationHandler.FindTeam)
+	teamRegistration.POST("join/{join_code}", registrationHandler.UserJoinTeam)
 	// Profile Route
 
 	// router.POST("profile/post", profileHandler.Create)

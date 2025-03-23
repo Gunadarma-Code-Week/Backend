@@ -2,15 +2,12 @@ package handler
 
 import "github.com/gin-gonic/gin"
 
-type competitiveHandler struct {
+type CompetitiveHandler struct {
 }
 
-type CompetitiveHandler interface {
+func GateCompetitiveHandler() *CompetitiveHandler {
+	return &CompetitiveHandler{}
 }
 
-func GateCompetitiveHandler() CompetitiveHandler {
-	return &competitiveHandler{}
-}
-
-func (h *competitiveHandler) Ping(c *gin.Context) {
+func (h *CompetitiveHandler) Ping(c *gin.Context) {
 }

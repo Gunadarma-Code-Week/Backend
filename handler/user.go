@@ -24,6 +24,7 @@ func NewUserHandler(us *service.UserService) *UserHandler {
 }
 
 // @Summary Get My Profile Data
+// @Tags Profile
 // @Produce  json
 // @Success 200 {object} helper.Response{data=dto.UserResponseDTO}
 // @Router /profile/my [get]
@@ -42,6 +43,7 @@ func (h *UserHandler) GetMyProfile(c *gin.Context) {
 }
 
 // @Summary Update My Profile Data
+// @Tags Profile
 // @Accept json
 // @Produce  json
 // @Param request body dto.UpdateUserProfileDTO true "Update User Profile"

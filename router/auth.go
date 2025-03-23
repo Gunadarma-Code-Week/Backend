@@ -12,5 +12,5 @@ func SetupAuthRouter(r *gin.RouterGroup) {
 	mustAuth := auth.Group("")
 	mustAuth.Use(authMiddleware.JwtAuthMiddleware)
 	// logout route
-	mustAuth.POST("invalidate-cookie", authHandler.InvalidateCookie)
+	mustAuth.DELETE("invalidate-cookie", authHandler.InvalidateCookie)
 }

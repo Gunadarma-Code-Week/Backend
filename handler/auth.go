@@ -33,6 +33,7 @@ func (h *authHandler) Ping(c *gin.Context) {
 
 // @Summary Validate Google ID Token
 // @Description Validate Google ID Token (Login)
+// @Tags Auth
 // @Accept  json
 // @Produce  json
 // @Param request body dto.ValidateGoogleIdTokenDTO true "Google ID Token"
@@ -69,10 +70,11 @@ func (h *authHandler) ValidateGoogleIdToken(c *gin.Context) {
 
 // @Summary Invalidate Cookie
 // @Description Invalidate Cookie
+// @Tags Auth
 // @Accept  json
 // @Produce  json
 // @Success 200 {object} helper.Response
-// @Router /auth/invalidate-cookie [post]
+// @Router /auth/invalidate-cookie [delete]
 func (h *authHandler) InvalidateCookie(c *gin.Context) {
 	helper.RemoveTokenRefreshCookie(c)
 	c.JSON(http.StatusOK, helper.CreateSuccessResponse("success", nil))

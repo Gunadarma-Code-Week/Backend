@@ -16,13 +16,16 @@ const docTemplate = `{
     "basePath": "{{.BasePath}}",
     "paths": {
         "/auth/invalidate-cookie": {
-            "post": {
+            "delete": {
                 "description": "Invalidate Cookie",
                 "consumes": [
                     "application/json"
                 ],
                 "produces": [
                     "application/json"
+                ],
+                "tags": [
+                    "Auth"
                 ],
                 "summary": "Invalidate Cookie",
                 "responses": {
@@ -43,6 +46,9 @@ const docTemplate = `{
                 ],
                 "produces": [
                     "application/json"
+                ],
+                "tags": [
+                    "Auth"
                 ],
                 "summary": "Validate Google ID Token",
                 "parameters": [
@@ -83,6 +89,9 @@ const docTemplate = `{
                 "produces": [
                     "application/json"
                 ],
+                "tags": [
+                    "Profile"
+                ],
                 "summary": "Get My Profile Data",
                 "responses": {
                     "200": {
@@ -111,6 +120,9 @@ const docTemplate = `{
                 ],
                 "produces": [
                     "application/json"
+                ],
+                "tags": [
+                    "Profile"
                 ],
                 "summary": "Update My Profile Data",
                 "parameters": [
@@ -145,6 +157,176 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/team/registration/cp": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Team Registration"
+                ],
+                "summary": "Register CP Team",
+                "parameters": [
+                    {
+                        "description": "Register CP Team",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.RegistrationCPTeamRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/helper.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.RegistrationCPTeamResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/team/registration/find/{join_code}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Team Registration"
+                ],
+                "summary": "Find Team",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Join Code",
+                        "name": "join_code",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/helper.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.RegistraionTeamResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/team/registration/hackathon": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Team Registration"
+                ],
+                "summary": "Register Hackathon Team",
+                "parameters": [
+                    {
+                        "description": "Register Hackathon Team",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.RegistrationHackathonTeamRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/helper.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.RegistrationHackathonTeamResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/team/registration/join/{join_code}": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Team Registration"
+                ],
+                "summary": "Join Team",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Join Code",
+                        "name": "join_code",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/helper.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.RegistraionTeamResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -153,6 +335,146 @@ const docTemplate = `{
             "properties": {
                 "user": {
                     "$ref": "#/definitions/dto.UserResponseDTO"
+                }
+            }
+        },
+        "dto.RegistraionTeamResponse": {
+            "type": "object",
+            "required": [
+                "supervisor",
+                "supervisor_nidn",
+                "team_name"
+            ],
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "id_team": {
+                    "type": "integer"
+                },
+                "supervisor": {
+                    "type": "string"
+                },
+                "supervisor_nidn": {
+                    "type": "string"
+                },
+                "team_name": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.RegistrationCPResponse": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "domjudge_password": {
+                    "type": "string"
+                },
+                "domjudge_username": {
+                    "type": "string"
+                },
+                "id_cp_team": {
+                    "type": "integer"
+                },
+                "id_team": {
+                    "type": "integer"
+                },
+                "stage": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.RegistrationCPTeamRequest": {
+            "type": "object",
+            "required": [
+                "supervisor",
+                "supervisor_nidn",
+                "team_name"
+            ],
+            "properties": {
+                "supervisor": {
+                    "type": "string"
+                },
+                "supervisor_nidn": {
+                    "type": "string"
+                },
+                "team_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.RegistrationCPTeamResponse": {
+            "type": "object",
+            "properties": {
+                "cpteam": {
+                    "$ref": "#/definitions/dto.RegistrationCPResponse"
+                },
+                "team": {
+                    "$ref": "#/definitions/dto.RegistraionTeamResponse"
+                }
+            }
+        },
+        "dto.RegistrationHackathonResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "id_HackathonTeam": {
+                    "type": "integer"
+                },
+                "id_team": {
+                    "type": "integer"
+                },
+                "stage": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.RegistrationHackathonTeamRequest": {
+            "type": "object",
+            "required": [
+                "supervisor",
+                "supervisor_nidn",
+                "team_name"
+            ],
+            "properties": {
+                "supervisor": {
+                    "type": "string"
+                },
+                "supervisor_nidn": {
+                    "type": "string"
+                },
+                "team_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.RegistrationHackathonTeamResponse": {
+            "type": "object",
+            "properties": {
+                "hackathonTeam": {
+                    "$ref": "#/definitions/dto.RegistrationHackathonResponse"
+                },
+                "team": {
+                    "$ref": "#/definitions/dto.RegistraionTeamResponse"
                 }
             }
         },

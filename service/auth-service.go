@@ -39,7 +39,6 @@ func (s *AuthService) GetUserByGoogleIdToken(idToken string) (*entity.User, erro
 
 	err = s.userRepository.FindByEmail(email, user)
 	if err != nil {
-
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			user.Email = email
 
@@ -54,9 +53,9 @@ func (s *AuthService) GetUserByGoogleIdToken(idToken string) (*entity.User, erro
 			if err != nil {
 				return nil, err
 			}
+		} else {
+			return nil, err
 		}
-
-		return nil, err
 	}
 
 	return user, nil

@@ -2,6 +2,7 @@ package handler
 
 import (
 	"gcw/dto"
+	"gcw/entity"
 	"gcw/helper"
 	"gcw/helper/logging"
 	"gcw/service"
@@ -12,21 +13,24 @@ import (
 )
 
 type registrationHandler struct {
-	registrationService service.RegistrationService
+	registrationService *service.RegistrationService
 }
 
-// type RegistrationHandler interface {
-// 	Create(*gin.Context)
-// }
-
-func GateRegistrationHandler(service service.RegistrationService) *registrationHandler {
+func GateRegistrationHandler(service *service.RegistrationService) *registrationHandler {
 	return &registrationHandler{
 		registrationService: service,
 	}
 }
 
-func (h *registrationHandler) Create(c *gin.Context) {
-	registrationDto := &dto.RegistrationRequestHackathon{}
+// @Summary Register CP Team
+// @Tags Team Registration
+// @Accept json
+// @Produce  json
+// @Param request body dto.RegistrationCPTeamRequest true "Register CP Team"
+// @Success 200 {object} helper.Response{data=dto.RegistrationCPTeamResponse}
+// @Router /team/registration/cp [post]
+func (h *registrationHandler) RegistrationCPTeam(c *gin.Context) {
+	registrationDto := &dto.RegistrationCPTeamRequest{}
 
 	if err := c.ShouldBind(registrationDto); err != nil {
 		logging.Low("ProfileHandler.Create", "BAD_REQUEST", err.Error())
@@ -34,46 +38,27 @@ func (h *registrationHandler) Create(c *gin.Context) {
 		return
 	}
 
-	joinCode := helper.GenerateJoinCode()
-	registrationDto.JoinCode = joinCode
+	userAuth := c.MustGet("user").(*entity.User)
 
-	team := registrationDto.RegistrationResponseWithJoinCode
-	hackathonTeam := registrationDto.RegistrationResponseHackathon
-
-	registration, err := h.registrationService.Create(&team)
-
+	registrationCPTeamResponse, err := h.registrationService.CPTeamRegistration(registrationDto, userAuth)
 	if err != nil {
-		logging.Low("RegistrationHandler.Create", "BAD_REQUEST", err.Error())
+		logging.Low("ProfileHandler.Create", "BAD_REQUEST", err.Error())
 		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
 		return
 	}
 
-	id_team := registration.ID_Team
-
-	hackathonTeam.IDTeam = id_team
-
-	if _, err := h.registrationService.CreateTeam(&hackathonTeam); err != nil {
-		logging.Low("RegistrationHandler.Create", "BAD_REQUEST", err.Error())
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
-		return
-	}
-
-	if _, err := h.registrationService.UpdateUser(id_team, team.ID_LeadTeam); err != nil {
-		logging.Low("RegistrationHandler.Create", "BAD_REQUEST", err.Error())
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
-		return
-	}
-
-	combinedResponse := dto.RegistrationCombinedResponse{
-		Registration:  team,
-		HackathonTeam: hackathonTeam,
-	}
-
-	c.JSON(http.StatusCreated, helper.CreateSuccessResponse("Success create data", combinedResponse))
+	c.JSON(http.StatusCreated, helper.CreateSuccessResponse("Success register cp team", registrationCPTeamResponse))
 }
 
-func (h *registrationHandler) UserJoinTeam(c *gin.Context) {
-	registrationDto := &dto.JoinTeam{}
+// @Summary Register Hackathon Team
+// @Tags Team Registration
+// @Accept json
+// @Produce  json
+// @Param request body dto.RegistrationHackathonTeamRequest true "Register Hackathon Team"
+// @Success 200 {object} helper.Response{data=dto.RegistrationHackathonTeamResponse}
+// @Router /team/registration/hackathon [post]
+func (h *registrationHandler) RegistrationHackathonTeam(c *gin.Context) {
+	registrationDto := &dto.RegistrationHackathonTeamRequest{}
 
 	if err := c.ShouldBind(registrationDto); err != nil {
 		logging.Low("ProfileHandler.Create", "BAD_REQUEST", err.Error())
@@ -81,16 +66,70 @@ func (h *registrationHandler) UserJoinTeam(c *gin.Context) {
 		return
 	}
 
-	_, err := h.registrationService.UpdateUserJoinCode(registrationDto.TeamCode, registrationDto.IDUser)
+	userAuth := c.MustGet("user").(*entity.User)
 
-	response := &dto.JoinTeam{}
-	smapping.FillStruct(response, smapping.MapFields(registrationDto))
-
+	registrationHackathonTeamResponse, err := h.registrationService.HackathonTeamRegistration(registrationDto, userAuth)
 	if err != nil {
 		logging.Low("ProfileHandler.Create", "BAD_REQUEST", err.Error())
 		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
 		return
 	}
 
-	c.JSON(http.StatusCreated, helper.CreateSuccessResponse("Success create data", response))
+	c.JSON(http.StatusCreated, helper.CreateSuccessResponse("Success register hackathon team", registrationHackathonTeamResponse))
+}
+
+// @Summary Find Team
+// @Tags Team Registration
+// @Produce  json
+// @Param join_code query string true "Join Code"
+// @Success 200 {object} helper.Response{data=dto.RegistraionTeamResponse}
+// @Router /team/registration/find/{join_code} [get]
+func (h *registrationHandler) FindTeam(c *gin.Context) {
+	joinCode := c.Query("join_code")
+
+	team, err := h.registrationService.FindTeamByJoinCode(joinCode)
+	if err != nil {
+		logging.Low("ProfileHandler.Create", "BAD_REQUEST", err.Error())
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
+		return
+	}
+
+	registraionTeamResponse := &dto.RegistraionTeamResponse{}
+	err = smapping.FillStruct(registraionTeamResponse, smapping.MapFields(team))
+	if err != nil {
+		logging.Low("RegistrationService.CPTeamRegistration", "INTERNAL_SERVER_ERROR", err.Error())
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
+		return
+	}
+
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Success Find Team", registraionTeamResponse))
+}
+
+// @Summary Join Team
+// @Tags Team Registration
+// @Produce  json
+// @Param join_code query string true "Join Code"
+// @Success 200 {object} helper.Response{data=dto.RegistraionTeamResponse}
+// @Router /team/registration/join/{join_code} [post]
+func (h *registrationHandler) UserJoinTeam(c *gin.Context) {
+	joinCode := c.Query("join_code")
+
+	userAuth := c.MustGet("user").(*entity.User)
+
+	team, err := h.registrationService.JoinTeam(joinCode, userAuth)
+	if err != nil {
+		logging.Low("ProfileHandler.Create", "BAD_REQUEST", err.Error())
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
+		return
+	}
+
+	registraionTeamResponse := &dto.RegistraionTeamResponse{}
+	err = smapping.FillStruct(registraionTeamResponse, smapping.MapFields(team))
+	if err != nil {
+		logging.Low("RegistrationService.CPTeamRegistration", "INTERNAL_SERVER_ERROR", err.Error())
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
+		return
+	}
+
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Success Join Team", registraionTeamResponse))
 }

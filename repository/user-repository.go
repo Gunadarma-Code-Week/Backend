@@ -16,6 +16,8 @@ type UserRepository interface {
 	FindById(uint64, *entity.User) error
 	Create(*entity.User) error
 	Update(u *entity.User, id uint64) error
+
+	UpdateTeamId(idUser uint64, idTeam uint64) error
 }
 
 func NewUserRepository(db *gorm.DB) UserRepository {
@@ -60,6 +62,14 @@ func (r *userRepository) Create(u *entity.User) error {
 func (r *userRepository) Update(u *entity.User, id uint64) error {
 	u.ID = id
 	res := r.DB.Where("id = ?", id).Updates(&u)
+	if err := res.Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *userRepository) UpdateTeamId(idUser uint64, idTeam uint64) error {
+	res := r.DB.Model(&entity.User{}).Where("id = ?", idUser).Update("id_team", idTeam)
 	if err := res.Error; err != nil {
 		return err
 	}

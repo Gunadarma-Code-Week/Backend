@@ -1,80 +1,266 @@
 package service
 
 import (
+	"errors"
+	"fmt"
 	"gcw/dto"
 	"gcw/entity"
+	"gcw/helper"
 	"gcw/helper/logging"
 	"gcw/repository"
 
 	"github.com/mashingan/smapping"
+	"gorm.io/gorm"
 )
 
-type registrationService struct {
-	registrationRepository repository.RegistrationRepository
+type RegistrationService struct {
+	registrationRepository *repository.RegistrationRepository
+	domJudgeService        *DomJudgeService
 }
 
-type RegistrationService interface {
-	Create(*dto.RegistrationResponseWithJoinCode) (*entity.Team, error)
-	CreateTeam(*dto.RegistrationResponseHackathon) (*entity.HackathonTeam, error)
-	UpdateUser(uint64, uint64) (*entity.User, error)
-	UpdateUserJoinCode(string, uint64) (*entity.User, error)
-}
-
-func GatRegistrationService(repo repository.RegistrationRepository) RegistrationService {
-	return &registrationService{
-		registrationRepository: repo,
+func NewRegistrationService(
+	rp *repository.RegistrationRepository,
+	ds *DomJudgeService,
+) *RegistrationService {
+	return &RegistrationService{
+		registrationRepository: rp,
+		domJudgeService:        ds,
 	}
 }
 
-func (s *registrationService) Create(registrationDTO *dto.RegistrationResponseWithJoinCode) (*entity.Team, error) {
-	registration := &entity.Team{}
+func (s *RegistrationService) CPTeamRegistration(
+	registrationDTO *dto.RegistrationCPTeamRequest,
+	userLead *entity.User,
+) (*dto.RegistrationCPTeamResponse, error) {
+	teamRegistration := &entity.Team{
+		TeamName:       registrationDTO.TeamName,
+		Supervisor:     registrationDTO.Supervisor,
+		SupervisorNIDN: registrationDTO.SupervisorNIDN,
+		ID_LeadTeam:    userLead.ID,
+		Event:          "cp",
+	}
 
-	if err := smapping.FillStruct(registration, smapping.MapFields(registrationDTO)); err != nil {
-		logging.Low("RegistrationService.Create", "BAD_REQUEST", err.Error())
+	if userLead.IDTeam != nil {
+		logging.Low("RegistrationService.CPTeamRegistration", "BAD_REQUEST", "User already have team")
+		return nil, fmt.Errorf("USER ALREADY HAVE TEAM")
+	}
+
+	var joinCode string
+
+	for {
+		joinCode = helper.RandomStringNumber(6)
+		err := s.registrationRepository.FindTeamByJoinCode(&entity.Team{}, joinCode)
+		if err != nil {
+			break
+		}
+	}
+	teamRegistration.JoinCode = joinCode
+
+	// create domjudge team first before creating team
+	domJudgeUsername, domJudgePassword, err := s.domJudgeService.CreateDomJudgeTeamUser(
+		joinCode,
+		registrationDTO.TeamName,
+		userLead.Email,
+	)
+	if err != nil {
+		logging.Low("RegistrationService.CPTeamRegistration", "INTERNAL_SERVER_ERROR", err.Error())
 		return nil, err
 	}
 
-	if err := s.registrationRepository.Create(registration); err != nil {
-		logging.Warn("RegistrationService.Create", "INTERNAL_SERVER_ERROR", err.Error())
+	tx := s.registrationRepository.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+	// create team
+	err = s.registrationRepository.CreateTeam(tx, teamRegistration)
+	if err != nil {
+		logging.Low("RegistrationService.CPTeamRegistration", "INTERNAL_SERVER_ERROR", err.Error())
+		tx.Rollback()
 		return nil, err
 	}
 
-	return registration, nil
+	// create cp team
+	cpTeam := &entity.CPTeam{
+		IDTeam:           teamRegistration.ID_Team,
+		Stage:            "Registration",
+		Status:           "Registration",
+		DomjudgeUsername: domJudgeUsername,
+		DomjudgePassword: domJudgePassword,
+	}
+	err = s.registrationRepository.CreateCPTeam(tx, cpTeam)
+	if err != nil {
+		logging.Low("RegistrationService.CPTeamRegistration", "INTERNAL_SERVER_ERROR", err.Error())
+		tx.Rollback()
+		return nil, err
+	}
+
+	// update user team id
+	err = s.registrationRepository.UpdateUserTeam(tx, userLead, teamRegistration.ID_Team, userLead.ID)
+	if err != nil {
+		logging.Low("RegistrationService.CPTeamRegistration", "INTERNAL_SERVER_ERROR", err.Error())
+		tx.Rollback()
+		return nil, err
+	}
+
+	err = tx.Commit().Error
+	if err != nil {
+		logging.Low("RegistrationService.CPTeamRegistration", "INTERNAL_SERVER_ERROR", err.Error())
+		return nil, err
+	}
+
+	registrationTeamResponse := &dto.RegistraionTeamResponse{}
+	err = smapping.FillStruct(registrationTeamResponse, smapping.MapFields(teamRegistration))
+	if err != nil {
+		logging.Low("RegistrationService.CPTeamRegistration", "INTERNAL_SERVER_ERROR", err.Error())
+		return nil, err
+	}
+
+	registrasionCPResponse := &dto.RegistrationCPResponse{}
+	err = smapping.FillStruct(registrasionCPResponse, smapping.MapFields(cpTeam))
+	if err != nil {
+		logging.Low("RegistrationService.CPTeamRegistration", "INTERNAL_SERVER_ERROR", err.Error())
+		return nil, err
+	}
+
+	registrationCPTeamResponse := &dto.RegistrationCPTeamResponse{
+		Team:   *registrationTeamResponse,
+		CPTeam: *registrasionCPResponse,
+	}
+
+	return registrationCPTeamResponse, nil
 }
 
-func (s *registrationService) UpdateUser(id_team uint64, id_user uint64) (*entity.User, error) {
-	user := &entity.User{}
+func (s *RegistrationService) HackathonTeamRegistration(
+	registrationDTO *dto.RegistrationHackathonTeamRequest,
+	userLead *entity.User,
+) (*dto.RegistrationHackathonTeamResponse, error) {
+	if userLead.IDTeam != nil {
+		logging.Low("RegistrationService.HackathonTeamRegistration", "BAD_REQUEST", "User already have team")
+		return nil, fmt.Errorf("USER ALREADY HAVE TEAM")
+	}
 
-	if err := s.registrationRepository.UpdateUserTeam(user, id_team, id_user); err != nil {
-		logging.Warn("RegistrationService.Create", "INTERNAL_SERVER_ERROR", err.Error())
+	teamRegistration := &entity.Team{
+		TeamName:       registrationDTO.TeamName,
+		Supervisor:     registrationDTO.Supervisor,
+		SupervisorNIDN: registrationDTO.SupervisorNIDN,
+		ID_LeadTeam:    userLead.ID,
+		Event:          "hackathon",
+	}
+
+	var joinCode string
+
+	for {
+		joinCode = helper.RandomStringNumber(6)
+		err := s.registrationRepository.FindTeamByJoinCode(&entity.Team{}, joinCode)
+		if err != nil {
+			break
+		}
+	}
+	teamRegistration.JoinCode = joinCode
+
+	tx := s.registrationRepository.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+	// create team
+	err := s.registrationRepository.CreateTeam(tx, teamRegistration)
+	if err != nil {
+		logging.Low("RegistrationService.HackathonTeamRegistration", "INTERNAL_SERVER_ERROR", err.Error())
+		tx.Rollback()
 		return nil, err
 	}
 
-	return user, nil
+	// create hackathon team
+	hackathonTeam := &entity.HackathonTeam{
+		IDTeam: teamRegistration.ID_Team,
+		Stage:  "Registration",
+		Status: "Registration",
+	}
+	err = s.registrationRepository.CreateHackathonTeam(tx, hackathonTeam)
+	if err != nil {
+		logging.Low("RegistrationService.HackathonTeamRegistration", "INTERNAL_SERVER_ERROR", err.Error())
+		tx.Rollback()
+		return nil, err
+	}
+
+	// update user team id
+	err = s.registrationRepository.UpdateUserTeam(tx, userLead, teamRegistration.ID_Team, userLead.ID)
+	if err != nil {
+		logging.Low("RegistrationService.HackathonTeamRegistration", "INTERNAL_SERVER_ERROR", err.Error())
+		tx.Rollback()
+		return nil, err
+	}
+
+	err = tx.Commit().Error
+	if err != nil {
+		logging.Low("RegistrationService.HackathonTeamRegistration", "INTERNAL_SERVER_ERROR", err.Error())
+		return nil, err
+	}
+
+	registrationTeamResponse := &dto.RegistraionTeamResponse{}
+	err = smapping.FillStruct(registrationTeamResponse, smapping.MapFields(teamRegistration))
+	if err != nil {
+		logging.Low("RegistrationService.HackathonTeamRegistration", "INTERNAL_SERVER_ERROR", err.Error())
+		return nil, err
+	}
+
+	registrasionHackathonResponse := &dto.RegistrationHackathonResponse{}
+	err = smapping.FillStruct(registrasionHackathonResponse, smapping.MapFields(hackathonTeam))
+	if err != nil {
+		logging.Low("RegistrationService.HackathonTeamRegistration", "INTERNAL_SERVER_ERROR", err.Error())
+		return nil, err
+	}
+
+	registrationHackathonTeamResponse := &dto.RegistrationHackathonTeamResponse{
+		Team:          *registrationTeamResponse,
+		HackathonTeam: *registrasionHackathonResponse,
+	}
+
+	return registrationHackathonTeamResponse, nil
 }
 
-func (s *registrationService) UpdateUserJoinCode(code string, id_user uint64) (*entity.User, error) {
-	user := &entity.User{}
-
-	if err := s.registrationRepository.UpdateUserTeamJoinCode(user, code, id_user); err != nil {
-		logging.Warn("RegistrationService.Create", "INTERNAL_SERVER_ERROR", err.Error())
+func (s *RegistrationService) FindTeamByJoinCode(joinCode string) (*entity.Team, error) {
+	team := &entity.Team{}
+	err := s.registrationRepository.FindTeamByJoinCode(team, joinCode)
+	if err != nil {
+		logging.Low("RegistrationService.FindTeamByJoinCode", "INTERNAL_SERVER_ERROR", err.Error())
 		return nil, err
 	}
 
-	return user, nil
+	return team, nil
 }
 
-func (s *registrationService) CreateTeam(registrationDTO *dto.RegistrationResponseHackathon) (*entity.HackathonTeam, error) {
-	registration := &entity.HackathonTeam{}
-
-	if err := smapping.FillStruct(registration, smapping.MapFields(registrationDTO)); err != nil {
-		logging.Low("RegistrationService.Create", "BAD_REQUEST", err.Error())
+func (s *RegistrationService) JoinTeam(
+	joinCode string,
+	user *entity.User,
+) (*entity.Team, error) {
+	team := &entity.Team{}
+	err := s.registrationRepository.FindTeamByJoinCode(team, joinCode)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			logging.Low("RegistrationService.JoinTeam", "NOT_FOUND", "Team not found")
+			return nil, fmt.Errorf("TEAM NOT FOUND")
+		}
+		logging.Low("RegistrationService.JoinTeam", "INTERNAL_SERVER_ERROR", err.Error())
 		return nil, err
 	}
 
-	if err := s.registrationRepository.CreateTeam(registration); err != nil {
-		logging.Warn("RegistrationService.Create", "INTERNAL_SERVER_ERROR", err.Error())
+	if user.IDTeam != nil {
+		logging.Low("RegistrationService.JoinTeam", "BAD_REQUEST", "User already have team")
+		return nil, fmt.Errorf("USER ALREADY HAVE TEAM")
+	}
+
+	// NOTE : better create new function for this instead use tx func
+	db := s.registrationRepository.DB
+	err = s.registrationRepository.UpdateUserTeam(db, user, team.ID_Team, user.ID)
+	if err != nil {
+		logging.Low("RegistrationService.JoinTeam", "INTERNAL_SERVER_ERROR", err.Error())
 		return nil, err
 	}
-	return registration, nil
+
+	return team, nil
 }
