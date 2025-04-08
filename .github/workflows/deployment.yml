@@ -1,0 +1,26 @@
+name: Deploy
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  build-and-deploy:
+    name: Build and Deploy
+    runs-on: ubuntu-latest
+    steps:
+        -   name: Create .env and restart the server
+            uses: appleboy/ssh-action@master
+            with:
+                host: ${{secrets.SERVER_IP}}
+                username: ${{secrets.SSH_USER}}
+                key: ${{secrets.PROD_SSH_PRIVATE_KEY}}
+                port: ${{secrets.SSH_PORT}}
+                script: |
+                    cd /home/ubuntu/go/src/gcw-be
+                    git pull origin main
+                    go mod download
+                    go build .
+                    pm2 restart gcw-be
