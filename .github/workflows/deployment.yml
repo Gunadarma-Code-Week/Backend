@@ -19,7 +19,14 @@ jobs:
                 key: ${{secrets.PROD_SSH_PRIVATE_KEY}}
                 port: ${{secrets.SSH_PORT}}
                 script: |
-                    source /home/ubuntu/.bashrc
+                    # Explicitly set PATH to include go and pm2
+                    export PATH=$PATH:/usr/local/go/bin:/home/ubuntu/.nvm/versions/node/v22.14.0/bin
+                    # Source bashrc to load environment variables
+                    if [ -f ~/.bashrc ]; then
+                      source ~/.bashrc
+                    fi
+                    # Debug PATH to verify it includes the required directories
+                    echo $PATH
                     cd /home/ubuntu/go/src/gcw-be
                     git pull origin main
                     go mod download
