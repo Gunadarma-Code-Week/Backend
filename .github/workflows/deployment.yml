@@ -11,7 +11,7 @@ jobs:
     name: Build and Deploy
     runs-on: ubuntu-latest
     steps:
-        -   name: Create .env and restart the server
+        -   name: ssh n update
             uses: appleboy/ssh-action@master
             with:
                 host: ${{secrets.SERVER_IP}}
@@ -19,8 +19,9 @@ jobs:
                 key: ${{secrets.PROD_SSH_PRIVATE_KEY}}
                 port: ${{secrets.SSH_PORT}}
                 script: |
+                    source /home/ubuntu/.bashrc
                     cd /home/ubuntu/go/src/gcw-be
                     git pull origin main
-                    /usr/local/go/bin/go mod download
-                    /usr/local/go/bin/go build .
-                    /home/ubuntu/.nvm/versions/node/v22.14.0/bin/pm2 restart gcw-be
+                    go mod download
+                    go build .
+                    pm2 restart gcw-be
