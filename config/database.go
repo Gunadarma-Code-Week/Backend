@@ -32,6 +32,7 @@ func SetupDatabaseConnection() *gorm.DB {
 			&entity.Seminar{},
 			&entity.HackathonTeam{},
 			&entity.CPTeam{},
+			&entity.NewsLetter{},
 		); err != nil {
 			panic(err)
 		}

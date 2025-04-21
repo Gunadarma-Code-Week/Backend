@@ -14,7 +14,8 @@ import (
 var (
 	database = config.SetupDatabaseConnection()
 
-	userRepository = repository.NewUserRepository(database)
+	userRepository       = repository.NewUserRepository(database)
+	newsletterRepository = repository.NewNewsletterRepository(database)
 	// profileRepository      = repository.GateProfileRepository(database)
 	registrationRepository = repository.GateRegistrationRepository(database)
 
@@ -27,10 +28,12 @@ var (
 		registrationRepository,
 		domJudgeService,
 	)
+	newsletterService = service.NewNewsletterService(newsletterRepository)
 
 	authHandler         = handler.NewAuthHandler(authService, jwtService, emailService)
 	userHandler         = handler.NewUserHandler(userService)
 	registrationHandler = handler.GateRegistrationHandler(registrationService)
+	newsletterHandler   = handler.NewNewsletterHandler(newsletterService)
 
 	authMiddleware = middleware.NewAuthMiddleware(authService, jwtService)
 )
@@ -70,4 +73,12 @@ func SetupRouter(r *gin.Engine) {
 
 	// admin_api_base_url := os.Getenv("ADMIN_API_BASE_URL")
 	// admin_router := r.Group(admin_api_base_url)
+
+	newsletter := r.Group("/newsletter")
+	{
+		newsletter.POST("/", newsletterHandler.CreateNewsletter)
+		newsletter.GET("/:id", newsletterHandler.GetNewsLetter)
+		newsletter.PUT("/:id", newsletterHandler.UpdateNewsLetter)
+		newsletter.DELETE("/:id", newsletterHandler.DeleteNewsLetter)
+	}
 }
