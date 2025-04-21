@@ -61,23 +61,61 @@ func (h *authHandler) ValidateGoogleIdToken(c *gin.Context) {
 	smapping.FillStruct(userResponse, smapping.MapFields(user))
 
 	response := &dto.AuthResponseDTO{}
+	response.AccessToken = token
+	response.RefreshToken = refreshToken
 	response.User = *userResponse
-
-	helper.SetTokenRefreshCookie(c, token, refreshToken)
 
 	c.JSON(http.StatusOK, helper.CreateSuccessResponse("success", response))
 }
 
-// @Summary Invalidate Cookie
-// @Description Invalidate Cookie
+// @Summary Refresh Token
+// @Description Refresh Token
 // @Tags Auth
 // @Accept  json
 // @Produce  json
-// @Success 200 {object} helper.Response
-// @Router /auth/invalidate-cookie [delete]
-func (h *authHandler) InvalidateCookie(c *gin.Context) {
-	helper.RemoveTokenRefreshCookie(c)
-	c.JSON(http.StatusOK, helper.CreateSuccessResponse("success", nil))
+// @Param request body dto.RefreshTokenDTO true "Refresh Token"
+// @Success 200 {object} helper.Response{data=dto.AuthResponseDTO}
+// @Router /auth/refresh-token [post]
+func (h *authHandler) RefreshToken(c *gin.Context) {
+	refreshToken := &dto.RefreshTokenDTO{}
+	if err := c.Bind(refreshToken); err != nil {
+		logging.Low("AuthHandler.RefreshToken", "BAD_REQUEST", err.Error())
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
+		return
+	}
+
+	payload, err := h.jwtService.GetClaimsByRefreshToken(refreshToken.RefreshToken)
+	if err != nil {
+		logging.High("AuthHandler.RefreshToken", "INTERNAL_SERVER_ERROR", err.Error())
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
+		return
+	}
+
+	userId := uint64(payload["id"].(float64))
+	if userId == 0 {
+		logging.High("AuthHandler.RefreshToken", "INTERNAL_SERVER_ERROR", "user_id not found in payload")
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", "user_id not found in payload"))
+		return
+	}
+
+	user, err := h.authService.GetUserById(userId)
+	if err != nil {
+		logging.High("AuthHandler.RefreshToken", "INTERNAL_SERVER_ERROR", err.Error())
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
+		return
+	}
+	newToken := h.jwtService.GenerateToken(user)
+	newRefreshToken := h.jwtService.GenerateRefreshToken(user)
+
+	userResponse := &dto.UserResponseDTO{}
+	smapping.FillStruct(userResponse, smapping.MapFields(user))
+
+	response := &dto.AuthResponseDTO{}
+	response.AccessToken = newToken
+	response.RefreshToken = newRefreshToken
+	response.User = *userResponse
+
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("success", response))
 }
 
 // THIS JUST EXAMPLE, CAN USE THIS ON ANYWHERE

@@ -61,6 +61,18 @@ func (s *AuthService) GetUserByGoogleIdToken(idToken string) (*entity.User, erro
 	return user, nil
 }
 
+func (s *AuthService) GetUserById(id uint64) (*entity.User, error) {
+	user := &entity.User{}
+	err := s.userRepository.FindById(id, user)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("user not found")
+		}
+		return nil, err
+	}
+	return user, nil
+}
+
 func (s *AuthService) FindByEmail(email string) (*entity.User, error) {
 	user := &entity.User{}
 	err := s.userRepository.FindByEmail(email, user)

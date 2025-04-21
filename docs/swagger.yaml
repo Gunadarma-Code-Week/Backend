@@ -2,8 +2,19 @@ basePath: /api/v1/gcw/resources
 definitions:
   dto.AuthResponseDTO:
     properties:
+      access_token:
+        type: string
+      refresh_token:
+        type: string
       user:
         $ref: '#/definitions/dto.UserResponseDTO'
+    type: object
+  dto.RefreshTokenDTO:
+    properties:
+      refresh_token:
+        type: string
+    required:
+    - refresh_token
     type: object
   dto.RegistraionTeamResponse:
     properties:
@@ -168,19 +179,31 @@ info:
   title: GCW API
   version: "1.0"
 paths:
-  /auth/invalidate-cookie:
-    delete:
+  /auth/refresh-token:
+    post:
       consumes:
       - application/json
-      description: Invalidate Cookie
+      description: Refresh Token
+      parameters:
+      - description: Refresh Token
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.RefreshTokenDTO'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/helper.Response'
-      summary: Invalidate Cookie
+            allOf:
+            - $ref: '#/definitions/helper.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.AuthResponseDTO'
+              type: object
+      summary: Refresh Token
       tags:
       - Auth
   /auth/validate-google-id-token:

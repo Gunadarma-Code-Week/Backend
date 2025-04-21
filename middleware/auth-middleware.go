@@ -27,8 +27,10 @@ func NewAuthMiddleware(as *service.AuthService, js *service.JwtService) AuthMidd
 }
 
 func (m *authMiddleware) JwtAuthMiddleware(c *gin.Context) {
-	token, err := c.Cookie("gcw_api_token")
-	if err != nil || token == "" {
+	// get token from header
+	token := c.Request.Header.Get("Authorization")
+	token = token[7:]
+	if token == "" {
 		c.JSON(401, helper.CreateErrorResponse("error", "token is required"))
 		c.Abort()
 		return
@@ -36,68 +38,35 @@ func (m *authMiddleware) JwtAuthMiddleware(c *gin.Context) {
 
 	claims, err := m.jwtService.GetClaimsByToken(token)
 	if err != nil {
-		refreshToken, err := c.Cookie("gcw_api_refresh_token")
-		if err != nil || refreshToken == "" {
-			c.JSON(401, helper.CreateErrorResponse("error", "refresh token is required"))
-			c.Abort()
-			return
-		}
-
-		claims, err = m.jwtService.GetClaimsByRefreshToken(refreshToken)
-		if err != nil {
-			c.JSON(401, helper.CreateErrorResponse("error", "invalid refresh token"))
-			c.Abort()
-			return
-		}
-		email, ok := claims["email"].(string)
-		if !ok {
-			c.JSON(401, helper.CreateErrorResponse("error", "email not found in refresh token"))
-			c.Abort()
-			return
-		}
-
-		user, err := m.authService.FindByEmail(email)
-		if err != nil {
-			logging.High("AuthMiddleware.JwtAuthMiddleware", "USER_NOT_FOUND", err.Error())
-			c.JSON(401, helper.CreateErrorResponse("error", "user not found"))
-			c.Abort()
-			return
-		}
-
-		token = m.jwtService.GenerateToken(user)
-		refreshToken = m.jwtService.GenerateRefreshToken(user)
-
-		helper.SetTokenRefreshCookie(c, token, refreshToken)
-
-		c.Set("user", user)
-		c.Next()
-		return
-	} else {
-		email, ok := claims["email"].(string)
-		if !ok {
-			c.JSON(401, helper.CreateErrorResponse("error", "email not found in token"))
-			c.Abort()
-			return
-		}
-
-		user, err := m.authService.FindByEmail(email)
-		if err != nil {
-			logging.High("AuthMiddleware.JwtAuthMiddleware", "USER_NOT_FOUND", err.Error())
-			c.JSON(401, helper.CreateErrorResponse("error", "user not found"))
-			c.Abort()
-			return
-		}
-
-		c.Set("user", user)
-		c.Next()
+		logging.High("AuthMiddleware.JwtAuthMiddleware", "INVALID TOKEN", err.Error())
+		c.JSON(401, helper.CreateErrorResponse("error", "invalid token"))
+		c.Abort()
 		return
 	}
+
+	idUser := uint64(claims["id"].(float64))
+	if idUser == 0 {
+		c.JSON(401, helper.CreateErrorResponse("error", "invalid token"))
+		c.Abort()
+		return
+	}
+
+	user, err := m.authService.GetUserById(idUser)
+	if err != nil {
+		logging.High("AuthMiddleware.JwtAuthMiddleware", "USER_NOT_FOUND", err.Error())
+		c.JSON(401, helper.CreateErrorResponse("error", "user not found"))
+		c.Abort()
+		return
+	}
+
+	c.Set("user", user)
+	c.Next()
 }
 
 func (m *authMiddleware) MustUpdatedUserProfile(c *gin.Context) {
-	userAuth := c.MustGet("user").(*entity.User)
+	userAuth, ok := c.MustGet("user").(*entity.User)
 
-	if !userAuth.ProfileHasUpdated {
+	if !ok || !userAuth.ProfileHasUpdated {
 		c.JSON(400, helper.CreateErrorResponse("error", "profile has not been updated"))
 		c.Abort()
 		return

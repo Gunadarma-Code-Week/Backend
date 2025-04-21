@@ -15,9 +15,9 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/auth/invalidate-cookie": {
-            "delete": {
-                "description": "Invalidate Cookie",
+        "/auth/refresh-token": {
+            "post": {
+                "description": "Refresh Token",
                 "consumes": [
                     "application/json"
                 ],
@@ -27,12 +27,35 @@ const docTemplate = `{
                 "tags": [
                     "Auth"
                 ],
-                "summary": "Invalidate Cookie",
+                "summary": "Refresh Token",
+                "parameters": [
+                    {
+                        "description": "Refresh Token",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.RefreshTokenDTO"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/helper.Response"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/helper.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.AuthResponseDTO"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -333,8 +356,25 @@ const docTemplate = `{
         "dto.AuthResponseDTO": {
             "type": "object",
             "properties": {
+                "access_token": {
+                    "type": "string"
+                },
+                "refresh_token": {
+                    "type": "string"
+                },
                 "user": {
                     "$ref": "#/definitions/dto.UserResponseDTO"
+                }
+            }
+        },
+        "dto.RefreshTokenDTO": {
+            "type": "object",
+            "required": [
+                "refresh_token"
+            ],
+            "properties": {
+                "refresh_token": {
+                    "type": "string"
                 }
             }
         },

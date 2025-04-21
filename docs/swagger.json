@@ -9,9 +9,9 @@
     "host": "localhost:8000",
     "basePath": "/api/v1/gcw/resources",
     "paths": {
-        "/auth/invalidate-cookie": {
-            "delete": {
-                "description": "Invalidate Cookie",
+        "/auth/refresh-token": {
+            "post": {
+                "description": "Refresh Token",
                 "consumes": [
                     "application/json"
                 ],
@@ -21,12 +21,35 @@
                 "tags": [
                     "Auth"
                 ],
-                "summary": "Invalidate Cookie",
+                "summary": "Refresh Token",
+                "parameters": [
+                    {
+                        "description": "Refresh Token",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.RefreshTokenDTO"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/helper.Response"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/helper.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.AuthResponseDTO"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -327,8 +350,25 @@
         "dto.AuthResponseDTO": {
             "type": "object",
             "properties": {
+                "access_token": {
+                    "type": "string"
+                },
+                "refresh_token": {
+                    "type": "string"
+                },
                 "user": {
                     "$ref": "#/definitions/dto.UserResponseDTO"
+                }
+            }
+        },
+        "dto.RefreshTokenDTO": {
+            "type": "object",
+            "required": [
+                "refresh_token"
+            ],
+            "properties": {
+                "refresh_token": {
+                    "type": "string"
                 }
             }
         },
