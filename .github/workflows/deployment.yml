@@ -29,6 +29,4 @@ jobs:
                     echo $PATH
                     cd /home/ubuntu/go/src/gcw-be
                     git pull origin main
-                    go mod download
-                    go build .
-                    pm2 restart gcw-be
+                    go mod download && go build . && pm2 restart gcw-be
