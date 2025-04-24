@@ -29,6 +29,12 @@ func NewAuthMiddleware(as *service.AuthService, js *service.JwtService) AuthMidd
 func (m *authMiddleware) JwtAuthMiddleware(c *gin.Context) {
 	// get token from header
 	token := c.Request.Header.Get("Authorization")
+	if len(token) < 7 {
+		c.JSON(401, helper.CreateErrorResponse("error", "token is required"))
+		c.Abort()
+		return
+	}
+
 	token = token[7:]
 	if token == "" {
 		c.JSON(401, helper.CreateErrorResponse("error", "token is required"))

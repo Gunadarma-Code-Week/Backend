@@ -4,14 +4,15 @@ import (
 	"context"
 	"fmt"
 	"gcw/config"
-	"gcw/middleware"
 	"gcw/router"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 
 	_ "github.com/joho/godotenv/autoload"
@@ -66,7 +67,24 @@ func main() {
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// CORS ORIGIN
-	r.Use(middleware.CORSMiddleware())
+	// r.Use(middleware.CORSMiddleware())
+
+	origin := os.Getenv("CORS_ORIGIN")
+	if origin == "" {
+		origin = "http://localhost:3000"
+	}
+	origins := strings.Split(origin, ",")
+	for i, o := range origins {
+		origins[i] = strings.TrimSpace(o)
+	}
+
+	corsConfig := cors.DefaultConfig()
+	corsConfig.AllowOrigins = origins
+	corsConfig.AllowHeaders = []string{"Origin", "Content-Type", "Accept", "x-token", "cache-control"}
+	corsConfig.AllowCredentials = true
+	corsConfig.AllowMethods = []string{"POST", "DELETE", "GET", "PUT", "PATCH"}
+
+	r.Use(cors.New(corsConfig))
 
 	router.SetupRouter(r)
 
