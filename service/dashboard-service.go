@@ -68,7 +68,7 @@ func (s *DashboardServices) GetAllHackaton(count, page int) ([]dto.ResponseHacka
 
 	offset := page * count
 
-	if err := s.DB.
+	if err := s.DB.Preload("Team").
 		Limit(count + 1).
 		Offset(offset).
 		Find(&dataSeminars).Error; err != nil {
@@ -85,22 +85,31 @@ func (s *DashboardServices) GetAllHackaton(count, page int) ([]dto.ResponseHacka
 	var responseData []dto.ResponseHackaton
 
 	for _, data := range dataSeminars {
-		dataHackaton := dto.Hackaton{
-			ID:           int(data.ID_HackathonTeam),
-			NamaTim:      "",
-			Leader:       "",
-			Anggota1:     "",
-			Anggota2:     "",
-			Anggota3:     "",
-			Anggota4:     "",
-			KomitmenFee:  "",
-			ProposalUrl:  "",
-			PitchDeckUrl: "",
-			GithubUrl:    "",
-			Tahap1:       false,
-			Tahap2:       false,
-			Final:        false,
+		var Leader entity.User
+		if err := s.DB.Where("IDTeam = ?", data.Team.ID_Team).First(&Leader).Error; err != nil {
+			return []dto.ResponseHackaton{}, err
 		}
+
+		dataHackaton := dto.Hackaton{
+			ID:      int(data.ID_HackathonTeam),
+			NamaTim: data.Team.TeamName,
+			Leader:  Leader.Name,
+			KomitmenFee:  data.KomitmenFee,
+			ProposalUrl:  data.ProposalUrl,
+			PitchDeckUrl: data.PitchDeckUrl,
+			GithubUrl:    data.GithubProjectUrl,
+			Stage:        data.Stage,
+		}
+
+		var anggota []entity.User
+		if err := s.DB.Where("IDTeam = ?", dataHackaton.ID).Find(&anggota).Error;err!=nil{
+			return []dto.ResponseHackaton{}, err
+		}
+
+		dataHackaton.Anggota1 = anggota[0].Name
+		dataHackaton.Anggota2 = anggota[1].Name
+		dataHackaton.Anggota3 = anggota[2].Name
+		dataHackaton.Anggota4 = anggota[3].Name
 
 		response := dto.ResponseHackaton{
 			Hackaton: dataHackaton,

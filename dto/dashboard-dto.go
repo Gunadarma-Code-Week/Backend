@@ -24,7 +24,7 @@ type ResponseSeminar struct {
 }
 
 type Hackaton struct {
-	ID           int `json:"id"`
+	ID           int    `json:"id"`
 	NamaTim      string `json:"nama_tim"`
 	Leader       string `json:"leader"`
 	Anggota1     string `json:"anggota_1"`
@@ -35,9 +35,7 @@ type Hackaton struct {
 	ProposalUrl  string `json:"proposal_url"`
 	PitchDeckUrl string `json:"pitch_deck_url"`
 	GithubUrl    string `json:"github_url"`
-	Tahap1       bool   `json:"tahap_1"`
-	Tahap2       bool   `json:"tahap_2"`
-	Final        bool   `json:"final"`
+	Stage        string `json:"stage"`
 }
 
 type ResponseHackaton struct {
@@ -46,7 +44,7 @@ type ResponseHackaton struct {
 }
 
 type Cp struct {
-	ID          int `json:"id"`
+	ID          int    `json:"id"`
 	NamaTim     string `json:"nama_tim"`
 	Leader      string `json:"leader"`
 	Anggota1    string `json:"anggota_1"`

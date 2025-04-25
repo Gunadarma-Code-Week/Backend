@@ -9,6 +9,7 @@ type HackathonTeam struct {
 	ProposalUrl      string `gorm:"varchar(255); null"`
 	GithubProjectUrl string `gorm:"varchar(255); null"`
 	PitchDeckUrl     string `gorm:"varchar(255); null"`
+	KomitmenFee      string `gorm:"type:varchar(255)"`
 
 	IDTeam uint64
 	Team   Team `gorm:"foreignKey:IDTeam"`
