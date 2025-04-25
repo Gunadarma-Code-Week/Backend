@@ -91,10 +91,10 @@ func (s *DashboardServices) GetAllHackaton(count, page int) ([]dto.ResponseHacka
 		}
 
 		dataHackaton := dto.Hackaton{
-			ID:      int(data.ID_HackathonTeam),
-			NamaTim: data.Team.TeamName,
-			Leader:  Leader.Name,
-			KomitmenFee:  data.KomitmenFee,
+			ID:           int(data.ID_HackathonTeam),
+			NamaTim:      data.Team.TeamName,
+			Leader:       Leader.Name,
+			KomitmenFee:  data.Team.KomitmenFee,
 			ProposalUrl:  data.ProposalUrl,
 			PitchDeckUrl: data.PitchDeckUrl,
 			GithubUrl:    data.GithubProjectUrl,
@@ -102,14 +102,22 @@ func (s *DashboardServices) GetAllHackaton(count, page int) ([]dto.ResponseHacka
 		}
 
 		var anggota []entity.User
-		if err := s.DB.Where("IDTeam = ?", dataHackaton.ID).Find(&anggota).Error;err!=nil{
+		if err := s.DB.Where("IDTeam = ?", dataHackaton.ID).Find(&anggota).Error; err != nil {
 			return []dto.ResponseHackaton{}, err
 		}
 
-		dataHackaton.Anggota1 = anggota[0].Name
-		dataHackaton.Anggota2 = anggota[1].Name
-		dataHackaton.Anggota3 = anggota[2].Name
-		dataHackaton.Anggota4 = anggota[3].Name
+		if len(anggota) > 0 {
+			dataHackaton.Anggota1 = anggota[0].Name
+		}
+		if len(anggota) > 1 {
+			dataHackaton.Anggota2 = anggota[1].Name
+		}
+		if len(anggota) > 2 {
+			dataHackaton.Anggota3 = anggota[2].Name
+		}
+		if len(anggota) > 3 {
+			dataHackaton.Anggota4 = anggota[3].Name
+		}
 
 		response := dto.ResponseHackaton{
 			Hackaton: dataHackaton,
@@ -127,7 +135,7 @@ func (s *DashboardServices) GetAllCp(count, page int) ([]dto.ResponseCp, error) 
 
 	offset := page * count
 
-	if err := s.DB.
+	if err := s.DB.Preload("Team").
 		Limit(count + 1).
 		Offset(offset).
 		Find(&dataSeminars).Error; err != nil {
@@ -144,17 +152,31 @@ func (s *DashboardServices) GetAllCp(count, page int) ([]dto.ResponseCp, error) 
 	var responseData []dto.ResponseCp
 
 	for _, data := range dataSeminars {
+		var Leader entity.User
+		if err := s.DB.Where("IDTeam = ?", data.Team.ID_Team).First(&Leader).Error; err != nil {
+			return []dto.ResponseCp{}, err
+		}
+
 		dataCp := dto.Cp{
 			ID:          int(data.ID_CPTeam),
-			NamaTim:     "",
-			Leader:      "",
-			Anggota1:    "",
-			Anggota2:    "",
-			KomitmenFee: "",
-			Email:       "",
-			Password:    "",
-			Tahap1:      false,
-			Final:       false,
+			NamaTim:     data.Team.TeamName,
+			Leader:      Leader.Name,
+			KomitmenFee: data.Team.KomitmenFee,
+			Email:       Leader.Email,
+			Password:    data.DomjudgeUsername,
+			Stage:       data.Stage,
+		}
+
+		var anggota []entity.User
+		if err := s.DB.Where("IDTeam = ?", dataCp.ID).Find(&anggota).Error; err != nil {
+			return []dto.ResponseCp{}, err
+		}
+
+		if len(anggota) > 0 {
+			dataCp.Anggota1 = anggota[0].Name
+		}
+		if len(anggota) > 1 {
+			dataCp.Anggota2 = anggota[1].Name
 		}
 
 		response := dto.ResponseCp{

@@ -8,6 +8,7 @@ type Team struct {
 	Supervisor     string `gorm:"varchar(255); not null"`
 	SupervisorNIDN string `gorm:"varchar(255); not null"`
 	JoinCode       string `gorm:"varchar(255); not null"`
+	KomitmenFee    string `gorm:"varchar(255)"`
 
 	Event string `gorm:"varchar(255); not null"`
 

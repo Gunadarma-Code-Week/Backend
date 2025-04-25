@@ -52,8 +52,7 @@ type Cp struct {
 	KomitmenFee string `json:"komitmen_fee"`
 	Email       string `json:"email"`
 	Password    string `json:"password"`
-	Tahap1      bool   `json:"tahap_1"`
-	Final       bool   `json:"final"`
+	Stage       string `json:"stage"`
 }
 
 type ResponseCp struct {
