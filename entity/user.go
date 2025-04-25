@@ -8,12 +8,15 @@ type User struct {
 	ID    uint64 `gorm:"primary_key:auto_increment"`
 	Email string `gorm:"varchar(255); not null"`
 
-	Name       string     `gorm:"varchar(55); not null"`
-	Gender     *string    `gorm:"varchar(55);"`
-	NIM        *string    `gorm:"varchar(55);"`
-	BirthPlace *string    `gorm:"varchar(55);"`
-	BirthDate  *time.Time `gorm:"date"`
-	Institusi  *string    `gorm:"varchar(55);"`
+	Name            string     `gorm:"varchar(55); not null"`
+	Gender          *string    `gorm:"varchar(55);"`
+	NIM             *string    `gorm:"varchar(55);"`
+	BirthPlace      *string    `gorm:"varchar(55);"`
+	BirthDate       *time.Time `gorm:"date"`
+	Institusi       string     `gorm:"varchar(55);"`
+	Phone           string     `gorm:"type:varchar(16)"`
+	DokumenFilename string
+	Jenjang         string `gorm:"type:varchar(120)"`
 
 	ProfileHasUpdated bool `gorm:"bool; default:false"`
 	DataHasVerified   bool `gorm:"bool; default:false"`

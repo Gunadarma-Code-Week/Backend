@@ -7,7 +7,7 @@ type Seminar struct {
 	ID_Tiket   string `gorm:"varchar(255); not null"`
 
 	IDUser uint64 `gorm:"not null"`
-	User   User   `gorm:"foreignKey:IDUser"`
+	User   User   `gorm:"foreignKey:IDUser;references:ID"`
 
 	CreatedAt time.Time
 	UpdatedAt time.Time

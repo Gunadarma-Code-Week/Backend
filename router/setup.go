@@ -36,6 +36,8 @@ var (
 	newsletterHandler   = handler.NewNewsletterHandler(newsletterService)
 
 	authMiddleware = middleware.NewAuthMiddleware(authService, jwtService)
+
+	dashboards = handler.DashboardController(database)
 )
 
 func SetupRouter(r *gin.Engine) {
@@ -71,14 +73,19 @@ func SetupRouter(r *gin.Engine) {
 	// router.POST("profile/post", profileHandler.Create)
 	// router.GET("profile/get", profileHandler.GetProfile)
 
-	// admin_api_base_url := os.Getenv("ADMIN_API_BASE_URL")
-	// admin_router := r.Group(admin_api_base_url)
+	admin_api_base_url := os.Getenv("ADMIN_API_BASE_URL")
+	admin_router := r.Group(admin_api_base_url)
 
-	newsletter := r.Group("/newsletter")
+	newsletter := router.Group("/newsletter")
 	{
 		newsletter.POST("/", newsletterHandler.CreateNewsletter)
 		newsletter.GET("/:id", newsletterHandler.GetNewsLetter)
 		newsletter.PUT("/:id", newsletterHandler.UpdateNewsLetter)
 		newsletter.DELETE("/:id", newsletterHandler.DeleteNewsLetter)
+	}
+
+	dashboard := admin_router.Group("/dashboard")
+	{
+		dashboard.POST("/:acara/:count/:page", dashboards.GetAllDashboard)
 	}
 }
