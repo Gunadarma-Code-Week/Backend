@@ -93,7 +93,7 @@ func (h *dashboardController) Update(c *gin.Context) {
 			return
 		}
 
-		if err := h.Service.UpdateSeminarService(id, input);err!=nil{
+		if err := h.Service.UpdateSeminarService(id, input); err != nil {
 			c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("ERROR", "error service"))
 			return
 		}
@@ -105,7 +105,7 @@ func (h *dashboardController) Update(c *gin.Context) {
 			return
 		}
 
-		if err := h.Service.UpdateHackatonService(id, input);err!=nil{
+		if err := h.Service.UpdateHackatonService(id, input); err != nil {
 			c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("ERROR", "error service"))
 			return
 		}
@@ -117,7 +117,7 @@ func (h *dashboardController) Update(c *gin.Context) {
 			return
 		}
 
-		if err := h.Service.UpdateCpService(id, input);err!=nil{
+		if err := h.Service.UpdateCpService(id, input); err != nil {
 			c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("ERROR", "error service"))
 			return
 		}
@@ -134,13 +134,13 @@ func (h *dashboardController) Delete(c *gin.Context) {
 	acara := c.Param(":acara")
 	id := c.Param(":id")
 
-	if acara != "seminar" || acara != "hackaton" || acara != "cp" {
+	if acara != "seminar" && acara != "hackaton" && acara != "cp" {
 		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "kegiatan not found"))
 		return
 	}
 
 	id_user, err := h.Service.DeletePesertaService(acara, id)
-	if err !=nil{
+	if err != nil {
 		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "Error delete service"))
 		return
 	}
