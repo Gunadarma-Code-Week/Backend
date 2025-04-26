@@ -118,6 +118,9 @@ func (s *DashboardServices) GetAllHackaton(count, page int) ([]dto.ResponseHacka
 		if len(anggota) > 3 {
 			dataHackaton.Anggota4 = anggota[3].Name
 		}
+		if len(anggota) > 4 {
+			dataHackaton.Anggota5 = anggota[4].Name
+		}
 
 		response := dto.ResponseHackaton{
 			Hackaton: dataHackaton,
@@ -169,7 +172,6 @@ func (s *DashboardServices) GetAllCp(count, page int) ([]dto.ResponseCp, error) 
 
 		var anggota []entity.User
 		if err := s.DB.Where("IDTeam = ?", dataCp.ID).Find(&anggota).Error; err != nil {
-			return []dto.ResponseCp{}, err
 		}
 
 		if len(anggota) > 0 {
@@ -177,6 +179,9 @@ func (s *DashboardServices) GetAllCp(count, page int) ([]dto.ResponseCp, error) 
 		}
 		if len(anggota) > 1 {
 			dataCp.Anggota2 = anggota[1].Name
+		}
+		if len(anggota) > 2 {
+			dataCp.Anggota3 = anggota[2].Name
 		}
 
 		response := dto.ResponseCp{
@@ -188,4 +193,86 @@ func (s *DashboardServices) GetAllCp(count, page int) ([]dto.ResponseCp, error) 
 	}
 
 	return responseData, nil
+}
+
+func (s *DashboardServices) GetEventSevice(id_user string) (dto.ResponseEvents, error) {
+	var user entity.User
+	if err := s.DB.Preload("Team").Where("id = ?", id_user).First(&user).Error; err != nil {
+		return dto.ResponseEvents{}, err
+	}
+
+	// ambil semua member tim
+	var member []entity.User
+	if err := s.DB.Where("id_team = ?", user.IDTeam).Find(&member).Error; err != nil {
+		return dto.ResponseEvents{}, err
+	}
+
+	// buat response user
+	responseUser := dto.User{
+		Name:       user.Name,
+		Email:      user.Email,
+		University: user.Institusi,
+		Degree:     user.Jenjang,
+	}
+
+	// buat response anggota
+	var responseMembers []dto.Member
+	for _, m := range member {
+		role := "Member"
+		if m.ID == user.Team.ID_LeadTeam {
+			role = "Leader"
+		}
+		responseMembers = append(responseMembers, dto.Member{
+			Name:  m.Name,
+			Role:  role,
+			Email: m.Email,
+		})
+	}
+
+	// ambil data event
+	var hackaton entity.HackathonTeam
+	var cp entity.CPTeam
+	var seminar entity.Seminar
+
+	_ = s.DB.Where("id_team = ?", user.IDTeam).First(&hackaton)
+	_ = s.DB.Where("id_team = ?", user.IDTeam).First(&cp)
+	_ = s.DB.Where("id_user = ?", id_user).First(&seminar)
+
+	seminarStatus := "Unregistered"
+	if seminar.ID_Seminar != 0 {
+		seminarStatus = "Registered"
+	}
+	cpStatus := "Unregistered"
+	if cp.ID_CPTeam != 0 {
+		cpStatus = "Registered"
+	}
+	hackatonStatus := "Unregistered"
+	if hackaton.ID_HackathonTeam != 0 {
+		hackatonStatus = "Registered"
+	}
+
+	// isi data event
+	events := []dto.Event{
+		{
+			Name:          "Seminar Nasional Teknologi AI",
+			Status:        seminarStatus,
+			PaymentStatus: seminar.PaymentStatus,
+			Ticket:        dto.Ticket{},
+		},
+		{
+			Name:          "Hackathon",
+			Status:        hackatonStatus,
+			PaymentStatus: user.Team.KomitmenFee,
+		},
+		{
+			Name:          "Competitive Programming",
+			Status:        cpStatus,
+			PaymentStatus: user.Team.KomitmenFee,
+		},
+	}
+
+	return dto.ResponseEvents{
+		User:   responseUser,
+		Events: events,
+	}, nil
 }

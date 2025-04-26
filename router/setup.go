@@ -85,7 +85,9 @@ func SetupRouter(r *gin.Engine) {
 	}
 
 	dashboard := admin_router.Group("/dashboard")
+	dashboardUnauth := router.Group("/dashboard")
 	{
 		dashboard.POST("/:acara/:count/:page", dashboards.GetAllDashboard)
+		dashboardUnauth.GET("/events/:id_user", dashboards.GetEvent)
 	}
 }

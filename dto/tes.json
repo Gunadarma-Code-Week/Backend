@@ -1,0 +1,72 @@
+{
+    "user": {
+        "name": "Prajoko Susilo",
+        "email": "danantara@esemka.gov.id",
+        "university": "Universitas Gundarma",
+        "degree": "Strata 1"
+    },
+    "events": [
+        {
+            "name": "Competitive Programming",
+            "status": "Registered",
+            "payment_status": "Paid",
+            "team": {
+                "team_name": "Algorangers",
+                "members": [
+                    {
+                        "name": "Prajoko Susilo",
+                        "role": "Leader",
+                        "email": "danantara@esemka.gov.id"
+                    },
+                    {
+                        "name": "Dina Wulandari",
+                        "role": "Member",
+                        "email": "dina@esemka.gov.id"
+                    },
+                    {
+                        "name": "Rizal Hakim",
+                        "role": "Member",
+                        "email": "rizal@esemka.gov.id"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "Hackathon",
+            "status": "Registered",
+            "payment_status": "Unpaid",
+            "team": {
+                "team_name": "CodeStorm",
+                "members": [
+                    {
+                        "name": "Prajoko Susilo",
+                        "role": "Developer",
+                        "email": "danantara@esemka.gov.id"
+                    },
+                    {
+                        "name": "Santi Nurhidayah",
+                        "role": "UI/UX Designer",
+                        "email": "santi@esemka.gov.id"
+                    },
+                    {
+                        "name": "Budi Prasetyo",
+                        "role": "Project Manager",
+                        "email": "budi@esemka.gov.id"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "Seminar Nasional Teknologi AI",
+            "status": "Registered",
+            "payment_status": "Paid",
+            "ticket": {
+                "ticket_id": "TKT-AI2025-00123",
+                "type": "General Admission",
+                "issued_at": "2025-04-20T09:45:00Z",
+                "valid_until": "2025-04-28T17:00:00Z",
+                "qr_code_url": "https://gcwug.id/ticket/TKT-AI2025-00123/qr"
+            }
+        }
+    ]
+}

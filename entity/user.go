@@ -15,8 +15,8 @@ type User struct {
 	BirthDate       *time.Time `gorm:"date"`
 	Institusi       string     `gorm:"varchar(55);"`
 	Phone           string     `gorm:"type:varchar(16)"`
-	DokumenFilename string
-	Jenjang         string `gorm:"type:varchar(120)"`
+	DokumenFilename string     `gorm:"type:varchar(255)"`
+	Jenjang         string     `gorm:"type:varchar(120)"`
 
 	ProfileHasUpdated bool `gorm:"bool; default:false"`
 	DataHasVerified   bool `gorm:"bool; default:false"`
@@ -25,7 +25,7 @@ type User struct {
 	Role string `gorm:"varchar(255); not null; default:'user'"` // user, admin, superadmin
 
 	IDTeam *uint64
-	Team   Team `gorm:"foreignKey:IDTeam"`
+	Team Team `gorm:"foreignKey:IDTeam;references:ID_Team"`
 
 	CreatedAt time.Time
 	UpdatedAt time.Time

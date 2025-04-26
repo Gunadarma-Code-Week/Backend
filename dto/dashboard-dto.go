@@ -31,6 +31,7 @@ type Hackaton struct {
 	Anggota2     string `json:"anggota_2"`
 	Anggota3     string `json:"anggota_3"`
 	Anggota4     string `json:"anggota_4"`
+	Anggota5     string `json:"anggota_5"`
 	KomitmenFee  string `json:"komitmen_fee"`
 	ProposalUrl  string `json:"proposal_url"`
 	PitchDeckUrl string `json:"pitch_deck_url"`
@@ -49,6 +50,7 @@ type Cp struct {
 	Leader      string `json:"leader"`
 	Anggota1    string `json:"anggota_1"`
 	Anggota2    string `json:"anggota_2"`
+	Anggota3    string `json:"anggota_3"`
 	KomitmenFee string `json:"komitmen_fee"`
 	Email       string `json:"email"`
 	Password    string `json:"password"`

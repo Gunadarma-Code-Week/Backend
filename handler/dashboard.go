@@ -20,6 +20,7 @@ type DashboardControllerInterface interface {
 	Seminar(*gin.Context)
 	Hackaton(*gin.Context)
 	Cp(*gin.Context)
+	GetEvent(*gin.Context)
 }
 
 func DashboardController(db *gorm.DB) DashboardControllerInterface {
@@ -85,3 +86,15 @@ func (h *dashboardController) Seminar(c *gin.Context) {}
 func (h *dashboardController) Hackaton(c *gin.Context) {}
 
 func (h *dashboardController) Cp(c *gin.Context) {}
+
+func (h *dashboardController) GetEvent(c *gin.Context) {
+	idUser := c.Param("id_user")
+
+	dataEvent, err := h.Service.GetEventSevice(idUser)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "data not found"))
+		return
+	}
+
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("FOUND", dataEvent))
+}
