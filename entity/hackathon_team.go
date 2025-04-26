@@ -13,6 +13,7 @@ type HackathonTeam struct {
 	IDTeam uint64
 	Team   Team `gorm:"foreignKey:IDTeam"`
 
+	IsDeleted bool
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
