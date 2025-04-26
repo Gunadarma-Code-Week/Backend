@@ -276,3 +276,104 @@ func (s *DashboardServices) GetEventSevice(id_user string) (dto.ResponseEvents, 
 		Events: events,
 	}, nil
 }
+
+func (s *DashboardServices) DeletePesertaService(acara, id_user string) (string, error) {
+	var idUser string
+	switch acara {
+	case "seminar":
+		var data entity.Seminar
+		if err := s.DB.Where("id_user = ?", id_user).First(&data).Error;err!=nil{
+			return "", err
+		}
+
+		data.IsDeleted = true
+
+		if err := s.DB.Save(&data).Error;err!=nil{
+			return "", err
+		}
+
+	case "hackaton":
+		var data entity.HackathonTeam
+		if err := s.DB.Where("id_user = ?", id_user).First(&data).Error;err!=nil{
+			return "", err
+		}
+
+		data.IsDeleted = true
+
+		if err := s.DB.Save(&data).Error;err!=nil{
+			return "", err
+		}
+
+	case "cp":
+		var data entity.CPTeam
+		if err := s.DB.Where("id_user = ?", id_user).First(&data).Error;err!=nil{
+			return "", err
+		}
+
+		data.IsDeleted = true
+
+		if err := s.DB.Save(&data).Error;err!=nil{
+			return "", err
+		}
+
+	}
+
+	return idUser, nil
+}
+
+func (s *DashboardServices) UpdateSeminarService(id string, input dto.Seminar) (error) {
+	var seminar entity.Seminar
+	if err := s.DB.Preload("User").Where("id_seminar = ?", id).First(&seminar).Error;err!=nil{
+		return err
+	}
+
+	seminar.User.Name = input.NamaPeserta
+	seminar.User.Email = input.Email
+	seminar.User.Phone = input.NomorHp
+	seminar.User.Jenjang = input.Jenjang
+	seminar.User.Institusi = input.NamaUniversitas
+	seminar.User.DokumenFilename = input.Dokumen
+	seminar.User.DataHasVerified = input.Status
+
+	if err := s.DB.Save(&seminar).Error;err!=nil{
+		return err
+	}
+
+	return nil
+}
+
+func (s *DashboardServices) UpdateHackatonService(id string, input dto.Hackaton) (error) {
+	var hackaton entity.HackathonTeam
+	if err := s.DB.Preload("Team").Where("id_hackaton_team = ?", id).First(&hackaton).Error;err!=nil{
+		return err
+	}
+
+	hackaton.Team.TeamName = input.NamaTim
+	hackaton.ProposalUrl = input.ProposalUrl
+	hackaton.GithubProjectUrl = input.GithubUrl
+	hackaton.PitchDeckUrl = input.PitchDeckUrl
+	hackaton.Stage = input.Stage
+
+	if err := s.DB.Save(&hackaton).Error;err!=nil{
+		return err
+	}
+
+	return nil
+}
+
+func (s *DashboardServices) UpdateCpService(id string, input dto.Cp) (error) {
+	var cp entity.CPTeam
+	if err := s.DB.Preload("Team").Where("id_hackaton_team = ?", id).First(&cp).Error;err!=nil{
+		return err
+	}
+
+	cp.Team.TeamName = input.NamaTim
+	cp.Stage = input.Stage
+
+
+	if err := s.DB.Save(&cp).Error;err!=nil{
+		return err
+	}
+
+	return nil
+}

@@ -88,6 +88,8 @@ func SetupRouter(r *gin.Engine) {
 	dashboardUnauth := router.Group("/dashboard")
 	{
 		dashboard.POST("/:acara/:count/:page", dashboards.GetAllDashboard)
+		dashboard.DELETE("/:acara/:id", dashboards.Delete)
+		dashboard.PUT("/:acara/:id", dashboards.Update)
 		dashboardUnauth.GET("/events/:id_user", dashboards.GetEvent)
 	}
 }

@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"gcw/dto"
 	"gcw/helper"
 	"gcw/service"
 	"net/http"
@@ -17,9 +18,8 @@ type dashboardController struct {
 type DashboardControllerInterface interface {
 	Statistics(*gin.Context)
 	GetAllDashboard(*gin.Context)
-	Seminar(*gin.Context)
-	Hackaton(*gin.Context)
-	Cp(*gin.Context)
+	Update(*gin.Context)
+	Delete(*gin.Context)
 	GetEvent(*gin.Context)
 }
 
@@ -81,11 +81,72 @@ func (h *dashboardController) GetAllDashboard(c *gin.Context) {
 	c.JSON(http.StatusOK, helper.CreateSuccessResponse("SUCCESS", respondData))
 }
 
-func (h *dashboardController) Seminar(c *gin.Context) {}
+func (h *dashboardController) Update(c *gin.Context) {
+	acara := c.Param(":acara")
+	id := c.Param(":id")
 
-func (h *dashboardController) Hackaton(c *gin.Context) {}
+	switch acara {
+	case "seminar":
+		var input dto.Seminar
+		if err := c.ShouldBindJSON(&input).Error; err != nil {
+			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "BAD_REQUEST"))
+			return
+		}
 
-func (h *dashboardController) Cp(c *gin.Context) {}
+		if err := h.Service.UpdateSeminarService(id, input);err!=nil{
+			c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("ERROR", "error service"))
+			return
+		}
+
+	case "hackaton":
+		var input dto.Hackaton
+		if err := c.ShouldBindJSON(&input).Error; err != nil {
+			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "BAD_REQUEST"))
+			return
+		}
+
+		if err := h.Service.UpdateHackatonService(id, input);err!=nil{
+			c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("ERROR", "error service"))
+			return
+		}
+
+	case "cp":
+		var input dto.Cp
+		if err := c.ShouldBindJSON(&input).Error; err != nil {
+			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "BAD_REQUEST"))
+			return
+		}
+
+		if err := h.Service.UpdateCpService(id, input);err!=nil{
+			c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("ERROR", "error service"))
+			return
+		}
+
+	default:
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "kegiatan not found"))
+		return
+	}
+
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("UPDATED", id))
+}
+
+func (h *dashboardController) Delete(c *gin.Context) {
+	acara := c.Param(":acara")
+	id := c.Param(":id")
+
+	if acara != "seminar" || acara != "hackaton" || acara != "cp" {
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "kegiatan not found"))
+		return
+	}
+
+	id_user, err := h.Service.DeletePesertaService(acara, id)
+	if err !=nil{
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "Error delete service"))
+		return
+	}
+
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("UPDATED", id_user))
+}
 
 func (h *dashboardController) GetEvent(c *gin.Context) {
 	idUser := c.Param("id_user")
