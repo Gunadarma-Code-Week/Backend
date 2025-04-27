@@ -74,6 +74,7 @@ func (h *UserHandler) UpdateMyProfile(c *gin.Context) {
 		return
 	}
 	userUpdate.BirthDate = &birthDate
+	userUpdate.Phone = userUpdateDTO.Phone
 
 	err = h.userService.Update(userUpdate, userAuth.ID)
 	if err != nil {
