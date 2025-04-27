@@ -31,6 +31,17 @@ func DashboardController(db *gorm.DB) DashboardControllerInterface {
 
 func (h *dashboardController) Statistics(c *gin.Context) {}
 
+// @Summary Get All Dashboard
+// @Description Retrieve all dashboard data based on the specified event type (seminar, hackaton, cp).
+// @Tags Dashboard
+// @Accept  json
+// @Produce  json
+// @Param acara path string true "Event type (seminar, hackaton, cp)"
+// @Param count path int true "Number of items per page"
+// @Param page path int true "Page number"
+// @Success 200 {object} helper.Response{data=interface{}}
+// @Failure 400 {object} helper.Response{message=string}
+// @Router /dashboard/{acara}/{count}/{page} [get]
 func (h *dashboardController) GetAllDashboard(c *gin.Context) {
 	acara := c.Param("acara")
 	strCount := c.Param("count")
@@ -81,6 +92,18 @@ func (h *dashboardController) GetAllDashboard(c *gin.Context) {
 	c.JSON(http.StatusOK, helper.CreateSuccessResponse("SUCCESS", respondData))
 }
 
+// @Summary Update Dashboard Event
+// @Description Update a specific dashboard event based on the event type and ID.
+// @Tags Dashboard
+// @Accept  json
+// @Produce  json
+// @Param acara path string true "Event type (seminar, hackaton, cp)"
+// @Param id path string true "Event ID"
+// @Param request body interface{} true "Event data to update"
+// @Success 200 {object} helper.Response{data=string}
+// @Failure 400 {object} helper.Response{message=string}
+// @Failure 500 {object} helper.Response{message=string}
+// @Router /dashboard/{acara}/{id} [put]
 func (h *dashboardController) Update(c *gin.Context) {
 	acara := c.Param(":acara")
 	id := c.Param(":id")
@@ -130,6 +153,16 @@ func (h *dashboardController) Update(c *gin.Context) {
 	c.JSON(http.StatusOK, helper.CreateSuccessResponse("UPDATED", id))
 }
 
+// @Summary Delete Dashboard Event
+// @Description Delete a specific dashboard event based on the event type and ID.
+// @Tags Dashboard
+// @Accept  json
+// @Produce  json
+// @Param acara path string true "Event type (seminar, hackaton, cp)"
+// @Param id path string true "Event ID"
+// @Success 200 {object} helper.Response{data=string}
+// @Failure 400 {object} helper.Response{message=string}
+// @Router /dashboard/{acara}/{id} [delete]
 func (h *dashboardController) Delete(c *gin.Context) {
 	acara := c.Param(":acara")
 	id := c.Param(":id")
@@ -148,6 +181,15 @@ func (h *dashboardController) Delete(c *gin.Context) {
 	c.JSON(http.StatusOK, helper.CreateSuccessResponse("UPDATED", id_user))
 }
 
+// @Summary Get User Events
+// @Description Retrieve all events associated with a specific user.
+// @Tags Dashboard
+// @Accept  json
+// @Produce  json
+// @Param id_user path string true "User ID"
+// @Success 200 {object} helper.Response{data=dto.ResponseEvents}
+// @Failure 400 {object} helper.Response{message=string}
+// @Router /dashboard/events/{id_user} [get]
 func (h *dashboardController) GetEvent(c *gin.Context) {
 	idUser := c.Param("id_user")
 

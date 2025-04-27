@@ -17,6 +17,7 @@ type authMiddleware struct {
 type AuthMiddleware interface {
 	JwtAuthMiddleware(*gin.Context)
 	MustUpdatedUserProfile(*gin.Context)
+	MustAdmin(*gin.Context)
 }
 
 func NewAuthMiddleware(as *service.AuthService, js *service.JwtService) AuthMiddleware {
@@ -74,6 +75,18 @@ func (m *authMiddleware) MustUpdatedUserProfile(c *gin.Context) {
 
 	if !ok || !userAuth.ProfileHasUpdated {
 		c.JSON(400, helper.CreateErrorResponse("error", "profile has not been updated"))
+		c.Abort()
+		return
+	}
+
+	c.Next()
+}
+
+func (m *authMiddleware) MustAdmin(c *gin.Context) {
+	userAuth, ok := c.MustGet("user").(*entity.User)
+
+	if !ok || userAuth.Role != "admin" {
+		c.JSON(403, helper.CreateErrorResponse("error", "access denied"))
 		c.Abort()
 		return
 	}

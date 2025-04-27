@@ -66,9 +66,6 @@ func main() {
 	ginSwagger.URL("http://localhost:8000/swagger/doc.json") // The url pointing to API definition
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	// CORS ORIGIN
-	// r.Use(middleware.CORSMiddleware())
-
 	origin := os.Getenv("CORS_ORIGIN")
 	if origin == "" {
 		origin = "http://localhost:3000"

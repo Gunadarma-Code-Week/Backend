@@ -54,39 +54,49 @@ func SetupRouter(r *gin.Engine) {
 	mustAuth.GET("mustauth/ping", authHandler.Ping)
 
 	// Profile Route
-	profile := mustAuth.Group("profile")
-	profile.GET("my", userHandler.GetMyProfile)
-	profile.POST("my", userHandler.UpdateMyProfile)
+	{
+		profile := mustAuth.Group("profile")
+		profile.GET("my", userHandler.GetMyProfile)
+		profile.POST("my", userHandler.UpdateMyProfile)
+	}
 
 	mustUpdatedProfile := mustAuth.Group("")
 	mustUpdatedProfile.Use(authMiddleware.MustUpdatedUserProfile)
 	mustUpdatedProfile.GET("mustauth/authupdate/ping", authHandler.Ping)
 
 	// Team Registrasion
-	teamRegistration := mustUpdatedProfile.Group("team/registration")
-	teamRegistration.POST("hackathon", registrationHandler.RegistrationHackathonTeam)
-	teamRegistration.POST("cp", registrationHandler.RegistrationCPTeam)
-	teamRegistration.GET("find/{join_code}", registrationHandler.FindTeam)
-	teamRegistration.POST("join/{join_code}", registrationHandler.UserJoinTeam)
-	// Profile Route
+	{
+		teamRegistration := mustUpdatedProfile.Group("team/registration")
+		teamRegistration.POST("hackathon", registrationHandler.RegistrationHackathonTeam)
+		teamRegistration.POST("cp", registrationHandler.RegistrationCPTeam)
+		teamRegistration.GET("find/{join_code}", registrationHandler.FindTeam)
+		teamRegistration.POST("join/{join_code}", registrationHandler.UserJoinTeam)
+	}
 
+	// Profile Route
 	// router.POST("profile/post", profileHandler.Create)
 	// router.GET("profile/get", profileHandler.GetProfile)
 
 	admin_api_base_url := os.Getenv("ADMIN_API_BASE_URL")
 	admin_router := r.Group(admin_api_base_url)
 
-	newsletter := router.Group("/newsletter")
 	{
-		newsletter.POST("/", newsletterHandler.CreateNewsletter)
+		newsletter := router.Group("/newsletter")
+
 		newsletter.GET("/:id", newsletterHandler.GetNewsLetter)
+
+		// newsletter admin
+		newsletter.Use(authMiddleware.JwtAuthMiddleware)
+		newsletter.Use(authMiddleware.MustAdmin)
+		newsletter.POST("/", newsletterHandler.CreateNewsletter)
 		newsletter.PUT("/:id", newsletterHandler.UpdateNewsLetter)
 		newsletter.DELETE("/:id", newsletterHandler.DeleteNewsLetter)
 	}
 
-	dashboard := admin_router.Group("/dashboard")
-	dashboardUnauth := router.Group("/dashboard")
 	{
+		dashboard := admin_router.Group("/dashboard")
+		dashboardUnauth := router.Group("/dashboard")
+
 		dashboard.POST("/:acara/:count/:page", dashboards.GetAllDashboard)
 		dashboard.DELETE("/:acara/:id", dashboards.Delete)
 		dashboard.PUT("/:acara/:id", dashboards.Update)
