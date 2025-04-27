@@ -5,15 +5,16 @@ import (
 )
 
 type UserResponseDTO struct {
-	ID         uint64     `json:"id"`
-	Email      string     `json:"email"`
-	Role       string     `json:"role"`
-	Name       string     `json:"name"`
-	Gender     string     `json:"gender"`
-	NIM        string     `json:"nim"`
-	BirthPlace string     `json:"birth_place"`
-	BirthDate  *time.Time `json:"birth_date"`
-	Institusi  string     `json:"institusi"`
+	ID    uint64 `json:"id"`
+	Email string `json:"email"`
+	Role  string `json:"role"`
+	Name  string `json:"name"`
+	Major string `json:"major"`
+	// Gender     string     `json:"gender"`
+	NIM string `json:"nim"`
+	// BirthPlace string     `json:"birth_place"`
+	BirthDate *time.Time `json:"birth_date"`
+	Institusi string     `json:"institusi"`
 
 	ProfileHasUpdated bool `json:"profile_has_updated"`
 	DataHasVerified   bool `json:"data_has_verified"`

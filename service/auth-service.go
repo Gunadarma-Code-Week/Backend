@@ -37,10 +37,16 @@ func (s *AuthService) GetUserByGoogleIdToken(idToken string) (*entity.User, erro
 		return nil, errors.New("email not found in google id token")
 	}
 
+	picture, ok := payload.Claims["picture"].(string)
+	if !ok {
+		return nil, errors.New("picture not found in google id token")
+	}
+
 	err = s.userRepository.FindByEmail(email, user)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			user.Email = email
+			user.ProfilePicture = picture
 
 			name, ok := payload.Claims["name"].(string)
 			if ok {
