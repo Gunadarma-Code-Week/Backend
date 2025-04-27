@@ -553,9 +553,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "birth_date": {
-                    "type": "string"
-                },
-                "birth_place": {
+                    "description": "BirthPlace string     ` + "`" + `json:\"birth_place\"` + "`" + `",
                     "type": "string"
                 },
                 "data_has_verified": {
@@ -564,23 +562,27 @@ const docTemplate = `{
                 "email": {
                     "type": "string"
                 },
-                "gender": {
-                    "type": "string"
-                },
                 "id": {
                     "type": "integer"
                 },
                 "institusi": {
                     "type": "string"
                 },
+                "major": {
+                    "type": "string"
+                },
                 "name": {
                     "type": "string"
                 },
                 "nim": {
+                    "description": "Gender     string     ` + "`" + `json:\"gender\"` + "`" + `",
                     "type": "string"
                 },
                 "profile_has_updated": {
                     "type": "boolean"
+                },
+                "profile_picture": {
+                    "type": "string"
                 },
                 "role": {
                     "type": "string"

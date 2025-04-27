@@ -48,6 +48,15 @@ func (r *RegistrationRepository) FindTeamByJoinCode(team *entity.Team, joinCode 
 	return nil
 }
 
+func (r *RegistrationRepository) CountUserByTeamID(id_team uint64) (int64, error) {
+	var count int64
+	res := r.DB.Model(&entity.User{}).Where("id_team = ?", id_team).Count(&count)
+	if err := res.Error; err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
 func (r *RegistrationRepository) UpdateUserTeam(tx *gorm.DB, u *entity.User, id_team uint64, id_user uint64) error {
 	res := tx.Model(&u).Where("id = ?", id_user).Update("id_team", id_team)
 	if err := res.Error; err != nil {

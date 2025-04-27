@@ -249,6 +249,20 @@ func (s *RegistrationService) JoinTeam(
 		return nil, err
 	}
 
+	userCount, err := s.registrationRepository.CountUserByTeamID(team.ID_Team)
+	if err != nil {
+		logging.Low("RegistrationService.JoinTeam", "INTERNAL_SERVER_ERROR", err.Error())
+		return nil, err
+	}
+
+	isTeamFul :=
+		team.Event == "hackathon" && userCount >= 5 ||
+			team.Event == "cp" && userCount >= 3
+	if isTeamFul {
+		logging.Low("RegistrationService.JoinTeam", "BAD_REQUEST", "Team is full")
+		return nil, fmt.Errorf("TEAM IS FULL")
+	}
+
 	if user.IDTeam != nil {
 		logging.Low("RegistrationService.JoinTeam", "BAD_REQUEST", "User already have team")
 		return nil, fmt.Errorf("USER ALREADY HAVE TEAM")
