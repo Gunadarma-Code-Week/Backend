@@ -20,7 +20,7 @@ type UserHandler struct {
 func NewUserHandler(us *service.UserService) *UserHandler {
 	return &UserHandler{
 		userService: us,
-	}
+	} 
 }
 
 // @Summary Get My Profile Data
@@ -75,6 +75,7 @@ func (h *UserHandler) UpdateMyProfile(c *gin.Context) {
 	}
 	userUpdate.BirthDate = &birthDate
 	userUpdate.Phone = userUpdateDTO.Phone
+	userUpdate.Major = userUpdateDTO.Major
 
 	err = h.userService.Update(userUpdate, userAuth.ID)
 	if err != nil {

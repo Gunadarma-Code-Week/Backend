@@ -24,7 +24,8 @@ type UpdateUserProfileDTO struct {
 	Name       string `json:"name" binding:"required"`
 	Gender     string `json:"gender" binding:"required"`
 	NIM        string `json:"nim" binding:"required"`
-	Phone        string `json:"phone"`
+	Phone      string `json:"phone"`
+	Major      string `json:"major"`
 	BirthPlace string `json:"birth_place" binding:"required"`
 	BirthDate  string `json:"birth_date" binding:"required"`
 	Institusi  string `json:"institusi" binding:"required"`
