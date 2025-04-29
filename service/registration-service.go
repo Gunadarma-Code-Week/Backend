@@ -37,6 +37,7 @@ func (s *RegistrationService) CPTeamRegistration(
 		Supervisor:     registrationDTO.Supervisor,
 		SupervisorNIDN: registrationDTO.SupervisorNIDN,
 		ID_LeadTeam:    userLead.ID,
+		KomitmenFee:    registrationDTO.KomitmenFee,
 		Event:          "cp",
 	}
 
@@ -146,9 +147,11 @@ func (s *RegistrationService) HackathonTeamRegistration(
 		Supervisor:     registrationDTO.Supervisor,
 		SupervisorNIDN: registrationDTO.SupervisorNIDN,
 		ID_LeadTeam:    userLead.ID,
+		KomitmenFee:    registrationDTO.KomitmenFee,
 		Event:          "hackathon",
 	}
 
+	// generate join code
 	var joinCode string
 
 	for {

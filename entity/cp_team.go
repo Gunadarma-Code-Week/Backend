@@ -12,7 +12,7 @@ type CPTeam struct {
 	IDTeam uint64 `gorm:"not null"`
 	Team   Team   `gorm:"foreignKey:IDTeam"`
 
-	IsDeleted     bool
+	IsDeleted bool
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
