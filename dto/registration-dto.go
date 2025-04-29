@@ -4,7 +4,7 @@ import "time"
 
 type RegistraionTeamRequest struct {
 	TeamName       string `json:"team_name" binding:"required"`
-	KomitmenFee    string `json:"bukti_pembayran"`
+	KomitmenFee    string `json:"bukti_pembayaran"`
 	Supervisor     string `json:"supervisor" binding:"required"`
 	SupervisorNIDN string `json:"supervisor_nidn" binding:"required"`
 }
