@@ -119,6 +119,8 @@ func (s *RegistrationService) CPTeamRegistration(
 	}
 
 	registrasionCPResponse := &dto.RegistrationCPResponse{}
+	registrasionCPResponse.KomitmenFee = teamRegistration.KomitmenFee
+	registrasionCPResponse.JoinCode = joinCode
 	err = smapping.FillStruct(registrasionCPResponse, smapping.MapFields(cpTeam))
 	if err != nil {
 		logging.Low("RegistrationService.CPTeamRegistration", "INTERNAL_SERVER_ERROR", err.Error())
@@ -212,6 +214,8 @@ func (s *RegistrationService) HackathonTeamRegistration(
 	}
 
 	registrasionHackathonResponse := &dto.RegistrationHackathonResponse{}
+	registrasionHackathonResponse.KomitmenFee = teamRegistration.KomitmenFee
+	registrasionHackathonResponse.JoinCode = joinCode
 	err = smapping.FillStruct(registrasionHackathonResponse, smapping.MapFields(hackathonTeam))
 	if err != nil {
 		logging.Low("RegistrationService.HackathonTeamRegistration", "INTERNAL_SERVER_ERROR", err.Error())
