@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"gcw/dto"
 	"gcw/entity"
 	"gcw/helper"
@@ -91,29 +92,45 @@ func (h *registrationHandler) FindTeam(c *gin.Context) {
 
 	team, err := h.registrationService.FindTeamByJoinCode(joinCode)
 	if err != nil {
-		logging.Low("ProfileHandler.Create", "BAD_REQUEST", err.Error())
+		logging.Low("RegistrationHandler.FindTeam", "BAD_REQUEST", err.Error())
 		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
 		return
 	}
 
-	registraionTeamResponse := &dto.RegistraionTeamResponse{}
-	err = smapping.FillStruct(registraionTeamResponse, smapping.MapFields(team))
+	registrationTeamResponse := &dto.RegistraionTeamResponse{}
+	err = smapping.FillStruct(registrationTeamResponse, smapping.MapFields(team))
 	if err != nil {
-		logging.Low("RegistrationService.CPTeamRegistration", "INTERNAL_SERVER_ERROR", err.Error())
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
+		logging.Low("RegistrationHandler.FindTeam", "INTERNAL_SERVER_ERROR", err.Error())
+		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("error", err.Error()))
 		return
 	}
 
 	members, err := h.userService.FindByIdTeam(team.ID_Team)
 	if err != nil {
-		logging.Low("ProfileHandler.Create", "BAD_REQUEST", err.Error())
+		logging.Low("RegistrationHandler.FindTeam", "BAD_REQUEST", err.Error())
 		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
 		return
 	}
 
-	registraionTeamResponse.Members = members
+	leader, err := h.userService.FindById(team.ID_LeadTeam)
+	if err != nil {
+		logging.Low("RegistrationHandler.FindTeam", "BAD_REQUEST", err.Error())
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
+		return
+	}
 
-	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Success Find Team", registraionTeamResponse))
+	leaderData := dto.Member{
+		Name:  leader.Name,
+		Email: leader.Email,
+		Role:  "Leader",
+	}
+
+	fmt.Println(leaderData)
+
+	registrationTeamResponse.Members = members
+	registrationTeamResponse.Leader = leaderData
+
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Success Find Team", registrationTeamResponse))
 }
 
 // @Summary Join Team
