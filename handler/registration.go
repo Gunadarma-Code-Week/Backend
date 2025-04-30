@@ -85,7 +85,7 @@ func (h *registrationHandler) RegistrationHackathonTeam(c *gin.Context) {
 // @Success 200 {object} helper.Response{data=dto.RegistraionTeamResponse}
 // @Router /team/registration/find/{join_code} [get]
 func (h *registrationHandler) FindTeam(c *gin.Context) {
-	joinCode := c.Query("join_code")
+	joinCode := c.Param("join_code")
 
 	team, err := h.registrationService.FindTeamByJoinCode(joinCode)
 	if err != nil {
