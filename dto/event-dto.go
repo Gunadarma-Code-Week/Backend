@@ -38,6 +38,6 @@ type Event struct {
 
 type ResponseEvents struct {
 	User   User    `json:"user"`
-	IdTeam uint64  `json:"id_team"`
+	IdTeam string  `json:"id_team"`
 	Events []Event `json:"events"`
 }

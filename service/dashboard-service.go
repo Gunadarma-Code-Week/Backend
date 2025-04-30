@@ -274,7 +274,7 @@ func (s *DashboardServices) GetEventSevice(id_user string) (dto.ResponseEvents, 
 	return dto.ResponseEvents{
 		User:   responseUser,
 		Events: events,
-		IdTeam: user.Team.ID_Team,
+		IdTeam: user.Team.JoinCode,
 	}, nil
 }
 
