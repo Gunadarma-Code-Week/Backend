@@ -195,7 +195,7 @@ func (s *DashboardServices) GetAllCp(count, page int) ([]dto.ResponseCp, error) 
 	return responseData, nil
 }
 
-func (s *DashboardServices) GetEventSevice(id_user string) (dto.ResponseEvents, error) {
+func (s *DashboardServices) GetEventSevice(id_user int64) (dto.ResponseEvents, error) {
 	var user entity.User
 	if err := s.DB.Preload("Team").Where("id = ?", id_user).First(&user).Error; err != nil {
 		return dto.ResponseEvents{}, err
@@ -258,11 +258,13 @@ func (s *DashboardServices) GetEventSevice(id_user string) (dto.ResponseEvents, 
 			Status:        seminarStatus,
 			PaymentStatus: seminar.PaymentStatus,
 			Ticket:        dto.Ticket{},
+			IdTeam:        int64(*user.IDTeam),
 		},
 		{
 			Name:          "Hackathon",
 			Status:        hackatonStatus,
 			PaymentStatus: user.Team.KomitmenFee,
+			IdTeam:        int64(*user.IDTeam),
 		},
 		{
 			Name:          "Competitive Programming",
@@ -282,37 +284,37 @@ func (s *DashboardServices) DeletePesertaService(acara, id_user string) (string,
 	switch acara {
 	case "seminar":
 		var data entity.Seminar
-		if err := s.DB.Where("id_user = ?", id_user).First(&data).Error;err!=nil{
+		if err := s.DB.Where("id_user = ?", id_user).First(&data).Error; err != nil {
 			return "", err
 		}
 
 		data.IsDeleted = true
 
-		if err := s.DB.Save(&data).Error;err!=nil{
+		if err := s.DB.Save(&data).Error; err != nil {
 			return "", err
 		}
 
 	case "hackaton":
 		var data entity.HackathonTeam
-		if err := s.DB.Where("id_user = ?", id_user).First(&data).Error;err!=nil{
+		if err := s.DB.Where("id_user = ?", id_user).First(&data).Error; err != nil {
 			return "", err
 		}
 
 		data.IsDeleted = true
 
-		if err := s.DB.Save(&data).Error;err!=nil{
+		if err := s.DB.Save(&data).Error; err != nil {
 			return "", err
 		}
 
 	case "cp":
 		var data entity.CPTeam
-		if err := s.DB.Where("id_user = ?", id_user).First(&data).Error;err!=nil{
+		if err := s.DB.Where("id_user = ?", id_user).First(&data).Error; err != nil {
 			return "", err
 		}
 
 		data.IsDeleted = true
 
-		if err := s.DB.Save(&data).Error;err!=nil{
+		if err := s.DB.Save(&data).Error; err != nil {
 			return "", err
 		}
 
@@ -321,9 +323,9 @@ func (s *DashboardServices) DeletePesertaService(acara, id_user string) (string,
 	return idUser, nil
 }
 
-func (s *DashboardServices) UpdateSeminarService(id string, input dto.Seminar) (error) {
+func (s *DashboardServices) UpdateSeminarService(id string, input dto.Seminar) error {
 	var seminar entity.Seminar
-	if err := s.DB.Preload("User").Where("id_seminar = ?", id).First(&seminar).Error;err!=nil{
+	if err := s.DB.Preload("User").Where("id_seminar = ?", id).First(&seminar).Error; err != nil {
 		return err
 	}
 
@@ -335,16 +337,16 @@ func (s *DashboardServices) UpdateSeminarService(id string, input dto.Seminar) (
 	seminar.User.DokumenFilename = input.Dokumen
 	seminar.User.DataHasVerified = input.Status
 
-	if err := s.DB.Save(&seminar).Error;err!=nil{
+	if err := s.DB.Save(&seminar).Error; err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (s *DashboardServices) UpdateHackatonService(id string, input dto.Hackaton) (error) {
+func (s *DashboardServices) UpdateHackatonService(id string, input dto.Hackaton) error {
 	var hackaton entity.HackathonTeam
-	if err := s.DB.Preload("Team").Where("id_hackaton_team = ?", id).First(&hackaton).Error;err!=nil{
+	if err := s.DB.Preload("Team").Where("id_hackaton_team = ?", id).First(&hackaton).Error; err != nil {
 		return err
 	}
 
@@ -354,24 +356,23 @@ func (s *DashboardServices) UpdateHackatonService(id string, input dto.Hackaton)
 	hackaton.PitchDeckUrl = input.PitchDeckUrl
 	hackaton.Stage = input.Stage
 
-	if err := s.DB.Save(&hackaton).Error;err!=nil{
+	if err := s.DB.Save(&hackaton).Error; err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (s *DashboardServices) UpdateCpService(id string, input dto.Cp) (error) {
+func (s *DashboardServices) UpdateCpService(id string, input dto.Cp) error {
 	var cp entity.CPTeam
-	if err := s.DB.Preload("Team").Where("id_hackaton_team = ?", id).First(&cp).Error;err!=nil{
+	if err := s.DB.Preload("Team").Where("id_hackaton_team = ?", id).First(&cp).Error; err != nil {
 		return err
 	}
 
 	cp.Team.TeamName = input.NamaTim
 	cp.Stage = input.Stage
 
-
-	if err := s.DB.Save(&cp).Error;err!=nil{
+	if err := s.DB.Save(&cp).Error; err != nil {
 		return err
 	}
 

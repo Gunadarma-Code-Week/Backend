@@ -33,6 +33,7 @@ type Event struct {
 	Status        string `json:"status"`
 	PaymentStatus string `json:"payment_status"`
 	Team          []Team `json:"team"`
+	IdTeam        int64  `json:"id_team"`
 	Ticket        Ticket `json:"ticket"`
 }
 
