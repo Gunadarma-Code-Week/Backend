@@ -34,7 +34,7 @@ func (s *UserService) FindById(id uint64) (*entity.User, error) {
 	return user, nil
 }
 
-func (s *UserService) FindByIdTeam(id uint64) ([]dto.Member, error) {
+func (s *UserService) FindByIdTeam(id, id_leader uint64) ([]dto.Member, error) {
 	var teamMembers []entity.User
 	err := s.userRepository.FindByIdTeam(id, &teamMembers)
 	if err != nil {
@@ -43,6 +43,10 @@ func (s *UserService) FindByIdTeam(id uint64) ([]dto.Member, error) {
 
 	members := []dto.Member{}
 	for _, data := range teamMembers {
+		if data.ID == id_leader {
+			continue
+		}
+
 		member := dto.Member{}
 
 		member.Name = data.Name

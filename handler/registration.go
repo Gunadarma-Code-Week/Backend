@@ -105,14 +105,14 @@ func (h *registrationHandler) FindTeam(c *gin.Context) {
 		return
 	}
 
-	members, err := h.userService.FindByIdTeam(team.ID_Team)
+	leader, err := h.userService.FindById(team.ID_LeadTeam)
 	if err != nil {
 		logging.Low("RegistrationHandler.FindTeam", "BAD_REQUEST", err.Error())
 		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
 		return
 	}
 
-	leader, err := h.userService.FindById(team.ID_LeadTeam)
+	members, err := h.userService.FindByIdTeam(team.ID_Team, leader.ID)
 	if err != nil {
 		logging.Low("RegistrationHandler.FindTeam", "BAD_REQUEST", err.Error())
 		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
