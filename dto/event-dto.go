@@ -33,11 +33,11 @@ type Event struct {
 	Status        string `json:"status"`
 	PaymentStatus string `json:"payment_status"`
 	Team          []Team `json:"team"`
-	IdTeam        int64  `json:"id_team"`
 	Ticket        Ticket `json:"ticket"`
 }
 
 type ResponseEvents struct {
 	User   User    `json:"user"`
+	IdTeam uint64  `json:"id_team"`
 	Events []Event `json:"events"`
 }

@@ -258,13 +258,11 @@ func (s *DashboardServices) GetEventSevice(id_user int64) (dto.ResponseEvents, e
 			Status:        seminarStatus,
 			PaymentStatus: seminar.PaymentStatus,
 			Ticket:        dto.Ticket{},
-			IdTeam:        int64(*user.IDTeam),
 		},
 		{
 			Name:          "Hackathon",
 			Status:        hackatonStatus,
 			PaymentStatus: user.Team.KomitmenFee,
-			IdTeam:        int64(*user.IDTeam),
 		},
 		{
 			Name:          "Competitive Programming",
@@ -276,6 +274,7 @@ func (s *DashboardServices) GetEventSevice(id_user int64) (dto.ResponseEvents, e
 	return dto.ResponseEvents{
 		User:   responseUser,
 		Events: events,
+		IdTeam: user.Team.ID_Team,
 	}, nil
 }
 
