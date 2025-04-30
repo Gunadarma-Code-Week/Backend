@@ -70,7 +70,7 @@ func SetupRouter(r *gin.Engine) {
 		teamRegistration.POST("hackathon", registrationHandler.RegistrationHackathonTeam)
 		teamRegistration.POST("cp", registrationHandler.RegistrationCPTeam)
 		teamRegistration.GET("find/:join_code", registrationHandler.FindTeam)
-		teamRegistration.POST("join/{join_code}", registrationHandler.UserJoinTeam)
+		teamRegistration.POST("join/:join_code", registrationHandler.UserJoinTeam)
 	}
 
 	// Profile Route

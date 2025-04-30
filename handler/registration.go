@@ -140,7 +140,7 @@ func (h *registrationHandler) FindTeam(c *gin.Context) {
 // @Success 200 {object} helper.Response{data=dto.RegistraionTeamResponse}
 // @Router /team/registration/join/{join_code} [post]
 func (h *registrationHandler) UserJoinTeam(c *gin.Context) {
-	joinCode := c.Query("join_code")
+	joinCode := c.Param("join_code")
 
 	userAuth := c.MustGet("user").(*entity.User)
 
