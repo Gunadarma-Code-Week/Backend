@@ -2,9 +2,7 @@ package handler
 
 import (
 	"gcw/dto"
-	"gcw/entity"
 	"gcw/helper"
-	"gcw/helper/logging"
 	"gcw/service"
 	"net/http"
 	"strconv"
@@ -193,14 +191,9 @@ func (h *dashboardController) Delete(c *gin.Context) {
 // @Failure 400 {object} helper.Response{message=string}
 // @Router /dashboard/events/{id_user} [get]
 func (h *dashboardController) GetEvent(c *gin.Context) {
-	userAuth, ok := c.MustGet("user").(*entity.User)
-	if !ok {
-		logging.Low("AuthHandler.Login", "BAD_REQUEST", "user not found in context")
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", "user not found in context"))
-		return
-	}
+	idUser := c.Param("id_user")
 
-	dataEvent, err := h.Service.GetEventSevice(int64(userAuth.ID))
+	dataEvent, err := h.Service.GetEventSevice(idUser)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "data not found"))
 		return

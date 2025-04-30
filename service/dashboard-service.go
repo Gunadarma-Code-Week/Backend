@@ -195,7 +195,7 @@ func (s *DashboardServices) GetAllCp(count, page int) ([]dto.ResponseCp, error) 
 	return responseData, nil
 }
 
-func (s *DashboardServices) GetEventSevice(id_user int64) (dto.ResponseEvents, error) {
+func (s *DashboardServices) GetEventSevice(id_user string) (dto.ResponseEvents, error) {
 	var user entity.User
 	if err := s.DB.Preload("Team").Where("id = ?", id_user).First(&user).Error; err != nil {
 		return dto.ResponseEvents{}, err
