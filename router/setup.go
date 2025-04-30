@@ -32,7 +32,7 @@ var (
 
 	authHandler         = handler.NewAuthHandler(authService, jwtService, emailService)
 	userHandler         = handler.NewUserHandler(userService)
-	registrationHandler = handler.GateRegistrationHandler(registrationService)
+	registrationHandler = handler.GateRegistrationHandler(registrationService, userService)
 	newsletterHandler   = handler.NewNewsletterHandler(newsletterService)
 
 	authMiddleware = middleware.NewAuthMiddleware(authService, jwtService)

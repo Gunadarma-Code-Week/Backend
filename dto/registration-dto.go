@@ -26,7 +26,8 @@ type RegistrationCPTeamRequest struct {
 }
 
 type RegistraionTeamResponse struct {
-	ID_Team uint64 `json:"id_team"`
+	ID_Team uint64   `json:"id_team"`
+	Members []Member `json:"member"`
 	RegistraionTeamRequest
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`

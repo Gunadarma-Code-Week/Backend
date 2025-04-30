@@ -14,6 +14,7 @@ type UserRepository interface {
 	FindByUsername(string, *entity.User) error
 	FindByEmail(string, *entity.User) error
 	FindById(uint64, *entity.User) error
+	FindByIdTeam(id uint64, users *[]entity.User) error
 	Create(*entity.User) error
 	Update(u *entity.User, id uint64) error
 
@@ -45,6 +46,14 @@ func (r *userRepository) FindByUsername(username string, u *entity.User) error {
 // find by id
 func (r *userRepository) FindById(id uint64, u *entity.User) error {
 	res := r.DB.Where("id = ?", id).First(&u)
+	if err := res.Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *userRepository) FindByIdTeam(id uint64, users *[]entity.User) error {
+	res := r.DB.Where("id_team = ?", id).Find(users)
 	if err := res.Error; err != nil {
 		return err
 	}

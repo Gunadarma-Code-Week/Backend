@@ -14,11 +14,13 @@ import (
 
 type registrationHandler struct {
 	registrationService *service.RegistrationService
+	userService         *service.UserService
 }
 
-func GateRegistrationHandler(service *service.RegistrationService) *registrationHandler {
+func GateRegistrationHandler(service *service.RegistrationService, userService *service.UserService) *registrationHandler {
 	return &registrationHandler{
 		registrationService: service,
+		userService:         userService,
 	}
 }
 
@@ -101,6 +103,15 @@ func (h *registrationHandler) FindTeam(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
 		return
 	}
+
+	members, err := h.userService.FindByIdTeam(team.ID_Team)
+	if err != nil {
+		logging.Low("ProfileHandler.Create", "BAD_REQUEST", err.Error())
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
+		return
+	}
+
+	registraionTeamResponse.Members = members
 
 	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Success Find Team", registraionTeamResponse))
 }
