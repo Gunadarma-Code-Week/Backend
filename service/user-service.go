@@ -36,7 +36,7 @@ func (s *UserService) FindById(id uint64) (*entity.User, error) {
 
 func (s *UserService) FindByIdTeam(id uint64) ([]dto.Member, error) {
 	var teamMembers []entity.User
-	err := s.userRepository.FindByIdTeam(3, &teamMembers)
+	err := s.userRepository.FindByIdTeam(id, &teamMembers)
 	if err != nil {
 		return nil, err
 	}
