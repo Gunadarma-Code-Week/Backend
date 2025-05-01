@@ -107,7 +107,7 @@ func SetupRouter(r *gin.Engine) {
 
 	{
 		submissionHandler := router.Group("/submission")
-		submissionHandler.POST("/:stage/:join_code")
-		submissionHandler.GET("/:join_code")
+		submissionHandler.POST("/hackaton/:stage/:join_code")
+		submissionHandler.GET("hackaton/:join_code")
 	}
 }
