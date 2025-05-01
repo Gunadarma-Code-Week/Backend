@@ -15,7 +15,7 @@ import (
 
 type RegistrationService struct {
 	registrationRepository *repository.RegistrationRepository
-	userRepository *repository.UserRepository
+	userRepository         *repository.UserRepository
 	domJudgeService        *DomJudgeService
 }
 
@@ -238,7 +238,7 @@ func (s *RegistrationService) FindTeamByJoinCode(joinCode string) (*entity.Team,
 		logging.Low("RegistrationService.FindTeamByJoinCode", "INTERNAL_SERVER_ERROR", err.Error())
 		return nil, err
 	}
-	
+
 	return team, nil
 }
 

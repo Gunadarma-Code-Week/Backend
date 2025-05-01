@@ -29,11 +29,13 @@ var (
 		domJudgeService,
 	)
 	newsletterService = service.NewNewsletterService(newsletterRepository)
+	SubmissionService = service.NewSubmissionService(database)
 
 	authHandler         = handler.NewAuthHandler(authService, jwtService, emailService)
 	userHandler         = handler.NewUserHandler(userService)
 	registrationHandler = handler.GateRegistrationHandler(registrationService, userService)
 	newsletterHandler   = handler.NewNewsletterHandler(newsletterService)
+	submissionHandler   = handler.GateHackathonHandler(SubmissionService)
 
 	authMiddleware = middleware.NewAuthMiddleware(authService, jwtService)
 
@@ -101,5 +103,11 @@ func SetupRouter(r *gin.Engine) {
 		dashboard.DELETE("/:acara/:id", dashboards.Delete)
 		dashboard.PUT("/:acara/:id", dashboards.Update)
 		dashboardUnauth.GET("/events/:id_user", dashboards.GetEvent)
+	}
+
+	{
+		submissionHandler := router.Group("/submission")
+		submissionHandler.POST("/:stage/:join_code")
+		submissionHandler.GET("/:join_code")
 	}
 }

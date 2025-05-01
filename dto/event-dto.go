@@ -32,8 +32,8 @@ type Event struct {
 	Name          string `json:"name"`
 	Status        string `json:"status"`
 	PaymentStatus string `json:"payment_status"`
-	Team          []Team `json:"team"`
 	Ticket        Ticket `json:"ticket"`
+	Team          Team   `json:"team"`
 }
 
 type ResponseEvents struct {

@@ -1,66 +1,56 @@
 package handler
 
 import (
+	"gcw/dto"
 	"gcw/helper"
-	"gcw/helper/logging"
-	"log"
+	"gcw/service"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
 type hackathonHandler struct {
+	service service.SubmissionService
 }
 
 type HackathonHandler interface {
-	Submission(c *gin.Context)
+	SubmissionHackaton(c *gin.Context)
+	HackathonStageStatus(c *gin.Context)
 }
 
-func GateHackathonHandler() HackathonHandler {
-	return &hackathonHandler{}
+func GateHackathonHandler(s service.SubmissionService) HackathonHandler {
+	return &hackathonHandler{
+		service: s,
+	}
 }
 
-func (h *hackathonHandler) Submission(c *gin.Context) {
+func (h *hackathonHandler) SubmissionHackaton(c *gin.Context) {
+	stage := c.Param("stage")
+	join_code := c.Param("join_code")
 
-	destinationDir := "hackathon/nama_team"
-
-	/*
-		|--------------------------------------------------------------------------
-		| Post Submission to AWS
-		|--------------------------------------------------------------------------
-	*/
-
-	if err := c.Request.ParseMultipartForm(3 << 20); err != nil { // Max file size of 1MB
-		logging.High("HackathonHandler.Submission", "Bad Request", "File Too large")
-		response := helper.CreateErrorResponse("ERROR_PARSE_MULTIPART", "File Too large")
-		c.JSON(http.StatusConflict, response)
+	var request dto.RequestHackathon
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", err.Error()))
 		return
 	}
 
-	fileName := helper.UploadFile(c, "file", destinationDir)
-
-	if fileName == "" {
-		logging.High("HackathonHandler.Submission", "Internal Server Error", "Failed to upload file")
-		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("INTERNAL_SERVER_ERROR", "Failed to upload file"))
+	result, err := h.service.Create(join_code, stage, request)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("CREATE_FAILED", err.Error()))
 		return
 	}
 
-	fileURL := "https://notarius.s3.amazonaws.com/" + destinationDir + "/" + fileName
+	c.JSON(http.StatusCreated, helper.CreateSuccessResponse("CREATED", result))
+}
 
-	log.Printf("Profile image uploaded: %s", fileURL)
+func (h *hackathonHandler) HackathonStageStatus(c *gin.Context) {
+	join_code := c.Param("join_code")
 
-	/*
-		|--------------------------------------------------------------------------
-		| Update Submission
-		|--------------------------------------------------------------------------
-	*/
-
-	response := gin.H{
-		"image_url": fileURL,
-		"file_name": fileName,
-		"directory": destinationDir,
+	stageStatus, err := h.service.Get(join_code)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("INTERNAL SERVER ERROR", "cant get stage status"))
+		return
 	}
 
-	c.JSON(http.StatusOK, helper.CreateSuccessResponse("success", response))
-
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("SUCCESS", stageStatus))
 }

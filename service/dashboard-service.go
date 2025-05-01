@@ -255,6 +255,11 @@ func (s *DashboardServices) GetEventSevice(id_user string) (dto.ResponseEvents, 
 		hackatonStatus = "Registered"
 	}
 
+	responseTeam := dto.Team{
+		TeamName: user.Team.TeamName,
+		Members:  responseMembers,
+	}
+
 	// isi data event
 	events := []dto.Event{
 		{
@@ -267,11 +272,13 @@ func (s *DashboardServices) GetEventSevice(id_user string) (dto.ResponseEvents, 
 			Name:          "Hackathon",
 			Status:        hackatonStatus,
 			PaymentStatus: user.Team.KomitmenFee,
+			Team:          responseTeam,
 		},
 		{
 			Name:          "Competitive Programming",
 			Status:        cpStatus,
 			PaymentStatus: user.Team.KomitmenFee,
+			Team:          responseTeam,
 		},
 	}
 
