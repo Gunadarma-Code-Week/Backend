@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"gcw/dto"
 	"gcw/entity"
 
@@ -32,7 +33,7 @@ func (s *submissionService) Create(join_code, stage string, submissionDTO dto.Re
 	}
 
 	if err := s.db.Where("id_team = ?", team.ID_Team).First(&submission).Error; err != nil {
-		return entity.HackathonTeam{}, err
+		return entity.HackathonTeam{}, fmt.Errorf("team tidak terdaftar")
 	}
 
 	switch stage {

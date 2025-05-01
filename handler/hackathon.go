@@ -48,7 +48,7 @@ func (h *hackathonHandler) HackathonStageStatus(c *gin.Context) {
 
 	stageStatus, err := h.service.Get(join_code)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("INTERNAL SERVER ERROR", "cant get stage status"))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", err.Error()))
 		return
 	}
 
