@@ -18,25 +18,25 @@ type Seminar struct {
 	Status          bool   `json:"status"`
 }
 
+type Anggota struct {
+	Name string `json:"name"`
+}
+
 type ResponseSeminar struct {
 	Seminar Seminar `json:"seminar"`
 	HasMore bool    `json:"has_more"`
 }
 
 type Hackaton struct {
-	ID           int    `json:"id"`
-	NamaTim      string `json:"nama_tim"`
-	Leader       string `json:"leader"`
-	Anggota1     string `json:"anggota_1"`
-	Anggota2     string `json:"anggota_2"`
-	Anggota3     string `json:"anggota_3"`
-	Anggota4     string `json:"anggota_4"`
-	Anggota5     string `json:"anggota_5"`
-	KomitmenFee  string `json:"komitmen_fee"`
-	ProposalUrl  string `json:"proposal_url"`
-	PitchDeckUrl string `json:"pitch_deck_url"`
-	GithubUrl    string `json:"github_url"`
-	Stage        string `json:"stage"`
+	ID           int       `json:"id"`
+	NamaTim      string    `json:"nama_tim"`
+	Leader       string    `json:"leader"`
+	Anggota      []Anggota `json:"anggota"`
+	KomitmenFee  string    `json:"komitmen_fee"`
+	ProposalUrl  string    `json:"proposal_url"`
+	PitchDeckUrl string    `json:"pitch_deck_url"`
+	GithubUrl    string    `json:"github_url"`
+	Stage        string    `json:"stage"`
 }
 
 type ResponseHackaton struct {
@@ -45,16 +45,14 @@ type ResponseHackaton struct {
 }
 
 type Cp struct {
-	ID          int    `json:"id"`
-	NamaTim     string `json:"nama_tim"`
-	Leader      string `json:"leader"`
-	Anggota1    string `json:"anggota_1"`
-	Anggota2    string `json:"anggota_2"`
-	Anggota3    string `json:"anggota_3"`
-	KomitmenFee string `json:"komitmen_fee"`
-	Email       string `json:"email"`
-	Password    string `json:"password"`
-	Stage       string `json:"stage"`
+	ID          int       `json:"id"`
+	NamaTim     string    `json:"nama_tim"`
+	Leader      string    `json:"leader"`
+	Anggota     []Anggota `json:"anggota"`
+	KomitmenFee string    `json:"komitmen_fee"`
+	Email       string    `json:"email"`
+	Password    string    `json:"password"`
+	Stage       string    `json:"stage"`
 }
 
 type ResponseCp struct {

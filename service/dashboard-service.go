@@ -106,21 +106,20 @@ func (s *DashboardServices) GetAllHackaton(count, page int) ([]dto.ResponseHacka
 			return []dto.ResponseHackaton{}, err
 		}
 
-		if len(anggota) > 0 {
-			dataHackaton.Anggota1 = anggota[0].Name
+		var anggotas []dto.Anggota
+		for _, data := range anggota {
+			if data.ID == Leader.ID {
+				continue
+			}
+
+			anggota := dto.Anggota{
+				Name: data.Name,
+			}
+
+			anggotas = append(anggotas, anggota)
 		}
-		if len(anggota) > 1 {
-			dataHackaton.Anggota2 = anggota[1].Name
-		}
-		if len(anggota) > 2 {
-			dataHackaton.Anggota3 = anggota[2].Name
-		}
-		if len(anggota) > 3 {
-			dataHackaton.Anggota4 = anggota[3].Name
-		}
-		if len(anggota) > 4 {
-			dataHackaton.Anggota5 = anggota[4].Name
-		}
+
+		dataHackaton.Anggota = anggotas
 
 		response := dto.ResponseHackaton{
 			Hackaton: dataHackaton,
@@ -174,15 +173,20 @@ func (s *DashboardServices) GetAllCp(count, page int) ([]dto.ResponseCp, error) 
 		if err := s.DB.Where("IDTeam = ?", dataCp.ID).Find(&anggota).Error; err != nil {
 		}
 
-		if len(anggota) > 0 {
-			dataCp.Anggota1 = anggota[0].Name
+		var anggotas []dto.Anggota
+		for _, dataAnggota := range anggota {
+			if dataAnggota.ID == Leader.ID {
+				continue
+			}
+
+			anggota := dto.Anggota{
+				Name: dataAnggota.Name,
+			}
+
+			anggotas = append(anggotas, anggota)
 		}
-		if len(anggota) > 1 {
-			dataCp.Anggota2 = anggota[1].Name
-		}
-		if len(anggota) > 2 {
-			dataCp.Anggota3 = anggota[2].Name
-		}
+
+		dataCp.Anggota = anggotas
 
 		response := dto.ResponseCp{
 			Cp:      dataCp,
