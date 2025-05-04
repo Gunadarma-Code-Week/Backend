@@ -86,7 +86,7 @@ func (s *RegistrationService) CPTeamRegistration(
 	// create cp team
 	cpTeam := &entity.CPTeam{
 		IDTeam:           teamRegistration.ID_Team,
-		Stage:            "Registration",
+		Stage:            "Registered",
 		Status:           "Registration",
 		DomjudgeUsername: domJudgeUsername,
 		DomjudgePassword: domJudgePassword,
@@ -183,7 +183,7 @@ func (s *RegistrationService) HackathonTeamRegistration(
 	// create hackathon team
 	hackathonTeam := &entity.HackathonTeam{
 		IDTeam: teamRegistration.ID_Team,
-		Stage:  "Registration",
+		Stage:  "Registered",
 		Status: "Registration",
 	}
 	err = s.registrationRepository.CreateHackathonTeam(tx, hackathonTeam)
