@@ -16,6 +16,7 @@ type User struct {
 	Institusi       string     `gorm:"varchar(55);"`
 	Phone           string     `gorm:"type:varchar(16)"`
 	DokumenFilename string     `gorm:"type:varchar(255)"`
+	SocMedDocument  string     `gorm:"type:varchar(255)"`
 	Jenjang         string     `gorm:"type:varchar(120)"`
 	Major           string     `gorm:"type:varchar(120)"`
 	ProfilePicture  string     `gorm:"type:varchar(255)"`

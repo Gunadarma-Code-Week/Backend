@@ -33,9 +33,7 @@ definitions:
       status:
         type: string
       team:
-        items:
-          $ref: '#/definitions/dto.Team'
-        type: array
+        $ref: '#/definitions/dto.Team'
       ticket:
         $ref: '#/definitions/dto.Ticket'
     type: object
@@ -57,10 +55,18 @@ definitions:
     type: object
   dto.RegistraionTeamResponse:
     properties:
+      bukti_pembayaran:
+        type: string
       created_at:
         type: string
       id_team:
         type: integer
+      leader:
+        $ref: '#/definitions/dto.Member'
+      member:
+        items:
+          $ref: '#/definitions/dto.Member'
+        type: array
       supervisor:
         type: string
       supervisor_nidn:
@@ -76,6 +82,8 @@ definitions:
     type: object
   dto.RegistrationCPResponse:
     properties:
+      bukti_pembayaran:
+        type: string
       createdAt:
         type: string
       domjudge_password:
@@ -86,6 +94,8 @@ definitions:
         type: integer
       id_team:
         type: integer
+      join_code:
+        type: string
       stage:
         type: string
       status:
@@ -95,6 +105,8 @@ definitions:
     type: object
   dto.RegistrationCPTeamRequest:
     properties:
+      bukti_pembayaran:
+        type: string
       supervisor:
         type: string
       supervisor_nidn:
@@ -115,12 +127,16 @@ definitions:
     type: object
   dto.RegistrationHackathonResponse:
     properties:
+      bukti_pembayaran:
+        type: string
       created_at:
         type: string
       id_HackathonTeam:
         type: integer
       id_team:
         type: integer
+      join_code:
+        type: string
       stage:
         type: string
       status:
@@ -130,6 +146,8 @@ definitions:
     type: object
   dto.RegistrationHackathonTeamRequest:
     properties:
+      bukti_pembayaran:
+        type: string
       supervisor:
         type: string
       supervisor_nidn:
@@ -154,6 +172,8 @@ definitions:
         items:
           $ref: '#/definitions/dto.Event'
         type: array
+      id_team:
+        type: string
       user:
         $ref: '#/definitions/dto.User'
     type: object
@@ -198,9 +218,15 @@ definitions:
         type: string
       institusi:
         type: string
+      major:
+        type: string
       name:
         type: string
       nim:
+        type: string
+      phone:
+        type: string
+      socmed_document:
         type: string
     required:
     - birth_date
@@ -224,10 +250,11 @@ definitions:
   dto.UserResponseDTO:
     properties:
       birth_date:
-        description: BirthPlace string     `json:"birth_place"`
         type: string
       data_has_verified:
         type: boolean
+      dokumen_filename:
+        type: string
       email:
         type: string
       id:
@@ -239,13 +266,16 @@ definitions:
       name:
         type: string
       nim:
-        description: Gender     string     `json:"gender"`
+        type: string
+      phone:
         type: string
       profile_has_updated:
         type: boolean
       profile_picture:
         type: string
       role:
+        type: string
+      socmed_document:
         type: string
     type: object
   dto.ValidateGoogleIdTokenDTO:

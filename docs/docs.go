@@ -1026,10 +1026,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "team": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/dto.Team"
-                    }
+                    "$ref": "#/definitions/dto.Team"
                 },
                 "ticket": {
                     "$ref": "#/definitions/dto.Ticket"
@@ -1069,11 +1066,23 @@ const docTemplate = `{
                 "team_name"
             ],
             "properties": {
+                "bukti_pembayaran": {
+                    "type": "string"
+                },
                 "created_at": {
                     "type": "string"
                 },
                 "id_team": {
                     "type": "integer"
+                },
+                "leader": {
+                    "$ref": "#/definitions/dto.Member"
+                },
+                "member": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.Member"
+                    }
                 },
                 "supervisor": {
                     "type": "string"
@@ -1092,6 +1101,9 @@ const docTemplate = `{
         "dto.RegistrationCPResponse": {
             "type": "object",
             "properties": {
+                "bukti_pembayaran": {
+                    "type": "string"
+                },
                 "createdAt": {
                     "type": "string"
                 },
@@ -1106,6 +1118,9 @@ const docTemplate = `{
                 },
                 "id_team": {
                     "type": "integer"
+                },
+                "join_code": {
+                    "type": "string"
                 },
                 "stage": {
                     "type": "string"
@@ -1126,6 +1141,9 @@ const docTemplate = `{
                 "team_name"
             ],
             "properties": {
+                "bukti_pembayaran": {
+                    "type": "string"
+                },
                 "supervisor": {
                     "type": "string"
                 },
@@ -1151,6 +1169,9 @@ const docTemplate = `{
         "dto.RegistrationHackathonResponse": {
             "type": "object",
             "properties": {
+                "bukti_pembayaran": {
+                    "type": "string"
+                },
                 "created_at": {
                     "type": "string"
                 },
@@ -1159,6 +1180,9 @@ const docTemplate = `{
                 },
                 "id_team": {
                     "type": "integer"
+                },
+                "join_code": {
+                    "type": "string"
                 },
                 "stage": {
                     "type": "string"
@@ -1179,6 +1203,9 @@ const docTemplate = `{
                 "team_name"
             ],
             "properties": {
+                "bukti_pembayaran": {
+                    "type": "string"
+                },
                 "supervisor": {
                     "type": "string"
                 },
@@ -1209,6 +1236,9 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/dto.Event"
                     }
+                },
+                "id_team": {
+                    "type": "string"
                 },
                 "user": {
                     "$ref": "#/definitions/dto.User"
@@ -1286,10 +1316,19 @@ const docTemplate = `{
                 "institusi": {
                     "type": "string"
                 },
+                "major": {
+                    "type": "string"
+                },
                 "name": {
                     "type": "string"
                 },
                 "nim": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "socmed_document": {
                     "type": "string"
                 }
             }
@@ -1315,11 +1354,13 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "birth_date": {
-                    "description": "BirthPlace string     ` + "`" + `json:\"birth_place\"` + "`" + `",
                     "type": "string"
                 },
                 "data_has_verified": {
                     "type": "boolean"
+                },
+                "dokumen_filename": {
+                    "type": "string"
                 },
                 "email": {
                     "type": "string"
@@ -1337,7 +1378,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "nim": {
-                    "description": "Gender     string     ` + "`" + `json:\"gender\"` + "`" + `",
+                    "type": "string"
+                },
+                "phone": {
                     "type": "string"
                 },
                 "profile_has_updated": {
@@ -1347,6 +1390,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "role": {
+                    "type": "string"
+                },
+                "socmed_document": {
                     "type": "string"
                 }
             }

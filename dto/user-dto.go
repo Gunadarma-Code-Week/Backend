@@ -16,6 +16,9 @@ type UserResponseDTO struct {
 	Institusi      string     `json:"institusi"`
 	Phone          string     `json:"phone"`
 
+	SocMedDocument  string `json:"socmed_document"`
+	DokumenFilename string `json:"dokumen_filename"`
+
 	ProfileHasUpdated bool `json:"profile_has_updated"`
 	DataHasVerified   bool `json:"data_has_verified"`
 }
@@ -29,6 +32,8 @@ type UpdateUserProfileDTO struct {
 	BirthPlace string `json:"birth_place" binding:"required"`
 	BirthDate  string `json:"birth_date" binding:"required"`
 	Institusi  string `json:"institusi" binding:"required"`
+
+	SocMedDocument string `json:"socmed_document"`
 }
 
 // type RegisterDTO struct {
