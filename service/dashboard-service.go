@@ -246,14 +246,14 @@ func (s *DashboardServices) GetEventSevice(id_user string) (dto.ResponseEvents, 
 	if seminar.ID_Seminar != 0 {
 		seminarStatus = "Registered"
 	}
-	cpStatus := "Unregistered"
-	if cp.ID_CPTeam != 0 {
-		cpStatus = "Registered"
-	}
-	hackatonStatus := "Unregistered"
-	if hackaton.ID_HackathonTeam != 0 {
-		hackatonStatus = "Registered"
-	}
+	// cpStatus := "Unregistered"
+	// if cp.ID_CPTeam != 0 {
+	// 	cpStatus = "Registered"
+	// }
+	// hackatonStatus := "Unregistered"
+	// if hackaton.ID_HackathonTeam != 0 {
+	// 	hackatonStatus = "Registered"
+	// }
 
 	responseTeam := dto.Team{
 		TeamName: user.Team.TeamName,
@@ -270,13 +270,13 @@ func (s *DashboardServices) GetEventSevice(id_user string) (dto.ResponseEvents, 
 		},
 		{
 			Name:          "Hackathon",
-			Status:        hackatonStatus,
+			Status:        hackaton.Stage,
 			PaymentStatus: user.Team.KomitmenFee,
 			Team:          responseTeam,
 		},
 		{
 			Name:          "Competitive Programming",
-			Status:        cpStatus,
+			Status:        cp.Stage,
 			PaymentStatus: user.Team.KomitmenFee,
 			Team:          responseTeam,
 		},
