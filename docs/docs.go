@@ -107,6 +107,104 @@ const docTemplate = `{
                 }
             }
         },
+        "/cp/{join_code}": {
+            "get": {
+                "description": "Get CP details by join code",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CP"
+                ],
+                "summary": "Get CP Details",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Join Code",
+                        "name": "join_code",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/helper.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.CpDetailDto"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid join code",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/helper.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "404": {
+                        "description": "CP details not found",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/helper.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/helper.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/dashboard/events/{id_user}": {
             "get": {
                 "description": "Retrieve all events associated with a specific user.",
@@ -466,7 +564,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/hackathon/{join_code}/{stage}": {
+        "/hackathon/{stage}/{join_code}": {
             "post": {
                 "description": "Submit a hackathon entry",
                 "consumes": [
@@ -1146,6 +1244,23 @@ const docTemplate = `{
                 },
                 "user": {
                     "$ref": "#/definitions/dto.UserResponseDTO"
+                }
+            }
+        },
+        "dto.CpDetailDto": {
+            "type": "object",
+            "properties": {
+                "domjudgePassword": {
+                    "type": "string"
+                },
+                "domjudgeUsername": {
+                    "type": "string"
+                },
+                "stage": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
                 }
             }
         },

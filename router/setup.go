@@ -30,12 +30,14 @@ var (
 	)
 	newsletterService = service.NewNewsletterService(newsletterRepository)
 	SubmissionService = service.NewSubmissionService(database)
+	cpService         = service.NewCpService(database)
 
 	authHandler         = handler.NewAuthHandler(authService, jwtService, emailService)
 	userHandler         = handler.NewUserHandler(userService)
 	registrationHandler = handler.GateRegistrationHandler(registrationService, userService)
 	newsletterHandler   = handler.NewNewsletterHandler(newsletterService)
 	submissionHandler   = handler.GateHackathonHandler(SubmissionService)
+	cpHandler           = handler.GateCompetitiveHandler(cpService)
 
 	authMiddleware = middleware.NewAuthMiddleware(authService, jwtService)
 
@@ -109,5 +111,10 @@ func SetupRouter(r *gin.Engine) {
 		submissionHandler := router.Group("/submission")
 		submissionHandler.POST("/hackaton/:stage/:join_code")
 		submissionHandler.GET("/hackaton/:join_code")
+	}
+
+	{
+		cp := router.Group("/cp")
+		cp.GET("/:join_code", cpHandler.GetDetail)
 	}
 }

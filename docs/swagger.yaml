@@ -9,6 +9,17 @@ definitions:
       user:
         $ref: '#/definitions/dto.UserResponseDTO'
     type: object
+  dto.CpDetailDto:
+    properties:
+      domjudgePassword:
+        type: string
+      domjudgeUsername:
+        type: string
+      stage:
+        type: string
+      status:
+        type: string
+    type: object
   dto.CreateNewsLetterDTO:
     properties:
       base_image:
@@ -434,6 +445,59 @@ paths:
       summary: Validate Google ID Token
       tags:
       - Auth
+  /cp/{join_code}:
+    get:
+      consumes:
+      - application/json
+      description: Get CP details by join code
+      parameters:
+      - description: Join Code
+        in: path
+        name: join_code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.CpDetailDto'
+              type: object
+        "400":
+          description: Invalid join code
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "404":
+          description: CP details not found
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+      summary: Get CP Details
+      tags:
+      - CP
   /dashboard/{acara}/{count}/{page}:
     get:
       consumes:
@@ -607,7 +671,42 @@ paths:
       summary: Get User Events
       tags:
       - Dashboard
-  /hackathon/{join_code}/{stage}:
+  /hackathon/{join_code}/status:
+    get:
+      consumes:
+      - application/json
+      description: Get the status of a hackathon stage
+      parameters:
+      - description: Hackathon Join Code
+        in: path
+        name: join_code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.HackatonStageStatus'
+              type: object
+        "400":
+          description: Invalid join code
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+      summary: Get Hackathon Stage Status
+      tags:
+      - Hackathon
+  /hackathon/{stage}/{join_code}:
     post:
       consumes:
       - application/json
@@ -660,41 +759,6 @@ paths:
                   type: string
               type: object
       summary: Submit Hackathon
-      tags:
-      - Hackathon
-  /hackathon/{join_code}/status:
-    get:
-      consumes:
-      - application/json
-      description: Get the status of a hackathon stage
-      parameters:
-      - description: Hackathon Join Code
-        in: path
-        name: join_code
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/helper.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/dto.HackatonStageStatus'
-              type: object
-        "400":
-          description: Invalid join code
-          schema:
-            allOf:
-            - $ref: '#/definitions/helper.Response'
-            - properties:
-                data:
-                  type: string
-              type: object
-      summary: Get Hackathon Stage Status
       tags:
       - Hackathon
   /newsletter:

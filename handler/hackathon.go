@@ -35,7 +35,7 @@ func GateHackathonHandler(s service.SubmissionService) HackathonHandler {
 // @Success 201 {object} helper.Response{data=entity.HackathonTeam}
 // @Failure 400 {object} helper.Response{data=string} "Invalid input"
 // @Failure 500 {object} helper.Response{data=string} "Submission failed"
-// @Router /hackathon/{join_code}/{stage} [post]
+// @Router /hackathon/{stage}/{join_code} [post]
 func (h *hackathonHandler) SubmissionHackaton(c *gin.Context) {
 	stage := c.Param("stage")
 	join_code := c.Param("join_code")
