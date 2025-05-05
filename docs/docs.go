@@ -404,6 +404,164 @@ const docTemplate = `{
                 }
             }
         },
+        "/hackathon/{join_code}/status": {
+            "get": {
+                "description": "Get the status of a hackathon stage",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Hackathon"
+                ],
+                "summary": "Get Hackathon Stage Status",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Hackathon Join Code",
+                        "name": "join_code",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/helper.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.HackatonStageStatus"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid join code",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/helper.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/hackathon/{join_code}/{stage}": {
+            "post": {
+                "description": "Submit a hackathon entry",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Hackathon"
+                ],
+                "summary": "Submit Hackathon",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Hackathon Stage",
+                        "name": "stage",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Hackathon Join Code",
+                        "name": "join_code",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Hackathon Submission Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.RequestHackathon"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/helper.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/entity.HackathonTeam"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/helper.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Submission failed",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/helper.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/newsletter": {
             "post": {
                 "description": "Create a new newsletter",
@@ -1033,6 +1191,20 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.HackatonStageStatus": {
+            "type": "object",
+            "properties": {
+                "final": {
+                    "type": "boolean"
+                },
+                "stage_1": {
+                    "type": "boolean"
+                },
+                "stage_2": {
+                    "type": "boolean"
+                }
+            }
+        },
         "dto.Member": {
             "type": "object",
             "properties": {
@@ -1228,6 +1400,14 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.RequestHackathon": {
+            "type": "object",
+            "properties": {
+                "link_drive": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.ResponseEvents": {
             "type": "object",
             "properties": {
@@ -1408,6 +1588,44 @@ const docTemplate = `{
                 }
             }
         },
+        "entity.HackathonTeam": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "githubProjectUrl": {
+                    "type": "string"
+                },
+                "id_HackathonTeam": {
+                    "type": "integer"
+                },
+                "idteam": {
+                    "type": "integer"
+                },
+                "isDeleted": {
+                    "type": "boolean"
+                },
+                "pitchDeckUrl": {
+                    "type": "string"
+                },
+                "proposalUrl": {
+                    "type": "string"
+                },
+                "stage": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "team": {
+                    "$ref": "#/definitions/entity.Team"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
         "entity.NewsLetter": {
             "type": "object",
             "properties": {
@@ -1430,6 +1648,41 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "entity.Team": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "event": {
+                    "type": "string"
+                },
+                "id_LeadTeam": {
+                    "type": "integer"
+                },
+                "id_Team": {
+                    "type": "integer"
+                },
+                "joinCode": {
+                    "type": "string"
+                },
+                "komitmenFee": {
+                    "type": "string"
+                },
+                "supervisor": {
+                    "type": "string"
+                },
+                "supervisorNIDN": {
+                    "type": "string"
+                },
+                "teamName": {
+                    "type": "string"
+                },
+                "updatedAt": {
                     "type": "string"
                 }
             }

@@ -24,6 +24,18 @@ func GateHackathonHandler(s service.SubmissionService) HackathonHandler {
 	}
 }
 
+// @Summary Submit Hackathon
+// @Description Submit a hackathon entry
+// @Tags Hackathon
+// @Accept  json
+// @Produce  json
+// @Param stage path string true "Hackathon Stage"
+// @Param join_code path string true "Hackathon Join Code"
+// @Param request body dto.RequestHackathon true "Hackathon Submission Request"
+// @Success 201 {object} helper.Response{data=entity.HackathonTeam}
+// @Failure 400 {object} helper.Response{data=string} "Invalid input"
+// @Failure 500 {object} helper.Response{data=string} "Submission failed"
+// @Router /hackathon/{join_code}/{stage} [post]
 func (h *hackathonHandler) SubmissionHackaton(c *gin.Context) {
 	stage := c.Param("stage")
 	join_code := c.Param("join_code")
@@ -43,6 +55,15 @@ func (h *hackathonHandler) SubmissionHackaton(c *gin.Context) {
 	c.JSON(http.StatusCreated, helper.CreateSuccessResponse("CREATED", result))
 }
 
+// @Summary Get Hackathon Stage Status
+// @Description Get the status of a hackathon stage
+// @Tags Hackathon
+// @Accept  json
+// @Produce  json
+// @Param join_code path string true "Hackathon Join Code"
+// @Success 200 {object} helper.Response{data=dto.HackatonStageStatus}
+// @Failure 400 {object} helper.Response{data=string} "Invalid join code"
+// @Router /hackathon/{join_code}/status [get]
 func (h *hackathonHandler) HackathonStageStatus(c *gin.Context) {
 	join_code := c.Param("join_code")
 
