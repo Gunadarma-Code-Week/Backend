@@ -68,12 +68,15 @@ func (s *submissionService) Get(join_code string) (dto.HackatonStageStatus, erro
 
 	if submission.ProposalUrl != "" {
 		status.Stage1 = true
+		status.Stage1Url = submission.ProposalUrl
 	}
 	if submission.PitchDeckUrl != "" {
 		status.Stage2 = true
+		status.Stage2Url = submission.PitchDeckUrl
 	}
 	if submission.GithubProjectUrl != "" {
 		status.Final = true
+		status.FinalUrl = submission.GithubProjectUrl
 	}
 
 	return status, nil
