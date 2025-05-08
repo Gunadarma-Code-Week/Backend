@@ -38,6 +38,7 @@ var (
 	newsletterHandler   = handler.NewNewsletterHandler(newsletterService)
 	submissionHandler   = handler.GateHackathonHandler(SubmissionService)
 	cpHandler           = handler.GateCompetitiveHandler(cpService)
+	hackathonHandler    = handler.GateHackathonHandler(SubmissionService)
 
 	authMiddleware = middleware.NewAuthMiddleware(authService, jwtService)
 
@@ -109,8 +110,8 @@ func SetupRouter(r *gin.Engine) {
 
 	{
 		submissionHandler := router.Group("/submission")
-		submissionHandler.POST("/hackaton/:stage/:join_code")
-		submissionHandler.GET("/hackaton/:join_code")
+		submissionHandler.POST("/hackaton/:stage/:join_code", hackathonHandler.SubmissionHackaton)
+		submissionHandler.GET("/hackaton/:join_code", hackathonHandler.HackathonStageStatus)
 	}
 
 	{
