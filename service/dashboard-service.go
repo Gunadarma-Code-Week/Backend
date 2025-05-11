@@ -86,7 +86,7 @@ func (s *DashboardServices) GetAllHackaton(count, page int) ([]dto.ResponseHacka
 
 	for _, data := range dataSeminars {
 		var Leader entity.User
-		if err := s.DB.Where("IDTeam = ?", data.Team.ID_Team).First(&Leader).Error; err != nil {
+		if err := s.DB.Where("id_team = ?", data.Team.ID_Team).First(&Leader).Error; err != nil {
 			return []dto.ResponseHackaton{}, err
 		}
 
@@ -102,7 +102,7 @@ func (s *DashboardServices) GetAllHackaton(count, page int) ([]dto.ResponseHacka
 		}
 
 		var anggota []entity.User
-		if err := s.DB.Where("IDTeam = ?", dataHackaton.ID).Find(&anggota).Error; err != nil {
+		if err := s.DB.Where("id_team = ?", dataHackaton.ID).Find(&anggota).Error; err != nil {
 			return []dto.ResponseHackaton{}, err
 		}
 
@@ -155,7 +155,7 @@ func (s *DashboardServices) GetAllCp(count, page int) ([]dto.ResponseCp, error) 
 
 	for _, data := range dataSeminars {
 		var Leader entity.User
-		if err := s.DB.Where("IDTeam = ?", data.Team.ID_Team).First(&Leader).Error; err != nil {
+		if err := s.DB.Where("id_team = ?", data.Team.ID_Team).First(&Leader).Error; err != nil {
 			return []dto.ResponseCp{}, err
 		}
 
@@ -170,7 +170,7 @@ func (s *DashboardServices) GetAllCp(count, page int) ([]dto.ResponseCp, error) 
 		}
 
 		var anggota []entity.User
-		if err := s.DB.Where("IDTeam = ?", dataCp.ID).Find(&anggota).Error; err != nil {
+		if err := s.DB.Where("id_team = ?", dataCp.ID).Find(&anggota).Error; err != nil {
 		}
 
 		var anggotas []dto.Anggota
