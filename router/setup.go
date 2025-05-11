@@ -82,8 +82,8 @@ func SetupRouter(r *gin.Engine) {
 	// router.POST("profile/post", profileHandler.Create)
 	// router.GET("profile/get", profileHandler.GetProfile)
 
-	admin_api_base_url := os.Getenv("ADMIN_API_BASE_URL")
-	admin_router := r.Group(admin_api_base_url)
+	// admin_api_base_url := os.Getenv("ADMIN_API_BASE_URL")
+	// admin_router := r.Group(admin_api_base_url)
 
 	{
 		newsletter := router.Group("/newsletter")
@@ -99,12 +99,12 @@ func SetupRouter(r *gin.Engine) {
 	}
 
 	{
-		dashboard := admin_router.Group("/dashboard")
+		// dashboard := admin_router.Group("/dashboard")
 		dashboardUnauth := router.Group("/dashboard")
 
-		dashboard.GET("/:acara/:count/:page", dashboards.GetAllDashboard)
-		dashboard.DELETE("/:acara/:id", dashboards.Delete)
-		dashboard.PUT("/:acara/:id", dashboards.Update)
+		dashboardUnauth.GET("/:acara/:count/:page", dashboards.GetAllDashboard)
+		dashboardUnauth.DELETE("/:acara/:id", dashboards.Delete)
+		dashboardUnauth.PUT("/:acara/:id", dashboards.Update)
 		dashboardUnauth.GET("/events/:id_user", dashboards.GetEvent)
 	}
 
