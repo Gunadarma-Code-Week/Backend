@@ -23,7 +23,7 @@ type Anggota struct {
 }
 
 type ResponseSeminar struct {
-	Seminar Seminar `json:"seminar"`
+	Seminar []Seminar `json:"seminar"`
 	HasMore bool    `json:"has_more"`
 }
 
@@ -40,7 +40,7 @@ type Hackaton struct {
 }
 
 type ResponseHackaton struct {
-	Hackaton Hackaton `json:"hackaton"`
+	Hackaton []Hackaton `json:"hackaton"`
 	HasMore  bool     `json:"has_more"`
 }
 
@@ -56,6 +56,6 @@ type Cp struct {
 }
 
 type ResponseCp struct {
-	Cp      Cp   `json:"cp"`
+	Cp      []Cp   `json:"cp"`
 	HasMore bool `json:"has_more"`
 }

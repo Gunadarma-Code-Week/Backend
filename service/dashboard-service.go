@@ -19,7 +19,7 @@ func NewDashboardServices(db *gorm.DB) DashboardServices {
 
 func FindUserById(id string) {}
 
-func (s *DashboardServices) GetAllSeminar(count, page int) ([]dto.ResponseSeminar, error) {
+func (s *DashboardServices) GetAllSeminar(count, page int) (dto.ResponseSeminar, error) {
 	var dataSeminars []entity.Seminar
 
 	offset := page * count
@@ -28,7 +28,7 @@ func (s *DashboardServices) GetAllSeminar(count, page int) ([]dto.ResponseSemina
 		Limit(count + 1).
 		Offset(offset).
 		Find(&dataSeminars).Error; err != nil {
-		return []dto.ResponseSeminar{}, err
+		return dto.ResponseSeminar{}, err
 	}
 
 	hasMore := false
@@ -38,7 +38,7 @@ func (s *DashboardServices) GetAllSeminar(count, page int) ([]dto.ResponseSemina
 		dataSeminars = dataSeminars[:count]
 	}
 
-	var responseData []dto.ResponseSeminar
+	var responseData []dto.Seminar
 
 	for _, data := range dataSeminars {
 		dataSeminar := dto.Seminar{
@@ -52,18 +52,18 @@ func (s *DashboardServices) GetAllSeminar(count, page int) ([]dto.ResponseSemina
 			Status:          data.User.DataHasVerified,
 		}
 
-		response := dto.ResponseSeminar{
-			Seminar: dataSeminar,
-			HasMore: hasMore,
-		}
-
-		responseData = append(responseData, response)
+		responseData = append(responseData, dataSeminar)
 	}
 
-	return responseData, nil
+	response := dto.ResponseSeminar{
+		Seminar: responseData,
+		HasMore: hasMore,
+	}
+
+	return response, nil
 }
 
-func (s *DashboardServices) GetAllHackaton(count, page int) ([]dto.ResponseHackaton, error) {
+func (s *DashboardServices) GetAllHackaton(count, page int) (dto.ResponseHackaton, error) {
 	var dataSeminars []entity.HackathonTeam
 
 	offset := page * count
@@ -72,7 +72,7 @@ func (s *DashboardServices) GetAllHackaton(count, page int) ([]dto.ResponseHacka
 		Limit(count + 1).
 		Offset(offset).
 		Find(&dataSeminars).Error; err != nil {
-		return []dto.ResponseHackaton{}, err
+		return dto.ResponseHackaton{}, err
 	}
 
 	hasMore := false
@@ -82,12 +82,12 @@ func (s *DashboardServices) GetAllHackaton(count, page int) ([]dto.ResponseHacka
 		dataSeminars = dataSeminars[:count]
 	}
 
-	var responseData []dto.ResponseHackaton
+	var responseHackatons []dto.Hackaton
 
 	for _, data := range dataSeminars {
 		var Leader entity.User
 		if err := s.DB.Where("id_team = ?", data.Team.ID_Team).First(&Leader).Error; err != nil {
-			return []dto.ResponseHackaton{}, err
+			return dto.ResponseHackaton{}, err
 		}
 
 		dataHackaton := dto.Hackaton{
@@ -103,7 +103,7 @@ func (s *DashboardServices) GetAllHackaton(count, page int) ([]dto.ResponseHacka
 
 		var anggota []entity.User
 		if err := s.DB.Where("id_team = ?", dataHackaton.ID).Find(&anggota).Error; err != nil {
-			return []dto.ResponseHackaton{}, err
+			return dto.ResponseHackaton{}, err
 		}
 
 		var anggotas []dto.Anggota
@@ -121,18 +121,18 @@ func (s *DashboardServices) GetAllHackaton(count, page int) ([]dto.ResponseHacka
 
 		dataHackaton.Anggota = anggotas
 
-		response := dto.ResponseHackaton{
-			Hackaton: dataHackaton,
-			HasMore:  hasMore,
-		}
+		responseHackatons = append(responseHackatons, dataHackaton)
+	}
 
-		responseData = append(responseData, response)
+	responseData := dto.ResponseHackaton{
+		Hackaton: responseHackatons,
+		HasMore:  hasMore,
 	}
 
 	return responseData, nil
 }
 
-func (s *DashboardServices) GetAllCp(count, page int) ([]dto.ResponseCp, error) {
+func (s *DashboardServices) GetAllCp(count, page int) (dto.ResponseCp, error) {
 	var dataSeminars []entity.CPTeam
 
 	offset := page * count
@@ -141,7 +141,7 @@ func (s *DashboardServices) GetAllCp(count, page int) ([]dto.ResponseCp, error) 
 		Limit(count + 1).
 		Offset(offset).
 		Find(&dataSeminars).Error; err != nil {
-		return []dto.ResponseCp{}, err
+		return dto.ResponseCp{}, err
 	}
 
 	hasMore := false
@@ -151,12 +151,12 @@ func (s *DashboardServices) GetAllCp(count, page int) ([]dto.ResponseCp, error) 
 		dataSeminars = dataSeminars[:count]
 	}
 
-	var responseData []dto.ResponseCp
+	var responseData []dto.Cp
 
 	for _, data := range dataSeminars {
 		var Leader entity.User
 		if err := s.DB.Where("id_team = ?", data.Team.ID_Team).First(&Leader).Error; err != nil {
-			return []dto.ResponseCp{}, err
+			return dto.ResponseCp{}, err
 		}
 
 		dataCp := dto.Cp{
@@ -188,15 +188,15 @@ func (s *DashboardServices) GetAllCp(count, page int) ([]dto.ResponseCp, error) 
 
 		dataCp.Anggota = anggotas
 
-		response := dto.ResponseCp{
-			Cp:      dataCp,
-			HasMore: hasMore,
-		}
-
-		responseData = append(responseData, response)
+		responseData = append(responseData, dataCp)
 	}
 
-	return responseData, nil
+	response := dto.ResponseCp{
+		Cp:      responseData,
+		HasMore: hasMore,
+	}
+
+	return response, nil
 }
 
 func (s *DashboardServices) GetEventSevice(id_user string) (dto.ResponseEvents, error) {
