@@ -84,8 +84,8 @@ func SetupRouter(r *gin.Engine) {
 	// router.POST("profile/post", profileHandler.Create)
 	// router.GET("profile/get", profileHandler.GetProfile)
 
-	admin_api_base_url := os.Getenv("ADMIN_API_BASE_URL")
-	admin_router := r.Group(admin_api_base_url)
+	// admin_api_base_url := os.Getenv("ADMIN_API_BASE_URL")
+	// admin_router := r.Group(admin_api_base_url)
 
 	{
 		newsletter := router.Group("/newsletter")
