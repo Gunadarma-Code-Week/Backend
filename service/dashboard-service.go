@@ -3,6 +3,7 @@ package service
 import (
 	"gcw/dto"
 	"gcw/entity"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -19,12 +20,13 @@ func NewDashboardServices(db *gorm.DB) DashboardServices {
 
 func FindUserById(id string) {}
 
-func (s *DashboardServices) GetAllSeminar(count, page int) (dto.ResponseSeminar, error) {
+func (s *DashboardServices) GetAllSeminar(startDate, endDate time.Time, count, page int) (dto.ResponseSeminar, error) {
 	var dataSeminars []entity.Seminar
 
 	offset := page * count
 
 	if err := s.DB.Preload("User").
+		Where("created_at BETWEEN ? AND ?", startDate, endDate).
 		Limit(count + 1).
 		Offset(offset).
 		Find(&dataSeminars).Error; err != nil {
@@ -63,12 +65,13 @@ func (s *DashboardServices) GetAllSeminar(count, page int) (dto.ResponseSeminar,
 	return response, nil
 }
 
-func (s *DashboardServices) GetAllHackaton(count, page int) (dto.ResponseHackaton, error) {
+func (s *DashboardServices) GetAllHackaton(startDate, endDate time.Time, count, page int) (dto.ResponseHackaton, error) {
 	var dataSeminars []entity.HackathonTeam
 
 	offset := page * count
 
 	if err := s.DB.Preload("Team").
+		Where("created_at BETWEEN ? AND ?", startDate, endDate).
 		Limit(count + 1).
 		Offset(offset).
 		Find(&dataSeminars).Error; err != nil {
@@ -132,12 +135,13 @@ func (s *DashboardServices) GetAllHackaton(count, page int) (dto.ResponseHackato
 	return responseData, nil
 }
 
-func (s *DashboardServices) GetAllCp(count, page int) (dto.ResponseCp, error) {
+func (s *DashboardServices) GetAllCp(startDate, endDate time.Time, count, page int) (dto.ResponseCp, error) {
 	var dataSeminars []entity.CPTeam
 
 	offset := page * count
 
 	if err := s.DB.Preload("Team").
+		Where("created_at BETWEEN ? AND ?", startDate, endDate).
 		Limit(count + 1).
 		Offset(offset).
 		Find(&dataSeminars).Error; err != nil {

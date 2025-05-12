@@ -6,6 +6,7 @@ import (
 	"gcw/service"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -46,6 +47,8 @@ func (h *dashboardController) GetAllDashboard(c *gin.Context) {
 	acara := c.Param("acara")
 	strCount := c.Param("count")
 	strPage := c.Param("page")
+	startDateStr := c.Param("start_date")
+	endDateStr := c.Param("end_date")
 
 	count, errCount := strconv.Atoi(strCount)
 	page, errPage := strconv.Atoi(strPage)
@@ -54,11 +57,23 @@ func (h *dashboardController) GetAllDashboard(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "count or page are error"))
 	}
 
+	startDate, err := time.Parse("2006-01-02", startDateStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid start_date format"})
+		return
+	}
+
+	endDate, err := time.Parse("2006-01-02", endDateStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid end_date format"})
+		return
+	}
+
 	var respondData interface{}
 
 	switch acara {
 	case "seminar":
-		data, err := h.Service.GetAllSeminar(count, page)
+		data, err := h.Service.GetAllSeminar(startDate, endDate, count, page)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "error service"))
 			return
@@ -67,7 +82,7 @@ func (h *dashboardController) GetAllDashboard(c *gin.Context) {
 		respondData = data
 
 	case "hackaton":
-		data, err := h.Service.GetAllHackaton(count, page)
+		data, err := h.Service.GetAllHackaton(startDate, endDate, count, page)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "error service"))
 			return
@@ -76,7 +91,7 @@ func (h *dashboardController) GetAllDashboard(c *gin.Context) {
 		respondData = data
 
 	case "cp":
-		data, err := h.Service.GetAllCp(count, page)
+		data, err := h.Service.GetAllCp(startDate, endDate, count, page)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "error service"))
 			return

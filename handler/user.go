@@ -99,7 +99,6 @@ func (h *UserHandler) UpdateMyProfile(c *gin.Context) {
 }
 
 func (h *UserHandler) GetAllUser(c *gin.Context) {
-	// Extract parameters from URL
 	startDateStr := c.Param("start_date")
 	endDateStr := c.Param("end_date")
 	countStr := c.Param("count")
