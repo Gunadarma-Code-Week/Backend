@@ -64,7 +64,7 @@ func SetupRouter(r *gin.Engine) {
 		profile.GET("my", userHandler.GetMyProfile)
 		profile.POST("my", userHandler.UpdateMyProfile)
 
-		router.GET("/user/all/:start_date/:end_date/:count/:page", userHandler.GetAllUser)
+		profile.GET("all/:start_date/:end_date/:count/:page", userHandler.GetAllUser)
 	}
 
 	mustUpdatedProfile := mustAuth.Group("")
