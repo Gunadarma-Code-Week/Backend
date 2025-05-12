@@ -101,7 +101,8 @@ func SetupRouter(r *gin.Engine) {
 	}
 
 	{
-		dashboard := admin_router.Group("/dashboard")
+		dashboard := router.Group("/dashboard")
+		dashboard.Use(authMiddleware.JwtAuthMiddleware)
 		dashboardUnauth := router.Group("/dashboard")
 
 		dashboardUnauth.GET("/:acara/:start_date/:end_date/:count/:page", dashboards.GetAllDashboard)
