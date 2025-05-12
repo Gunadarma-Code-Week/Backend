@@ -7,6 +7,7 @@ import (
 	"gcw/helper/logging"
 	"gcw/service"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -20,7 +21,7 @@ type UserHandler struct {
 func NewUserHandler(us *service.UserService) *UserHandler {
 	return &UserHandler{
 		userService: us,
-	} 
+	}
 }
 
 // @Summary Get My Profile Data
@@ -95,4 +96,82 @@ func (h *UserHandler) UpdateMyProfile(c *gin.Context) {
 	smapping.FillStruct(userResponse, smapping.MapFields(user))
 
 	c.JSON(http.StatusOK, helper.CreateSuccessResponse("success", userResponse))
+}
+
+func (h *UserHandler) GetAllUser(c *gin.Context) {
+	// Extract parameters from URL
+	startDateStr := c.Param("start_date")
+	endDateStr := c.Param("end_date")
+	countStr := c.Param("count")
+	pageStr := c.Param("page")
+
+	// Convert 'count' and 'page' to integers
+	count, err := strconv.Atoi(countStr)
+	if err != nil || count <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid count parameter"})
+		return
+	}
+
+	page, err := strconv.Atoi(pageStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid page parameter"})
+		return
+	}
+
+	// Parse start_date and end_date into time.Time
+	startDate, err := time.Parse("2006-01-02", startDateStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid start_date format"})
+		return
+	}
+
+	endDate, err := time.Parse("2006-01-02", endDateStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid end_date format"})
+		return
+	}
+
+	// Calculate the offset for pagination
+	offset := (page - 1) * count
+
+	// Fetch paginated data from the service
+	users, totalUsers, err := h.userService.GetUsersByDateRange(startDate, endDate, count, offset)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error fetching users"})
+		return
+	}
+
+	// Prepare the response with mapped DTOs
+	userResponses := []dto.UserResponseDTO{}
+	for _, user := range users {
+		var userResponse dto.UserResponseDTO
+		err := smapping.FillStruct(&userResponse, smapping.MapFields(user))
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error mapping user data"})
+			return
+		}
+		userResponses = append(userResponses, userResponse)
+	}
+
+	// Calculate total pages
+	totalPages := (totalUsers + int64(count) - 1) / int64(count)
+
+	has_more := false
+	if totalPages > int64(page) {
+		has_more = true
+	}
+
+	response := gin.H{
+		"status":      "success",
+		"message":     "success",
+		"data":        userResponses,
+		"totalItems":  totalUsers,
+		"totalPages":  totalPages + 1,
+		"currentPage": page,
+		"count":       count,
+		"has_more":    has_more,
+	}
+
+	// Return a paginated response
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("success", response))
 }

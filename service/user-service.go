@@ -4,6 +4,7 @@ import (
 	"gcw/dto"
 	"gcw/entity"
 	"gcw/repository"
+	"time"
 )
 
 type UserService struct {
@@ -57,4 +58,14 @@ func (s *UserService) FindByIdTeam(id, id_leader uint64) ([]dto.Member, error) {
 	}
 
 	return members, nil
+}
+
+func (s *UserService) GetUsersByDateRange(startDate, endDate time.Time, limit, offset int) ([]*entity.User, int64, error) {
+	// Fetch users from the repository with date range and pagination
+	users, totalUsers, err := s.userRepository.FindAll(startDate, endDate, limit, offset)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return users, totalUsers, nil
 }
