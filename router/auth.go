@@ -10,6 +10,9 @@ func SetupAuthRouter(r *gin.RouterGroup) {
 	auth.POST("refresh-token", authHandler.RefreshToken)
 	auth.POST("send-mail-test", authHandler.SendEmailVerificationExample)
 
+	auth.POST("login", authHandler.Login)
+	auth.POST("registration", authHandler.Registration)
+
 	mustAuth := auth.Group("")
 	mustAuth.Use(authMiddleware.JwtAuthMiddleware)
 	// logout route

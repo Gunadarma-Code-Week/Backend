@@ -14,3 +14,8 @@ type ValidateGoogleIdTokenDTO struct {
 type RefreshTokenDTO struct {
 	RefreshToken string `json:"refresh_token" binding:"required"`
 }
+
+type AuthenticationDTO struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}

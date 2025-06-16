@@ -118,6 +118,50 @@ func (h *authHandler) RefreshToken(c *gin.Context) {
 	c.JSON(http.StatusOK, helper.CreateSuccessResponse("success", response))
 }
 
+func (h *authHandler) Registration(c *gin.Context) {
+	auth := &dto.AuthenticationDTO{}
+	user, err := h.authService.Registration(auth)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", err.Error()))
+		return
+	}
+
+	token := h.jwtService.GenerateToken(user)
+	refreshToken := h.jwtService.GenerateRefreshToken(user)
+
+	userResponse := &dto.UserResponseDTO{}
+	smapping.FillStruct(userResponse, smapping.MapFields(user))
+
+	response := &dto.AuthResponseDTO{}
+	response.AccessToken = token
+	response.RefreshToken = refreshToken
+	response.User = *userResponse
+
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("success", response))
+}
+
+func (h *authHandler) Login(c *gin.Context) {
+	auth := &dto.AuthenticationDTO{}
+	user, err := h.authService.LoginService(auth)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", err.Error()))
+		return
+	}
+
+	token := h.jwtService.GenerateToken(user)
+	refreshToken := h.jwtService.GenerateRefreshToken(user)
+
+	userResponse := &dto.UserResponseDTO{}
+	smapping.FillStruct(userResponse, smapping.MapFields(user))
+
+	response := &dto.AuthResponseDTO{}
+	response.AccessToken = token
+	response.RefreshToken = refreshToken
+	response.User = *userResponse
+
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("success", response))
+}
+
 // THIS JUST EXAMPLE, CAN USE THIS ON ANYWHERE
 func (h *authHandler) SendEmailVerificationExample(c *gin.Context) {
 	// use gorooutine to send email, so it will not blocking the main process

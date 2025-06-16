@@ -3,7 +3,10 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
+	"gcw/dto"
 	"gcw/entity"
+	"gcw/helper"
 	"gcw/repository"
 	"os"
 
@@ -87,4 +90,53 @@ func (s *AuthService) FindByEmail(email string) (*entity.User, error) {
 	}
 
 	return user, nil
+}
+
+func (s *AuthService) Registration(data *dto.AuthenticationDTO) (*entity.User, error) {
+	user := &entity.User{}
+	err := s.userRepository.FindByEmail(data.Email, user)
+	if err != nil && err.Error() == "record not found" {
+		dataUser, err := s.registerAccount(data)
+		if err != nil {
+			return nil, err
+		}
+		return dataUser, nil
+	} else if err != nil {
+		return nil, err
+	}
+
+	return nil, fmt.Errorf("user already registered")
+}
+
+func (s *AuthService) LoginService(data *dto.AuthenticationDTO) (*entity.User, error) {
+	user := &entity.User{}
+	err := s.userRepository.FindByEmail(data.Email, user)
+	if err != nil {
+		return nil, err
+	}
+
+	ok := helper.CheckPasswordHash(data.Password, user.Password)
+	if !ok {
+		return nil, fmt.Errorf("wrong password")
+	}
+
+	return user, nil
+}
+
+func (s *AuthService) registerAccount(data *dto.AuthenticationDTO) (*entity.User, error) {
+	password, err := helper.HashPassword(data.Password)
+	if err != nil {
+		return nil, err
+	}
+
+	user := &entity.User{
+		Email:    data.Email,
+		Password: password,
+	}
+
+	if err := s.userRepository.Create(user); err != nil {
+		return nil, err
+	}
+
+	return nil, nil
 }
