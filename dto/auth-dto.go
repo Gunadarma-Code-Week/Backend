@@ -14,3 +14,14 @@ type ValidateGoogleIdTokenDTO struct {
 type RefreshTokenDTO struct {
 	RefreshToken string `json:"refresh_token" binding:"required"`
 }
+
+type LoginDTO struct {
+	Email    string `json:"email" binding:"required" validate:"email"`
+	Password string `json:"password" binding:"required" validate:"min=8"`
+}
+
+type RegisterDTO struct {
+	Email    string `json:"email" binding:"required" validate:"email"`
+	Password string `json:"password" binding:"required" validate:"min=8"`
+	Name     string `json:"name" binding:"required" validate:"min=3"`
+}
