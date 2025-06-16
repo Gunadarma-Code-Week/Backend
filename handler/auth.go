@@ -119,8 +119,11 @@ func (h *authHandler) RefreshToken(c *gin.Context) {
 }
 
 func (h *authHandler) Registration(c *gin.Context) {
-	auth := &dto.AuthenticationDTO{}
-	user, err := h.authService.Registration(auth)
+	// Get the validated DTO from the context
+	auth, _ := c.Get("dto")
+	registerDTO := auth.(*dto.RegisterDTO)
+
+	user, err := h.authService.Registration(registerDTO)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", err.Error()))
 		return
@@ -141,8 +144,11 @@ func (h *authHandler) Registration(c *gin.Context) {
 }
 
 func (h *authHandler) Login(c *gin.Context) {
-	auth := &dto.AuthenticationDTO{}
-	user, err := h.authService.LoginService(auth)
+	// Get the validated DTO from the context
+	auth, _ := c.Get("dto")
+	loginDTO := auth.(*dto.LoginDTO)
+
+	user, err := h.authService.LoginService(loginDTO)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", err.Error()))
 		return
