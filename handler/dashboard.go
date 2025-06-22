@@ -21,7 +21,7 @@ type DashboardControllerInterface interface {
 	GetAllDashboard(*gin.Context)
 	Update(*gin.Context)
 	Delete(*gin.Context)
-	GetEvent(*gin.Context)
+	// GetEvent(*gin.Context)
 }
 
 func DashboardController(db *gorm.DB) DashboardControllerInterface {
@@ -205,14 +205,14 @@ func (h *dashboardController) Delete(c *gin.Context) {
 // @Success 200 {object} helper.Response{data=dto.ResponseEvents}
 // @Failure 400 {object} helper.Response{message=string}
 // @Router /dashboard/events/{id_user} [get]
-func (h *dashboardController) GetEvent(c *gin.Context) {
-	idUser := c.Param("id_user")
+// func (h *dashboardController) GetEvent(c *gin.Context) {
+// 	idUser := c.Param("id_user")
 
-	dataEvent, err := h.Service.GetEventSevice(idUser)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "data not found"))
-		return
-	}
+// 	dataEvent, err := h.Service.GetEventSevice(idUser)
+// 	if err != nil {
+// 		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "data not found"))
+// 		return
+// 	}
 
-	c.JSON(http.StatusOK, helper.CreateSuccessResponse("FOUND", dataEvent))
-}
+// 	c.JSON(http.StatusOK, helper.CreateSuccessResponse("FOUND", dataEvent))
+// }

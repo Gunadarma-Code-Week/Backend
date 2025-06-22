@@ -203,85 +203,85 @@ func (s *DashboardServices) GetAllCp(startDate, endDate time.Time, count, page i
 	return response, nil
 }
 
-func (s *DashboardServices) GetEventSevice(id_user string) (dto.ResponseEvents, error) {
-	var user entity.User
-	if err := s.DB.Preload("Team").Where("id = ?", id_user).First(&user).Error; err != nil {
-		return dto.ResponseEvents{}, err
-	}
+// func (s *DashboardServices) GetEventSevice(id_user string) (dto.ResponseEvents, error) {
+// 	var user entity.User
+// 	if err := s.DB.Preload("Team").Where("id = ?", id_user).First(&user).Error; err != nil {
+// 		return dto.ResponseEvents{}, err
+// 	}
 
-	// ambil semua member tim
-	var member []entity.User
-	if err := s.DB.Where("id_team = ?", user.IDTeam).Find(&member).Error; err != nil {
-		return dto.ResponseEvents{}, err
-	}
+// 	// ambil semua member tim
+// 	var member []entity.User
+// 	if err := s.DB.Where("id_team = ?", user.IDTeam).Find(&member).Error; err != nil {
+// 		return dto.ResponseEvents{}, err
+// 	}
 
-	// buat response user
-	responseUser := dto.User{
-		ID:         user.ID,
-		Name:       user.Name,
-		Email:      user.Email,
-		University: user.Institusi,
-	}
+// 	// buat response user
+// 	responseUser := dto.User{
+// 		ID:         user.ID,
+// 		Name:       user.Name,
+// 		Email:      user.Email,
+// 		University: user.Institusi,
+// 	}
 
-	// buat response anggota
-	var responseMembers []dto.Member
-	for _, m := range member {
-		role := "Member"
-		if m.ID == user.Team.ID_LeadTeam {
-			role = "Leader"
-		}
-		responseMembers = append(responseMembers, dto.Member{
-			Name:  m.Name,
-			Role:  role,
-			Email: m.Email,
-		})
-	}
+// 	// buat response anggota
+// 	var responseMembers []dto.Member
+// 	for _, m := range member {
+// 		role := "Member"
+// 		if m.ID == user.Team.ID_LeadTeam {
+// 			role = "Leader"
+// 		}
+// 		responseMembers = append(responseMembers, dto.Member{
+// 			Name:  m.Name,
+// 			Role:  role,
+// 			Email: m.Email,
+// 		})
+// 	}
 
-	// ambil data event
-	var hackaton entity.HackathonTeam
-	var cp entity.CPTeam
-	var seminar entity.Seminar
+// 	// ambil data event
+// 	var hackaton entity.HackathonTeam
+// 	var cp entity.CPTeam
+// 	var seminar entity.Seminar
 
-	_ = s.DB.Where("id_team = ?", user.IDTeam).First(&hackaton)
-	_ = s.DB.Where("id_team = ?", user.IDTeam).First(&cp)
-	_ = s.DB.Where("id_user = ?", id_user).First(&seminar)
+// 	_ = s.DB.Where("id_team = ?", user.IDTeam).First(&hackaton)
+// 	_ = s.DB.Where("id_team = ?", user.IDTeam).First(&cp)
+// 	_ = s.DB.Where("id_user = ?", id_user).First(&seminar)
 
-	seminarStatus := "Unregistered"
-	if seminar.ID_Seminar != 0 {
-		seminarStatus = "Registered"
-	}
-	// cpStatus := "Unregistered"
-	// if cp.ID_CPTeam != 0 {
-	// 	cpStatus = "Registered"
-	// }
-	// hackatonStatus := "Unregistered"
-	// if hackaton.ID_HackathonTeam != 0 {
-	// 	hackatonStatus = "Registered"
-	// }
+// 	seminarStatus := "Unregistered"
+// 	if seminar.ID_Seminar != 0 {
+// 		seminarStatus = "Registered"
+// 	}
+// 	// cpStatus := "Unregistered"
+// 	// if cp.ID_CPTeam != 0 {
+// 	// 	cpStatus = "Registered"
+// 	// }
+// 	// hackatonStatus := "Unregistered"
+// 	// if hackaton.ID_HackathonTeam != 0 {
+// 	// 	hackatonStatus = "Registered"
+// 	// }
 
-	// isi data event
-	events := []dto.Event{
-		{
-			Name:   "Seminar Nasional Teknologi AI",
-			Status: seminarStatus,
-			Ticket: dto.Ticket{},
-		},
-		{
-			Name:   "Hackathon",
-			Status: hackaton.Stage,
-		},
-		{
-			Name:   "Competitive Programming",
-			Status: cp.Stage,
-		},
-	}
+// 	// isi data event
+// 	events := []dto.Event{
+// 		{
+// 			Name:   "Seminar Nasional Teknologi AI",
+// 			Status: seminarStatus,
+// 			Ticket: dto.Ticket{},
+// 		},
+// 		{
+// 			Name:   "Hackathon",
+// 			Status: hackaton.Stage,
+// 		},
+// 		{
+// 			Name:   "Competitive Programming",
+// 			Status: cp.Stage,
+// 		},
+// 	}
 
-	return dto.ResponseEvents{
-		User:   responseUser,
-		Events: events,
-		IdTeam: user.Team.JoinCode,
-	}, nil
-}
+// 	return dto.ResponseEvents{
+// 		User:   responseUser,
+// 		Events: events,
+// 		IdTeam: user.Team.JoinCode,
+// 	}, nil
+// }
 
 func (s *DashboardServices) DeletePesertaService(acara, id_user string) (string, error) {
 	var idUser string

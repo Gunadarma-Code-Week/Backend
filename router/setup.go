@@ -35,10 +35,10 @@ var (
 	authHandler         = handler.NewAuthHandler(authService, jwtService, emailService)
 	userHandler         = handler.NewUserHandler(userService)
 	registrationHandler = handler.GateRegistrationHandler(registrationService, userService)
-	newsletterHandler   = handler.NewNewsletterHandler(newsletterService)
-	submissionHandler   = handler.GateHackathonHandler(SubmissionService)
-	cpHandler           = handler.GateCompetitiveHandler(cpService)
-	hackathonHandler    = handler.GateHackathonHandler(SubmissionService)
+	// newsletterHandler   = handler.NewNewsletterHandler(newsletterService)
+	submissionHandler = handler.GateHackathonHandler(SubmissionService)
+	cpHandler         = handler.GateCompetitiveHandler(cpService)
+	hackathonHandler  = handler.GateHackathonHandler(SubmissionService)
 
 	authMiddleware = middleware.NewAuthMiddleware(authService, jwtService)
 
@@ -88,28 +88,27 @@ func SetupRouter(r *gin.Engine) {
 	// admin_api_base_url := os.Getenv("ADMIN_API_BASE_URL")
 	// admin_router := r.Group(admin_api_base_url)
 
-	{
-		newsletter := router.Group("/newsletter")
+	// {
+	// 	newsletter := router.Group("/newsletter")
 
-		newsletter.GET("/:id", newsletterHandler.GetNewsLetter)
+	// 	newsletter.GET("/:id", newsletterHandler.GetNewsLetter)
 
-		// newsletter admin
-		newsletter.Use(authMiddleware.JwtAuthMiddleware)
-		newsletter.Use(authMiddleware.MustAdmin)
-		newsletter.POST("/", newsletterHandler.CreateNewsletter)
-		newsletter.PUT("/:id", newsletterHandler.UpdateNewsLetter)
-		newsletter.DELETE("/:id", newsletterHandler.DeleteNewsLetter)
-	}
+	// 	// newsletter admin
+	// 	newsletter.Use(authMiddleware.JwtAuthMiddleware)
+	// 	newsletter.Use(authMiddleware.MustAdmin)
+	// 	newsletter.POST("/", newsletterHandler.CreateNewsletter)
+	// 	newsletter.PUT("/:id", newsletterHandler.UpdateNewsLetter)
+	// 	newsletter.DELETE("/:id", newsletterHandler.DeleteNewsLetter)
+	// }
 
 	{
 		dashboard := router.Group("/dashboard")
 		dashboard.Use(authMiddleware.JwtAuthMiddleware)
-		dashboardUnauth := router.Group("/dashboard")
 
-		dashboardUnauth.GET("/:acara/:start_date/:end_date/:count/:page", dashboards.GetAllDashboard)
+		dashboard.GET("/:acara/:start_date/:end_date/:count/:page", dashboards.GetAllDashboard)
 		dashboard.DELETE("/:acara/:id", dashboards.Delete)
 		dashboard.PUT("/:acara/:id", dashboards.Update)
-		dashboard.GET("/events/:id_user", dashboards.GetEvent)
+		// dashboard.GET("/events/:id_user", dashboards.GetEvent)
 	}
 
 	{
