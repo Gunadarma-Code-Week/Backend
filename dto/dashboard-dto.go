@@ -20,42 +20,45 @@ type Seminar struct {
 
 type Anggota struct {
 	Name string `json:"name"`
+	Role string `json:"role"`
 }
 
 type ResponseSeminar struct {
 	Seminar []Seminar `json:"seminar"`
-	HasMore bool    `json:"has_more"`
+	HasMore bool      `json:"has_more"`
 }
 
 type Hackaton struct {
 	ID           int       `json:"id"`
 	NamaTim      string    `json:"nama_tim"`
-	Leader       string    `json:"leader"`
-	Anggota      []Anggota `json:"anggota"`
+	JoinCode     string    `json:"join_code"`
+	Members      []Anggota `json:"members"`
 	KomitmenFee  string    `json:"komitmen_fee"`
 	ProposalUrl  string    `json:"proposal_url"`
 	PitchDeckUrl string    `json:"pitch_deck_url"`
 	GithubUrl    string    `json:"github_url"`
 	Stage        string    `json:"stage"`
+	Status       string    `json:"status"`
 }
 
 type ResponseHackaton struct {
 	Hackaton []Hackaton `json:"hackaton"`
-	HasMore  bool     `json:"has_more"`
+	HasMore  bool       `json:"has_more"`
 }
 
 type Cp struct {
 	ID          int       `json:"id"`
 	NamaTim     string    `json:"nama_tim"`
-	Leader      string    `json:"leader"`
+	JoinCode    string    `json:"join_code"`
 	Anggota     []Anggota `json:"anggota"`
 	KomitmenFee string    `json:"komitmen_fee"`
-	Email       string    `json:"email"`
+	Username    string    `json:"username"`
 	Password    string    `json:"password"`
 	Stage       string    `json:"stage"`
+	Status      string    `json:"status"`
 }
 
 type ResponseCp struct {
-	Cp      []Cp   `json:"cp"`
+	Cp      []Cp `json:"cp"`
 	HasMore bool `json:"has_more"`
 }

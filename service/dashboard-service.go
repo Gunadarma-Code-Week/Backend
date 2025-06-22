@@ -96,33 +96,45 @@ func (s *DashboardServices) GetAllHackaton(startDate, endDate time.Time, count, 
 		dataHackaton := dto.Hackaton{
 			ID:           int(data.ID_HackathonTeam),
 			NamaTim:      data.Team.TeamName,
-			Leader:       Leader.Name,
+			JoinCode:     data.Team.JoinCode,
 			KomitmenFee:  data.Team.KomitmenFee,
 			ProposalUrl:  data.ProposalUrl,
 			PitchDeckUrl: data.PitchDeckUrl,
 			GithubUrl:    data.GithubProjectUrl,
 			Stage:        data.Stage,
+			Status:       data.Status,
 		}
 
 		var anggota []entity.User
-		if err := s.DB.Where("id_team = ?", dataHackaton.ID).Find(&anggota).Error; err != nil {
+		if err := s.DB.Where("id_team = ?", data.Team.ID_Team).Find(&anggota).Error; err != nil {
 			return dto.ResponseHackaton{}, err
 		}
 
-		var anggotas []dto.Anggota
+		// Create members list including leader
+		var members []dto.Anggota
+
+		// Add leader as the first member
+		leaderMember := dto.Anggota{
+			Name: Leader.Name,
+			Role: "leader",
+		}
+		members = append(members, leaderMember)
+
+		// Add other team members
 		for _, data := range anggota {
 			if data.ID == Leader.ID {
-				continue
+				continue // Skip leader as they're already added
 			}
 
 			anggota := dto.Anggota{
 				Name: data.Name,
+				Role: "Member",
 			}
 
-			anggotas = append(anggotas, anggota)
+			members = append(members, anggota)
 		}
 
-		dataHackaton.Anggota = anggotas
+		dataHackaton.Members = members
 
 		responseHackatons = append(responseHackatons, dataHackaton)
 	}
@@ -165,26 +177,39 @@ func (s *DashboardServices) GetAllCp(startDate, endDate time.Time, count, page i
 
 		dataCp := dto.Cp{
 			ID:          int(data.ID_CPTeam),
+			JoinCode:    data.Team.JoinCode,
 			NamaTim:     data.Team.TeamName,
-			Leader:      Leader.Name,
 			KomitmenFee: data.Team.KomitmenFee,
-			Email:       Leader.Email,
+			Username:    data.DomjudgeUsername,
 			Password:    data.DomjudgeUsername,
 			Stage:       data.Stage,
+			Status:      data.Status,
 		}
 
 		var anggota []entity.User
-		if err := s.DB.Where("id_team = ?", dataCp.ID).Find(&anggota).Error; err != nil {
+		if err := s.DB.Where("id_team = ?", data.Team.ID_Team).Find(&anggota).Error; err != nil {
+			return dto.ResponseCp{}, err
 		}
 
+		// Create members list including leader
 		var anggotas []dto.Anggota
+
+		// Add leader as the first member
+		leaderMember := dto.Anggota{
+			Name: Leader.Name,
+			Role: "leader",
+		}
+		anggotas = append(anggotas, leaderMember)
+
+		// Add other team members
 		for _, dataAnggota := range anggota {
 			if dataAnggota.ID == Leader.ID {
-				continue
+				continue // Skip leader as they're already added
 			}
 
 			anggota := dto.Anggota{
 				Name: dataAnggota.Name,
+				Role: "member",
 			}
 
 			anggotas = append(anggotas, anggota)
