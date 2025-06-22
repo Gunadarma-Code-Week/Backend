@@ -50,7 +50,7 @@ type Cp struct {
 	ID          int       `json:"id"`
 	NamaTim     string    `json:"nama_tim"`
 	JoinCode    string    `json:"join_code"`
-	Anggota     []Anggota `json:"anggota"`
+	Members     []Anggota `json:"members"`
 	KomitmenFee string    `json:"komitmen_fee"`
 	Username    string    `json:"username"`
 	Password    string    `json:"password"`

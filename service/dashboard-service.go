@@ -184,7 +184,7 @@ func (s *DashboardServices) GetAllCp(startDate, endDate time.Time, count, page i
 			NamaTim:     data.Team.TeamName,
 			KomitmenFee: data.Team.KomitmenFee,
 			Username:    data.DomjudgeUsername,
-			Password:    data.DomjudgeUsername,
+			Password:    data.DomjudgePassword,
 			Stage:       data.Stage,
 			Status:      data.Status,
 		}
@@ -195,14 +195,14 @@ func (s *DashboardServices) GetAllCp(startDate, endDate time.Time, count, page i
 		}
 
 		// Create members list including leader
-		var anggotas []dto.Anggota
+		var members []dto.Anggota
 
 		// Add leader as the first member
 		leaderMember := dto.Anggota{
 			Name: Leader.Name,
 			Role: "leader",
 		}
-		anggotas = append(anggotas, leaderMember)
+		members = append(members, leaderMember)
 
 		// Add other team members
 		for _, dataAnggota := range anggota {
@@ -215,10 +215,10 @@ func (s *DashboardServices) GetAllCp(startDate, endDate time.Time, count, page i
 				Role: "member",
 			}
 
-			anggotas = append(anggotas, anggota)
+			members = append(members, anggota)
 		}
 
-		dataCp.Anggota = anggotas
+		dataCp.Members = members
 
 		responseData = append(responseData, dataCp)
 	}
