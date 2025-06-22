@@ -27,6 +27,7 @@ func (s *DashboardServices) GetAllSeminar(startDate, endDate time.Time, count, p
 
 	if err := s.DB.Preload("User").
 		Where("created_at BETWEEN ? AND ?", startDate, endDate).
+		Order("id_seminar ASC").
 		Limit(count + 1).
 		Offset(offset).
 		Find(&dataSeminars).Error; err != nil {
@@ -72,6 +73,7 @@ func (s *DashboardServices) GetAllHackaton(startDate, endDate time.Time, count, 
 
 	if err := s.DB.Preload("Team").
 		Where("created_at BETWEEN ? AND ?", startDate, endDate).
+		Order("id_hackathon_team ASC").
 		Limit(count + 1).
 		Offset(offset).
 		Find(&dataSeminars).Error; err != nil {
@@ -154,6 +156,7 @@ func (s *DashboardServices) GetAllCp(startDate, endDate time.Time, count, page i
 
 	if err := s.DB.Preload("Team").
 		Where("created_at BETWEEN ? AND ?", startDate, endDate).
+		Order("id_cp_team ASC").
 		Limit(count + 1).
 		Offset(offset).
 		Find(&dataSeminars).Error; err != nil {
