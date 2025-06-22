@@ -63,6 +63,7 @@ func SetupRouter(r *gin.Engine) {
 		profile := mustAuth.Group("profile")
 		profile.GET("my", userHandler.GetMyProfile)
 		profile.POST("my", userHandler.UpdateMyProfile)
+		profile.GET("events", userHandler.GetEvents)
 
 		router.GET("profile/all/:start_date/:end_date/:count/:page", userHandler.GetAllUser)
 	}
@@ -108,7 +109,7 @@ func SetupRouter(r *gin.Engine) {
 		dashboardUnauth.GET("/:acara/:start_date/:end_date/:count/:page", dashboards.GetAllDashboard)
 		dashboard.DELETE("/:acara/:id", dashboards.Delete)
 		dashboard.PUT("/:acara/:id", dashboards.Update)
-		dashboardUnauth.GET("/events/:id_user", dashboards.GetEvent)
+		dashboard.GET("/events/:id_user", dashboards.GetEvent)
 	}
 
 	{

@@ -1,12 +1,14 @@
 package dto
 
-import "time"
+import (
+	"time"
+)
 
 type User struct {
+	ID         uint64 `json:"id"`
 	Name       string `json:"name"`
 	Email      string `json:"email"`
 	University string `json:"university"`
-	Degree     string `json:"degree"`
 }
 
 type Member struct {
@@ -29,11 +31,9 @@ type Ticket struct {
 }
 
 type Event struct {
-	Name          string `json:"name"`
-	Status        string `json:"status"`
-	PaymentStatus string `json:"payment_status"`
-	Ticket        Ticket `json:"ticket"`
-	Team          Team   `json:"team"`
+	Name   string `json:"name"`
+	Status string `json:"status"`
+	Ticket Ticket `json:"ticket"`
 }
 
 type ResponseEvents struct {

@@ -174,3 +174,25 @@ func (h *UserHandler) GetAllUser(c *gin.Context) {
 	// Return a paginated response
 	c.JSON(http.StatusOK, helper.CreateSuccessResponse("success", response))
 }
+
+// @Summary Get User Events
+// @Tags Profile
+// @Produce json
+// @Success 200 {object} helper.Response{data=dto.ResponseEvents}
+// @Router /profile/events [get]
+func (h *UserHandler) GetEvents(c *gin.Context) {
+	userAuth, ok := c.MustGet("user").(*entity.User)
+	if !ok {
+		logging.Low("UserHandler.GetEvents", "BAD_REQUEST", "user not found in context")
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", "user not found in context"))
+		return
+	}
+
+	dataEvent, err := h.userService.GetEvents(userAuth.ID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "data not found"))
+		return
+	}
+
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("FOUND", dataEvent))
+}

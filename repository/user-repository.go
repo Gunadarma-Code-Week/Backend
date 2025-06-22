@@ -19,14 +19,18 @@ type UserRepository interface {
 	FindByIdTeam(id uint64, users *[]entity.User) error
 	Create(*entity.User) error
 	Update(u *entity.User, id uint64) error
-
 	UpdateTeamId(idUser uint64, idTeam uint64) error
+	GetDB() *gorm.DB
 }
 
 func NewUserRepository(db *gorm.DB) UserRepository {
 	return &userRepository{
 		DB: db,
 	}
+}
+
+func (r *userRepository) GetDB() *gorm.DB {
+	return r.DB
 }
 
 func (r *userRepository) FindByEmail(email string, u *entity.User) error {

@@ -217,10 +217,10 @@ func (s *DashboardServices) GetEventSevice(id_user string) (dto.ResponseEvents, 
 
 	// buat response user
 	responseUser := dto.User{
+		ID:         user.ID,
 		Name:       user.Name,
 		Email:      user.Email,
 		University: user.Institusi,
-		Degree:     user.Jenjang,
 	}
 
 	// buat response anggota
@@ -259,30 +259,20 @@ func (s *DashboardServices) GetEventSevice(id_user string) (dto.ResponseEvents, 
 	// 	hackatonStatus = "Registered"
 	// }
 
-	responseTeam := dto.Team{
-		TeamName: user.Team.TeamName,
-		Members:  responseMembers,
-	}
-
 	// isi data event
 	events := []dto.Event{
 		{
-			Name:          "Seminar Nasional Teknologi AI",
-			Status:        seminarStatus,
-			PaymentStatus: seminar.PaymentStatus,
-			Ticket:        dto.Ticket{},
+			Name:   "Seminar Nasional Teknologi AI",
+			Status: seminarStatus,
+			Ticket: dto.Ticket{},
 		},
 		{
-			Name:          "Hackathon",
-			Status:        hackaton.Stage,
-			PaymentStatus: user.Team.KomitmenFee,
-			Team:          responseTeam,
+			Name:   "Hackathon",
+			Status: hackaton.Stage,
 		},
 		{
-			Name:          "Competitive Programming",
-			Status:        cp.Stage,
-			PaymentStatus: user.Team.KomitmenFee,
-			Team:          responseTeam,
+			Name:   "Competitive Programming",
+			Status: cp.Stage,
 		},
 	}
 
