@@ -120,13 +120,13 @@ func (h *dashboardController) GetAllDashboard(c *gin.Context) {
 // @Failure 500 {object} helper.Response{message=string}
 // @Router /dashboard/{acara}/{id} [put]
 func (h *dashboardController) Update(c *gin.Context) {
-	acara := c.Param(":acara")
-	id := c.Param(":id")
+	acara := c.Param("acara")
+	id := c.Param("id")
 
 	switch acara {
 	case "seminar":
 		var input dto.Seminar
-		if err := c.ShouldBindJSON(&input).Error; err != nil {
+		if err := c.ShouldBindJSON(&input); err != nil {
 			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "BAD_REQUEST"))
 			return
 		}
@@ -136,9 +136,9 @@ func (h *dashboardController) Update(c *gin.Context) {
 			return
 		}
 
-	case "hackaton":
+	case "hackathon":
 		var input dto.Hackaton
-		if err := c.ShouldBindJSON(&input).Error; err != nil {
+		if err := c.ShouldBindJSON(&input); err != nil {
 			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "BAD_REQUEST"))
 			return
 		}
@@ -150,7 +150,7 @@ func (h *dashboardController) Update(c *gin.Context) {
 
 	case "cp":
 		var input dto.Cp
-		if err := c.ShouldBindJSON(&input).Error; err != nil {
+		if err := c.ShouldBindJSON(&input); err != nil {
 			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "BAD_REQUEST"))
 			return
 		}

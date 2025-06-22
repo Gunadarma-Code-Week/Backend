@@ -375,7 +375,7 @@ func (s *DashboardServices) UpdateSeminarService(id string, input dto.Seminar) e
 
 func (s *DashboardServices) UpdateHackatonService(id string, input dto.Hackaton) error {
 	var hackaton entity.HackathonTeam
-	if err := s.DB.Preload("Team").Where("id_hackaton_team = ?", id).First(&hackaton).Error; err != nil {
+	if err := s.DB.Preload("Team").Where("id_hackathon_team = ?", id).First(&hackaton).Error; err != nil {
 		return err
 	}
 
@@ -394,7 +394,7 @@ func (s *DashboardServices) UpdateHackatonService(id string, input dto.Hackaton)
 
 func (s *DashboardServices) UpdateCpService(id string, input dto.Cp) error {
 	var cp entity.CPTeam
-	if err := s.DB.Preload("Team").Where("id_hackaton_team = ?", id).First(&cp).Error; err != nil {
+	if err := s.DB.Preload("Team").Where("id_cp_team = ?", id).First(&cp).Error; err != nil {
 		return err
 	}
 
