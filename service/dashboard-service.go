@@ -117,8 +117,10 @@ func (s *DashboardServices) GetAllHackaton(startDate, endDate time.Time, count, 
 
 		// Add leader as the first member
 		leaderMember := dto.Anggota{
-			Name: Leader.Name,
-			Role: "leader",
+			Name:       Leader.Name,
+			Email:      Leader.Email,
+			Role:       "leader",
+			University: Leader.Institusi,
 		}
 		members = append(members, leaderMember)
 
@@ -129,8 +131,10 @@ func (s *DashboardServices) GetAllHackaton(startDate, endDate time.Time, count, 
 			}
 
 			anggota := dto.Anggota{
-				Name: data.Name,
-				Role: "Member",
+				Name:       data.Name,
+				Email:      data.Email,
+				Role:       "member",
+				University: data.Institusi,
 			}
 
 			members = append(members, anggota)
@@ -199,8 +203,10 @@ func (s *DashboardServices) GetAllCp(startDate, endDate time.Time, count, page i
 
 		// Add leader as the first member
 		leaderMember := dto.Anggota{
-			Name: Leader.Name,
-			Role: "leader",
+			Name:       Leader.Name,
+			Email:      Leader.Email,
+			Role:       "leader",
+			University: Leader.Institusi,
 		}
 		members = append(members, leaderMember)
 
@@ -211,8 +217,10 @@ func (s *DashboardServices) GetAllCp(startDate, endDate time.Time, count, page i
 			}
 
 			anggota := dto.Anggota{
-				Name: dataAnggota.Name,
-				Role: "member",
+				Name:       dataAnggota.Name,
+				Email:      dataAnggota.Email,
+				Role:       "member",
+				University: dataAnggota.Institusi,
 			}
 
 			members = append(members, anggota)
