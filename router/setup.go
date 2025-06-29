@@ -31,6 +31,7 @@ var (
 	newsletterService = service.NewNewsletterService(newsletterRepository)
 	SubmissionService = service.NewSubmissionService(database)
 	cpService         = service.NewCpService(database)
+	seminarService     = service.NewSeminarService(database)
 
 	authHandler         = handler.NewAuthHandler(authService, jwtService, emailService)
 	userHandler         = handler.NewUserHandler(userService)
@@ -39,6 +40,7 @@ var (
 	submissionHandler = handler.GateHackathonHandler(SubmissionService)
 	cpHandler         = handler.GateCompetitiveHandler(cpService)
 	hackathonHandler  = handler.GateHackathonHandler(SubmissionService)
+	seminarHandler    = handler.NewSeminarHandler(seminarService)
 
 	authMiddleware = middleware.NewAuthMiddleware(authService, jwtService)
 
@@ -121,5 +123,19 @@ func SetupRouter(r *gin.Engine) {
 	{
 		cp := router.Group("/cp")
 		cp.GET("/:join_code", cpHandler.GetDetail)
+	}
+
+	{
+		seminar := router.Group("/seminar")
+		seminar.Use(authMiddleware.JwtAuthMiddleware)
+		seminar.Use(authMiddleware.MustUpdatedUserProfile)
+		seminar.POST("/join", seminarHandler.JoinSeminar)
+		seminar.GET("/my-ticket", seminarHandler.GetMyTicket)
+		
+		// Admin route untuk melihat tiket berdasarkan ID
+		seminarAdmin := router.Group("/seminar")
+		seminarAdmin.Use(authMiddleware.JwtAuthMiddleware)
+		seminarAdmin.Use(authMiddleware.MustAdmin)
+		seminarAdmin.GET("/ticket/:ticket_id", seminarHandler.GetTicketByID)
 	}
 }
