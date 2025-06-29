@@ -45,14 +45,19 @@ func (s *DashboardServices) GetAllSeminar(startDate, endDate time.Time, count, p
 
 	for _, data := range dataSeminars {
 		dataSeminar := dto.Seminar{
-			ID:              int(data.ID_Seminar),
-			NamaPeserta:     data.User.Name,
-			Email:           data.User.Email,
-			NomorHp:         data.User.Phone,
-			Jenjang:         data.User.Jenjang,
-			NamaUniversitas: data.User.Institusi,
-			Dokumen:         data.User.DokumenFilename,
-			Status:          data.User.DataHasVerified,
+			IDSeminar:     data.ID_Seminar,
+			IDTiket:       data.ID_Tiket,
+			PaymentStatus: data.PaymentStatus,
+			User: dto.UserInfo{
+				ID:        data.User.ID,
+				Name:      data.User.Name,
+				Email:     data.User.Email,
+				Phone:     data.User.Phone,
+				Jenjang:   data.User.Jenjang,
+				Institusi: data.User.Institusi,
+			},
+			CreatedAt: data.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+			UpdatedAt: data.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
 		}
 
 		responseData = append(responseData, dataSeminar)
@@ -369,13 +374,12 @@ func (s *DashboardServices) UpdateSeminarService(id string, input dto.Seminar) e
 		return err
 	}
 
-	seminar.User.Name = input.NamaPeserta
-	seminar.User.Email = input.Email
-	seminar.User.Phone = input.NomorHp
-	seminar.User.Jenjang = input.Jenjang
-	seminar.User.Institusi = input.NamaUniversitas
-	seminar.User.DokumenFilename = input.Dokumen
-	seminar.User.DataHasVerified = input.Status
+	seminar.User.Name = input.User.Name
+	seminar.User.Email = input.User.Email
+	seminar.User.Phone = input.User.Phone
+	seminar.User.Jenjang = input.User.Jenjang
+	seminar.User.Institusi = input.User.Institusi
+	seminar.PaymentStatus = input.PaymentStatus
 
 	if err := s.DB.Save(&seminar).Error; err != nil {
 		return err

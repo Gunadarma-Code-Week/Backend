@@ -8,15 +8,15 @@ type ResponseStatistik struct {
 }
 
 type Seminar struct {
-	ID              int    `json:"id"`
-	NamaPeserta     string `json:"nama_peserta"`
-	Email           string `json:"email"`
-	NomorHp         string `json:"nomor_hp"`
-	Jenjang         string `json:"jenjang"`
-	NamaUniversitas string `json:"nama_universitas"`
-	Dokumen         string `json:"dokumen"`
-	Status          bool   `json:"status"`
+	IDSeminar     uint64    `json:"id_seminar"`
+	IDTiket       string    `json:"id_tiket"`
+	PaymentStatus string    `json:"payment_status"`
+	User          UserInfo  `json:"user"`
+	CreatedAt     string    `json:"created_at"`
+	UpdatedAt     string    `json:"updated_at"`
 }
+
+// UserInfo sudah dideklarasi di seminar-dto.go
 
 type Anggota struct {
 	Name       string `json:"name"`
