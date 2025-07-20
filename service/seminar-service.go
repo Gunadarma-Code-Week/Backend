@@ -33,6 +33,18 @@ func (s *SeminarService) JoinSeminar(userID uint64, request dto.JoinSeminarReque
 		return nil, err
 	}
 
+	// Cek jumlah participant seminar saat ini
+	var participantCount int64
+	err = s.DB.Model(&entity.Seminar{}).Where("is_deleted = ?", false).Count(&participantCount).Error
+	if err != nil {
+		return nil, err
+	}
+
+	// Batasi maksimal 100 participant
+	if participantCount >= 100 {
+		return nil, errors.New("seminar sudah penuh, maksimal 100 participant")
+	}
+
 	// Generate ID tiket unik
 	var idTiket string
 	for {
@@ -161,6 +173,18 @@ func (s *SeminarService) AdminAddParticipant(userID uint64) (*dto.AdminAddPartic
 	}
 	if !errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, err
+	}
+
+	// Cek jumlah participant seminar saat ini
+	var participantCount int64
+	err = s.DB.Model(&entity.Seminar{}).Where("is_deleted = ?", false).Count(&participantCount).Error
+	if err != nil {
+		return nil, err
+	}
+
+	// Batasi maksimal 100 participant
+	if participantCount >= 100 {
+		return nil, errors.New("seminar sudah penuh, maksimal 100 participant")
 	}
 
 	// Generate ID tiket unik
