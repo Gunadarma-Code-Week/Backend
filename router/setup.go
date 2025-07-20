@@ -114,6 +114,19 @@ func SetupRouter(r *gin.Engine) {
 		// dashboard.GET("/events/:id_user", dashboards.GetEvent)
 	}
 
+	// Admin User Management Routes
+	{
+		adminUsers := router.Group("/admin/users")
+		adminUsers.Use(authMiddleware.JwtAuthMiddleware)
+		adminUsers.Use(authMiddleware.MustAdmin)
+
+		adminUsers.GET("", userHandler.AdminGetAllUsers)
+		adminUsers.GET("/:id", userHandler.AdminGetUserById)
+		adminUsers.PUT("/:id", userHandler.AdminUpdateUser)
+		adminUsers.DELETE("/:id", userHandler.AdminDeleteUser)
+		adminUsers.GET("/analytics/growth", userHandler.AdminGetUserGrowthAnalytics)
+	}
+
 	{
 		submissionHandler := router.Group("/submission")
 		submissionHandler.POST("/hackaton/:stage/:join_code", hackathonHandler.SubmissionHackaton)

@@ -196,3 +196,179 @@ func (h *UserHandler) GetEvents(c *gin.Context) {
 
 	c.JSON(http.StatusOK, helper.CreateSuccessResponse("FOUND", dataEvent))
 }
+
+// Admin User Management Handlers
+
+// @Summary Get All Users (Admin)
+// @Description Get all users with pagination, filtering, and sorting for admin
+// @Tags Admin Users
+// @Accept json
+// @Produce json
+// @Param page query int false "Page number" default(1)
+// @Param limit query int false "Items per page" default(10)
+// @Param startDate query string false "Start date (YYYY-MM-DD)"
+// @Param endDate query string false "End date (YYYY-MM-DD)"
+// @Param q query string false "Search query"
+// @Param sortBy query string false "Sort field" Enums(id,institusi,id_team,nim,soc_med_document,profile_has_updated,data_has_verified)
+// @Param sortOrder query string false "Sort order" Enums(ASC,DESC)
+// @Success 200 {object} helper.Response{data=dto.AdminUsersListResponseDTO}
+// @Failure 400 {object} helper.Response{data=string} "Bad Request"
+// @Failure 403 {object} helper.Response{data=string} "Forbidden"
+// @Router /admin/users [get]
+func (h *UserHandler) AdminGetAllUsers(c *gin.Context) {
+	var query dto.AdminGetUsersQueryDTO
+
+	// Set defaults
+	query.Page = 1
+	query.Limit = 10
+	query.SortBy = "id"
+	query.SortOrder = "ASC"
+
+	// Bind query parameters
+	if err := c.ShouldBindQuery(&query); err != nil {
+		logging.Low("UserHandler.AdminGetAllUsers", "BAD_REQUEST", err.Error())
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
+		return
+	}
+
+	// Call service
+	response, err := h.userService.AdminGetAllUsers(query)
+	if err != nil {
+		logging.High("UserHandler.AdminGetAllUsers", "INTERNAL_SERVER_ERROR", err.Error())
+		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("error", err.Error()))
+		return
+	}
+
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Users retrieved successfully", response))
+}
+
+// @Summary Get User by ID (Admin)
+// @Description Get a single user by ID for admin
+// @Tags Admin Users
+// @Produce json
+// @Param id path int true "User ID"
+// @Success 200 {object} helper.Response{data=dto.AdminUserResponseDTO}
+// @Failure 400 {object} helper.Response{data=string} "Bad Request"
+// @Failure 404 {object} helper.Response{data=string} "Not Found"
+// @Router /admin/users/{id} [get]
+func (h *UserHandler) AdminGetUserById(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", "Invalid user ID"))
+		return
+	}
+
+	response, err := h.userService.AdminGetUserById(id)
+	if err != nil {
+		if err.Error() == "record not found" {
+			c.JSON(http.StatusNotFound, helper.CreateErrorResponse("error", "User not found"))
+			return
+		}
+		logging.High("UserHandler.AdminGetUserById", "INTERNAL_SERVER_ERROR", err.Error())
+		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("error", err.Error()))
+		return
+	}
+
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("User retrieved successfully", response))
+}
+
+// @Summary Update User (Admin)
+// @Description Update an existing user by admin
+// @Tags Admin Users
+// @Accept json
+// @Produce json
+// @Param id path int true "User ID"
+// @Param request body dto.AdminUpdateUserDTO true "Update User Data"
+// @Success 200 {object} helper.Response{data=dto.AdminUserResponseDTO}
+// @Failure 400 {object} helper.Response{data=string} "Bad Request"
+// @Failure 404 {object} helper.Response{data=string} "Not Found"
+// @Router /admin/users/{id} [put]
+func (h *UserHandler) AdminUpdateUser(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", "Invalid user ID"))
+		return
+	}
+
+	var updateData dto.AdminUpdateUserDTO
+	if err := c.ShouldBindJSON(&updateData); err != nil {
+		logging.Low("UserHandler.AdminUpdateUser", "BAD_REQUEST", err.Error())
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
+		return
+	}
+
+	response, err := h.userService.AdminUpdateUser(id, updateData)
+	if err != nil {
+		if err.Error() == "record not found" {
+			c.JSON(http.StatusNotFound, helper.CreateErrorResponse("error", "User not found"))
+			return
+		}
+		logging.High("UserHandler.AdminUpdateUser", "INTERNAL_SERVER_ERROR", err.Error())
+		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("error", err.Error()))
+		return
+	}
+
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("User updated successfully", response))
+}
+
+// @Summary Delete User (Admin)
+// @Description Delete a user by ID (admin only)
+// @Tags Admin Users
+// @Produce json
+// @Param id path int true "User ID"
+// @Success 200 {object} helper.Response{data=string}
+// @Failure 400 {object} helper.Response{data=string} "Bad Request"
+// @Failure 404 {object} helper.Response{data=string} "Not Found"
+// @Router /admin/users/{id} [delete]
+func (h *UserHandler) AdminDeleteUser(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", "Invalid user ID"))
+		return
+	}
+
+	err = h.userService.AdminDeleteUser(id)
+	if err != nil {
+		if err.Error() == "record not found" {
+			c.JSON(http.StatusNotFound, helper.CreateErrorResponse("error", "User not found"))
+			return
+		}
+		logging.High("UserHandler.AdminDeleteUser", "INTERNAL_SERVER_ERROR", err.Error())
+		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("error", err.Error()))
+		return
+	}
+
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("User deleted successfully", "User has been deleted"))
+}
+
+// @Summary Get User Growth Analytics (Admin)
+// @Description Get user growth analytics between two dates
+// @Tags Admin Users
+// @Accept json
+// @Produce json
+// @Param startDate query string true "Start date (YYYY-MM-DD)"
+// @Param endDate query string true "End date (YYYY-MM-DD)"
+// @Success 200 {object} helper.Response{data=[]dto.UserGrowthResponseDTO}
+// @Failure 400 {object} helper.Response{data=string} "Bad Request"
+// @Router /admin/users/analytics/growth [get]
+func (h *UserHandler) AdminGetUserGrowthAnalytics(c *gin.Context) {
+	var query dto.UserGrowthAnalyticsDTO
+
+	if err := c.ShouldBindQuery(&query); err != nil {
+		logging.Low("UserHandler.AdminGetUserGrowthAnalytics", "BAD_REQUEST", err.Error())
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
+		return
+	}
+
+	response, err := h.userService.AdminGetUserGrowthAnalytics(query)
+	if err != nil {
+		logging.High("UserHandler.AdminGetUserGrowthAnalytics", "INTERNAL_SERVER_ERROR", err.Error())
+		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("error", err.Error()))
+		return
+	}
+
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("User growth analytics retrieved successfully", response))
+}
