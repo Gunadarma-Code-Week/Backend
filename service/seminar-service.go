@@ -148,10 +148,10 @@ func (s *SeminarService) AdminAddParticipant(userID uint64) (*dto.AdminAddPartic
 		return nil, err
 	}
 
-	// Cek apakah data user sudah terverifikasi
-	if !user.DataHasVerified {
-		return nil, errors.New("data user belum terverifikasi")
-	}
+	// // Cek apakah data user sudah terverifikasi
+	// if !user.DataHasVerified {
+	// 	return nil, errors.New("data user belum terverifikasi")
+	// }
 
 	// Cek apakah user sudah terdaftar di seminar
 	var existingSeminar entity.Seminar

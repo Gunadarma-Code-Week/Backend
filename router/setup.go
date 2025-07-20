@@ -31,7 +31,7 @@ var (
 	newsletterService = service.NewNewsletterService(newsletterRepository)
 	SubmissionService = service.NewSubmissionService(database)
 	cpService         = service.NewCpService(database)
-	seminarService     = service.NewSeminarService(database)
+	seminarService    = service.NewSeminarService(database)
 
 	authHandler         = handler.NewAuthHandler(authService, jwtService, emailService)
 	userHandler         = handler.NewUserHandler(userService)
@@ -141,10 +141,10 @@ func SetupRouter(r *gin.Engine) {
 	{
 		seminar := router.Group("/seminar")
 		seminar.Use(authMiddleware.JwtAuthMiddleware)
-		seminar.Use(authMiddleware.MustUpdatedUserProfile)
+		// seminar.Use(authMiddleware.MustUpdatedUserProfile)
 		seminar.POST("/join", seminarHandler.JoinSeminar)
 		seminar.GET("/my-ticket", seminarHandler.GetMyTicket)
-		
+
 		// Admin route untuk melihat tiket berdasarkan ID dan menambahkan participant
 		seminarAdmin := router.Group("/seminar")
 		seminarAdmin.Use(authMiddleware.JwtAuthMiddleware)
