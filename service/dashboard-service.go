@@ -20,13 +20,23 @@ func NewDashboardServices(db *gorm.DB) DashboardServices {
 
 func FindUserById(id string) {}
 
-func (s *DashboardServices) GetAllSeminar(startDate, endDate time.Time, count, page int) (dto.ResponseSeminar, error) {
+func (s *DashboardServices) GetAllSeminar(startDate, endDate time.Time, count, page int, search string) (dto.ResponseSeminar, error) {
 	var dataSeminars []entity.Seminar
 
 	offset := page * count
 
-	if err := s.DB.Preload("User").
-		Where("created_at BETWEEN ? AND ?", startDate, endDate).
+	query := s.DB.Preload("User").
+		Where("created_at BETWEEN ? AND ?", startDate, endDate)
+
+	// Add search functionality
+	if search != "" {
+		query = query.Where(
+			"id_tiket LIKE ? OR EXISTS (SELECT 1 FROM users WHERE users.id = seminars.id_user AND (users.name LIKE ? OR users.email LIKE ?))",
+			"%"+search+"%", "%"+search+"%", "%"+search+"%",
+		)
+	}
+
+	if err := query.
 		Order("id_seminar ASC").
 		Limit(count + 1).
 		Offset(offset).

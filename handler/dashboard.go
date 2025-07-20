@@ -40,6 +40,7 @@ func (h *dashboardController) Statistics(c *gin.Context) {}
 // @Param acara path string true "Event type (seminar, hackaton, cp)"
 // @Param count path int true "Number of items per page"
 // @Param page path int true "Page number"
+// @Param search query string false "Search by id_tiket, name, or email"
 // @Success 200 {object} helper.Response{data=interface{}}
 // @Failure 400 {object} helper.Response{message=string}
 // @Router /dashboard/{acara}/{count}/{page} [get]
@@ -49,6 +50,7 @@ func (h *dashboardController) GetAllDashboard(c *gin.Context) {
 	strPage := c.Param("page")
 	startDateStr := c.Param("start_date")
 	endDateStr := c.Param("end_date")
+	search := c.Query("search")
 
 	count, errCount := strconv.Atoi(strCount)
 	page, errPage := strconv.Atoi(strPage)
@@ -73,7 +75,7 @@ func (h *dashboardController) GetAllDashboard(c *gin.Context) {
 
 	switch acara {
 	case "seminar":
-		data, err := h.Service.GetAllSeminar(startDate, endDate, count, page)
+		data, err := h.Service.GetAllSeminar(startDate, endDate, count, page, search)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "error service"))
 			return
