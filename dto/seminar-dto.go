@@ -33,3 +33,17 @@ type UserInfo struct {
 	Jenjang  string `json:"jenjang"`
 	Institusi string `json:"institusi"`
 }
+
+// AdminAddParticipantRequest DTO untuk admin menambahkan participant ke seminar
+type AdminAddParticipantRequest struct {
+	UserID uint64 `json:"user_id" binding:"required" example:"1"`
+}
+
+// AdminAddParticipantResponse DTO untuk response admin menambahkan participant
+type AdminAddParticipantResponse struct {
+	Message   string `json:"message" example:"Berhasil menambahkan participant ke seminar"`
+	Status    string `json:"status" example:"success"`
+	IDTiket   string `json:"id_tiket" example:"SEM20241201ABC123"`
+	SeminarID uint64 `json:"seminar_id" example:"1"`
+	User      UserInfo `json:"user"`
+}

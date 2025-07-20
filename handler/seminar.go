@@ -115,3 +115,34 @@ func (h *SeminarHandler) GetTicketByID(c *gin.Context) {
 
 	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Detail tiket seminar", response))
 }
+
+// @Summary Admin Add Participant to Seminar
+// @Description Admin menambahkan participant ke seminar berdasarkan user ID
+// @Tags Seminar
+// @Accept json
+// @Produce json
+// @Param request body dto.AdminAddParticipantRequest true "User ID"
+// @Success 201 {object} helper.Response{data=dto.AdminAddParticipantResponse}
+// @Failure 400 {object} helper.Response{data=string} "Bad Request"
+// @Failure 500 {object} helper.Response{data=string} "Internal Server Error"
+// @Router /seminar/admin/add-participant [post]
+func (h *SeminarHandler) AdminAddParticipant(c *gin.Context) {
+	var request dto.AdminAddParticipantRequest
+
+	// Bind request
+	if err := c.ShouldBindJSON(&request); err != nil {
+		logging.Low("SeminarHandler.AdminAddParticipant", "BAD_REQUEST", err.Error())
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
+		return
+	}
+
+	// Call service
+	response, err := h.seminarService.AdminAddParticipant(request.UserID)
+	if err != nil {
+		logging.Low("SeminarHandler.AdminAddParticipant", "BAD_REQUEST", err.Error())
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
+		return
+	}
+
+	c.JSON(http.StatusCreated, helper.CreateSuccessResponse("Berhasil menambahkan participant ke seminar", response))
+}

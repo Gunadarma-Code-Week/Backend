@@ -132,10 +132,11 @@ func SetupRouter(r *gin.Engine) {
 		seminar.POST("/join", seminarHandler.JoinSeminar)
 		seminar.GET("/my-ticket", seminarHandler.GetMyTicket)
 		
-		// Admin route untuk melihat tiket berdasarkan ID
+		// Admin route untuk melihat tiket berdasarkan ID dan menambahkan participant
 		seminarAdmin := router.Group("/seminar")
 		seminarAdmin.Use(authMiddleware.JwtAuthMiddleware)
 		seminarAdmin.Use(authMiddleware.MustAdmin)
 		seminarAdmin.GET("/ticket/:ticket_id", seminarHandler.GetTicketByID)
+		seminarAdmin.POST("/admin/add-participant", seminarHandler.AdminAddParticipant)
 	}
 }
