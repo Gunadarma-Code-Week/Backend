@@ -1,5 +1,134 @@
 basePath: /api/v1/gcw/resources
 definitions:
+  dto.AdminAddParticipantRequest:
+    properties:
+      user_id:
+        example: 1
+        type: integer
+    required:
+    - user_id
+    type: object
+  dto.AdminAddParticipantResponse:
+    properties:
+      id_tiket:
+        example: SEM20241201ABC123
+        type: string
+      message:
+        example: Berhasil menambahkan participant ke seminar
+        type: string
+      seminar_id:
+        example: 1
+        type: integer
+      status:
+        example: success
+        type: string
+      user:
+        $ref: '#/definitions/dto.UserInfo'
+    type: object
+  dto.AdminUpdateUserDTO:
+    properties:
+      birth_date:
+        type: string
+      birth_place:
+        type: string
+      data_has_verified:
+        type: boolean
+      dokumen_filename:
+        type: string
+      email:
+        type: string
+      gender:
+        type: string
+      institusi:
+        type: string
+      jenjang:
+        type: string
+      major:
+        type: string
+      name:
+        type: string
+      nim:
+        type: string
+      phone:
+        type: string
+      profile_has_updated:
+        type: boolean
+      profile_picture:
+        type: string
+      role:
+        enum:
+        - user
+        - admin
+        - superadmin
+        type: string
+      soc_med_document:
+        type: string
+    type: object
+  dto.AdminUserResponseDTO:
+    properties:
+      birth_date:
+        type: string
+      birth_place:
+        type: string
+      created_at:
+        type: string
+      data_has_verified:
+        type: boolean
+      dokumen_filename:
+        type: string
+      email:
+        type: string
+      gender:
+        type: string
+      id:
+        type: integer
+      id_team:
+        type: integer
+      institusi:
+        type: string
+      jenjang:
+        type: string
+      major:
+        type: string
+      name:
+        type: string
+      nim:
+        type: string
+      phone:
+        type: string
+      profile_has_updated:
+        type: boolean
+      profile_picture:
+        type: string
+      role:
+        type: string
+      soc_med_document:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  dto.AdminUsersListResponseDTO:
+    properties:
+      meta:
+        $ref: '#/definitions/dto.AdminUsersMetaDTO'
+      users:
+        items:
+          $ref: '#/definitions/dto.AdminUserResponseDTO'
+        type: array
+    type: object
+  dto.AdminUsersMetaDTO:
+    properties:
+      currentPage:
+        type: integer
+      hasMore:
+        type: boolean
+      limit:
+        type: integer
+      totalItems:
+        type: integer
+      totalPages:
+        type: integer
+    type: object
   dto.AuthResponseDTO:
     properties:
       access_token:
@@ -39,12 +168,8 @@ definitions:
     properties:
       name:
         type: string
-      payment_status:
-        type: string
       status:
         type: string
-      team:
-        $ref: '#/definitions/dto.Team'
       ticket:
         $ref: '#/definitions/dto.Ticket'
     type: object
@@ -52,10 +177,42 @@ definitions:
     properties:
       final:
         type: boolean
+      final_url:
+        type: string
       stage_1:
         type: boolean
+      stage_1_url:
+        type: string
       stage_2:
         type: boolean
+      stage_2_url:
+        type: string
+    type: object
+  dto.JoinSeminarResponse:
+    properties:
+      id_tiket:
+        example: TICKET123456
+        type: string
+      message:
+        example: Berhasil bergabung ke seminar
+        type: string
+      seminar_id:
+        example: 1
+        type: integer
+      status:
+        example: success
+        type: string
+    type: object
+  dto.LoginDTO:
+    properties:
+      email:
+        type: string
+      password:
+        minLength: 8
+        type: string
+    required:
+    - email
+    - password
     type: object
   dto.Member:
     properties:
@@ -72,6 +229,21 @@ definitions:
         type: string
     required:
     - refresh_token
+    type: object
+  dto.RegisterDTO:
+    properties:
+      email:
+        type: string
+      name:
+        minLength: 3
+        type: string
+      password:
+        minLength: 8
+        type: string
+    required:
+    - email
+    - name
+    - password
     type: object
   dto.RegistraionTeamResponse:
     properties:
@@ -202,14 +374,20 @@ definitions:
       user:
         $ref: '#/definitions/dto.User'
     type: object
-  dto.Team:
+  dto.SeminarTicketDetail:
     properties:
-      members:
-        items:
-          $ref: '#/definitions/dto.Member'
-        type: array
-      team_name:
+      created_at:
         type: string
+      id_seminar:
+        type: integer
+      id_tiket:
+        type: string
+      payment_status:
+        type: string
+      updated_at:
+        type: string
+      user:
+        $ref: '#/definitions/dto.UserInfo'
     type: object
   dto.Ticket:
     properties:
@@ -263,13 +441,37 @@ definitions:
     type: object
   dto.User:
     properties:
-      degree:
-        type: string
       email:
         type: string
+      id:
+        type: integer
       name:
         type: string
       university:
+        type: string
+    type: object
+  dto.UserGrowthResponseDTO:
+    properties:
+      newUsers:
+        type: integer
+      period:
+        type: string
+      totalUsers:
+        type: integer
+    type: object
+  dto.UserInfo:
+    properties:
+      email:
+        type: string
+      id:
+        type: integer
+      institusi:
+        type: string
+      jenjang:
+        type: string
+      name:
+        type: string
+      phone:
         type: string
     type: object
   dto.UserResponseDTO:
@@ -319,6 +521,7 @@ definitions:
       id_HackathonTeam:
         type: integer
       idteam:
+        format: int64
         type: integer
       isDeleted:
         type: boolean
@@ -391,6 +594,291 @@ info:
   title: GCW API
   version: "1.0"
 paths:
+  /admin/users:
+    get:
+      consumes:
+      - application/json
+      description: Get all users with pagination, filtering, and sorting for admin
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: limit
+        type: integer
+      - description: Start date (YYYY-MM-DD)
+        in: query
+        name: startDate
+        type: string
+      - description: End date (YYYY-MM-DD)
+        in: query
+        name: endDate
+        type: string
+      - description: Search query
+        in: query
+        name: q
+        type: string
+      - description: Sort field
+        enum:
+        - id
+        - institusi
+        - id_team
+        - nim
+        - soc_med_document
+        - profile_has_updated
+        - data_has_verified
+        in: query
+        name: sortBy
+        type: string
+      - description: Sort order
+        enum:
+        - ASC
+        - DESC
+        in: query
+        name: sortOrder
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.AdminUsersListResponseDTO'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+      summary: Get All Users (Admin)
+      tags:
+      - Admin Users
+  /admin/users/{id}:
+    delete:
+      description: Delete a user by ID (admin only)
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+      summary: Delete User (Admin)
+      tags:
+      - Admin Users
+    get:
+      description: Get a single user by ID for admin
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.AdminUserResponseDTO'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+      summary: Get User by ID (Admin)
+      tags:
+      - Admin Users
+    put:
+      consumes:
+      - application/json
+      description: Update an existing user by admin
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Update User Data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AdminUpdateUserDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.AdminUserResponseDTO'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+      summary: Update User (Admin)
+      tags:
+      - Admin Users
+  /admin/users/analytics/growth:
+    get:
+      consumes:
+      - application/json
+      description: Get user growth analytics between two dates
+      parameters:
+      - description: Start date (YYYY-MM-DD)
+        in: query
+        name: startDate
+        required: true
+        type: string
+      - description: End date (YYYY-MM-DD)
+        in: query
+        name: endDate
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/dto.UserGrowthResponseDTO'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+      summary: Get User Growth Analytics (Admin)
+      tags:
+      - Admin Users
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Login with email and password to get access token
+      parameters:
+      - description: Login Payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.LoginDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.AuthResponseDTO'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+      summary: Login
+      tags:
+      - Auth
   /auth/refresh-token:
     post:
       consumes:
@@ -416,6 +904,37 @@ paths:
                   $ref: '#/definitions/dto.AuthResponseDTO'
               type: object
       summary: Refresh Token
+      tags:
+      - Auth
+  /auth/registration:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user account with email, password, and name
+      parameters:
+      - description: Register Payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.RegisterDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.AuthResponseDTO'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+      summary: Register new account
       tags:
       - Auth
   /auth/validate-google-id-token:
@@ -520,6 +1039,10 @@ paths:
         name: page
         required: true
         type: integer
+      - description: Search by id_tiket, name, or email
+        in: query
+        name: search
+        type: string
       produces:
       - application/json
       responses:
@@ -634,41 +1157,6 @@ paths:
                   type: string
               type: object
       summary: Update Dashboard Event
-      tags:
-      - Dashboard
-  /dashboard/events/{id_user}:
-    get:
-      consumes:
-      - application/json
-      description: Retrieve all events associated with a specific user.
-      parameters:
-      - description: User ID
-        in: path
-        name: id_user
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/helper.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/dto.ResponseEvents'
-              type: object
-        "400":
-          description: Bad Request
-          schema:
-            allOf:
-            - $ref: '#/definitions/helper.Response'
-            - properties:
-                message:
-                  type: string
-              type: object
-      summary: Get User Events
       tags:
       - Dashboard
   /hackathon/{join_code}/status:
@@ -813,6 +1301,7 @@ paths:
       description: Delete a newsletter by ID
       parameters:
       - description: Newsletter ID
+        format: int64
         in: path
         name: id
         required: true
@@ -856,6 +1345,7 @@ paths:
       description: Get a newsletter by ID
       parameters:
       - description: Newsletter ID
+        format: int64
         in: path
         name: id
         required: true
@@ -899,6 +1389,7 @@ paths:
       description: Update a newsletter by ID
       parameters:
       - description: Newsletter ID
+        format: int64
         in: path
         name: id
         required: true
@@ -942,6 +1433,23 @@ paths:
       summary: Update Newsletter
       tags:
       - Newsletter
+  /profile/events:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.ResponseEvents'
+              type: object
+      summary: Get User Events
+      tags:
+      - Profile
   /profile/my:
     get:
       produces:
@@ -984,6 +1492,167 @@ paths:
       summary: Update My Profile Data
       tags:
       - Profile
+  /seminar/admin/add-participant:
+    post:
+      consumes:
+      - application/json
+      description: Admin menambahkan participant ke seminar berdasarkan user ID
+      parameters:
+      - description: User ID
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AdminAddParticipantRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.AdminAddParticipantResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+      summary: Admin Add Participant to Seminar
+      tags:
+      - Seminar
+  /seminar/join:
+    post:
+      consumes:
+      - application/json
+      description: User bergabung ke seminar (ID tiket akan di-generate otomatis)
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.JoinSeminarResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+      summary: Join Seminar
+      tags:
+      - Seminar
+  /seminar/my-ticket:
+    get:
+      description: Mendapatkan detail tiket seminar user yang sedang login
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.SeminarTicketDetail'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+      summary: Get My Seminar Ticket
+      tags:
+      - Seminar
+  /seminar/ticket/{ticket_id}:
+    get:
+      description: Mendapatkan detail tiket seminar berdasarkan ID tiket (untuk admin)
+      parameters:
+      - description: Ticket ID
+        in: path
+        name: ticket_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.SeminarTicketDetail'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+      summary: Get Seminar Ticket by ID
+      tags:
+      - Seminar
   /team/registration/cp:
     post:
       consumes:
