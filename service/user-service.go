@@ -375,8 +375,12 @@ func (s *UserService) AdminUpdateUser(id uint64, updateData dto.AdminUpdateUserD
 	}
 
 	// Update boolean fields
-	user.ProfileHasUpdated = updateData.ProfileHasUpdated
-	user.DataHasVerified = updateData.DataHasVerified
+	if updateData.ProfileHasUpdated != nil {
+		user.ProfileHasUpdated = *updateData.ProfileHasUpdated
+	}
+	if updateData.DataHasVerified != nil {
+		user.DataHasVerified = *updateData.DataHasVerified
+	}
 
 	if err := s.DB.Save(&user).Error; err != nil {
 		return nil, err

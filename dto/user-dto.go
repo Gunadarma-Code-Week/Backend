@@ -50,7 +50,7 @@ type AdminGetUsersQueryDTO struct {
 type AdminUpdateUserDTO struct {
 	Name              string `json:"name"`
 	Email             string `json:"email"`
-	Role              string `json:"role" binding:"oneof=user admin superadmin"`
+	Role              string `json:"role" binding:"omitempty,oneof=user admin superadmin"`
 	Institusi         string `json:"institusi"`
 	Phone             string `json:"phone"`
 	Jenjang           string `json:"jenjang"`
@@ -62,8 +62,8 @@ type AdminUpdateUserDTO struct {
 	SocMedDocument    string `json:"soc_med_document"`
 	DokumenFilename   string `json:"dokumen_filename"`
 	ProfilePicture    string `json:"profile_picture"`
-	ProfileHasUpdated bool   `json:"profile_has_updated"`
-	DataHasVerified   bool   `json:"data_has_verified"`
+	ProfileHasUpdated *bool  `json:"profile_has_updated"`
+	DataHasVerified   *bool  `json:"data_has_verified"`
 }
 
 type AdminUserResponseDTO struct {
