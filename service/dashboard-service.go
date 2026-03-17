@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"gcw/dto"
 	"gcw/entity"
 	"time"
@@ -9,12 +10,14 @@ import (
 )
 
 type DashboardServices struct {
-	DB *gorm.DB
+	DB           *gorm.DB
+	EmailService *EmailService
 }
 
 func NewDashboardServices(db *gorm.DB) DashboardServices {
 	return DashboardServices{
-		DB: db,
+		DB:           db,
+		EmailService: NewEmailService(),
 	}
 }
 
@@ -404,6 +407,7 @@ func (s *DashboardServices) UpdateHackatonService(id string, input dto.Hackaton)
 		return err
 	}
 
+	oldStage := hackaton.Stage
 	hackaton.Team.TeamName = input.NamaTim
 	hackaton.ProposalUrl = input.ProposalUrl
 	hackaton.GithubProjectUrl = input.GithubUrl
@@ -412,6 +416,22 @@ func (s *DashboardServices) UpdateHackatonService(id string, input dto.Hackaton)
 
 	if err := s.DB.Save(&hackaton).Error; err != nil {
 		return err
+	}
+
+	if oldStage != input.Stage {
+		var teamMembers []entity.User
+		if err := s.DB.Where("id_team = ?", hackaton.Team.ID_Team).Find(&teamMembers).Error; err == nil {
+			var emails []string
+			for _, m := range teamMembers {
+				if m.Email != "" {
+					emails = append(emails, m.Email)
+				}
+			}
+			if len(emails) > 0 {
+				msg := fmt.Sprintf("Selamat Tim %s, Anda berhasil lolos ke tahap %s!", hackaton.Team.TeamName, input.Stage)
+				_ = s.EmailService.SendEmail("Pembaruan Status Tim - GCW 2026", emails, msg)
+			}
+		}
 	}
 
 	return nil
@@ -423,11 +443,28 @@ func (s *DashboardServices) UpdateCpService(id string, input dto.Cp) error {
 		return err
 	}
 
+	oldStage := cp.Stage
 	cp.Team.TeamName = input.NamaTim
 	cp.Stage = input.Stage
 
 	if err := s.DB.Save(&cp).Error; err != nil {
 		return err
+	}
+
+	if oldStage != input.Stage {
+		var teamMembers []entity.User
+		if err := s.DB.Where("id_team = ?", cp.Team.ID_Team).Find(&teamMembers).Error; err == nil {
+			var emails []string
+			for _, m := range teamMembers {
+				if m.Email != "" {
+					emails = append(emails, m.Email)
+				}
+			}
+			if len(emails) > 0 {
+				msg := fmt.Sprintf("Selamat Tim %s, Anda berhasil lolos ke tahap %s!", cp.Team.TeamName, input.Stage)
+				_ = s.EmailService.SendEmail("Pembaruan Status Tim - GCW 2026", emails, msg)
+			}
+		}
 	}
 
 	return nil
