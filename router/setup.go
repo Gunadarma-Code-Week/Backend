@@ -22,11 +22,13 @@ var (
 	jwtService          = service.NewJwtService()
 	emailService        = service.NewEmailService()
 	domJudgeService     = service.NewDomJudgeService()
+	midtransService     = service.NewMidtransService()
 	authService         = service.NewAuthService(userRepository)
 	userService         = service.NewUserService(userRepository)
 	registrationService = service.NewRegistrationService(
 		registrationRepository,
 		domJudgeService,
+		midtransService,
 	)
 	newsletterService = service.NewNewsletterService(newsletterRepository)
 	SubmissionService = service.NewSubmissionService(database)
@@ -36,6 +38,7 @@ var (
 	authHandler         = handler.NewAuthHandler(authService, jwtService, emailService)
 	userHandler         = handler.NewUserHandler(userService)
 	registrationHandler = handler.GateRegistrationHandler(registrationService, userService)
+	paymentHandler      = handler.NewPaymentHandler(midtransService, registrationService)
 	// newsletterHandler   = handler.NewNewsletterHandler(newsletterService)
 	submissionHandler = handler.GateHackathonHandler(SubmissionService)
 	cpHandler         = handler.GateCompetitiveHandler(cpService)
@@ -81,6 +84,12 @@ func SetupRouter(r *gin.Engine) {
 		teamRegistration.POST("cp", registrationHandler.RegistrationCPTeam)
 		teamRegistration.GET("find/:join_code", registrationHandler.FindTeam)
 		teamRegistration.POST("join/:join_code", registrationHandler.UserJoinTeam)
+	}
+
+	// Payment Notification
+	{
+		router.POST("payment/notification", paymentHandler.Notification)
+		router.GET("/payment/check/:order_id", paymentHandler.ManualCheckTransaction)
 	}
 
 	// Profile Route

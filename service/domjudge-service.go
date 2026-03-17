@@ -49,6 +49,9 @@ func (s *DomJudgeService) CreateTeam(
 	jsonBody, _ := json.Marshal(body)
 	bufferBody := bytes.NewBuffer(jsonBody)
 
+	if s.DomJudgeUrl == "" {
+		return "skipped", nil
+	}
 	req, err := http.NewRequest("POST", s.DomJudgeUrl+"/api/v4/teams?cid="+s.DomJudgeContestID, bufferBody)
 	if err != nil {
 		return "", err
@@ -102,6 +105,9 @@ func (s *DomJudgeService) CreateUser(
 	jsonBody, _ := json.Marshal(body)
 	bufferBody := bytes.NewBuffer(jsonBody)
 
+	if s.DomJudgeUrl == "" {
+		return "skipped", nil
+	}
 	req, err := http.NewRequest("POST", s.DomJudgeUrl+"/api/v4/users", bufferBody)
 	if err != nil {
 		return "", err

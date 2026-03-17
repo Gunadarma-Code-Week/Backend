@@ -11,21 +11,25 @@ import (
 
 	"github.com/mashingan/smapping"
 	"gorm.io/gorm"
+	"time"
 )
 
 type RegistrationService struct {
 	registrationRepository *repository.RegistrationRepository
 	userRepository         *repository.UserRepository
 	domJudgeService        *DomJudgeService
+	midtransService        *MidtransService
 }
 
 func NewRegistrationService(
 	rp *repository.RegistrationRepository,
 	ds *DomJudgeService,
+	ms *MidtransService,
 ) *RegistrationService {
 	return &RegistrationService{
 		registrationRepository: rp,
 		domJudgeService:        ds,
+		midtransService:        ms,
 	}
 }
 
@@ -38,25 +42,32 @@ func (s *RegistrationService) CPTeamRegistration(
 		Supervisor:     registrationDTO.Supervisor,
 		SupervisorNIDN: registrationDTO.SupervisorNIDN,
 		ID_LeadTeam:    userLead.ID,
-		KomitmenFee:    registrationDTO.KomitmenFee,
 		Event:          "cp",
 	}
+
+	// CP Fee: Rp 50,000
+	const cpFee = 50000
 
 	if userLead.IDTeam != nil {
 		logging.Low("RegistrationService.CPTeamRegistration", "BAD_REQUEST", "User already have team")
 		return nil, fmt.Errorf("USER ALREADY HAVE TEAM")
 	}
 
-	var joinCode string
+	joinCode := registrationDTO.JoinCode
 
-	for {
-		joinCode = helper.RandomStringNumber(6)
-		err := s.registrationRepository.FindTeamByJoinCode(&entity.Team{}, joinCode)
-		if err != nil {
-			break
-		}
+	// Check if JoinCode already exists
+	err := s.registrationRepository.FindTeamByJoinCode(&entity.Team{}, joinCode)
+	if err == nil {
+		logging.Low("RegistrationService.CPTeamRegistration", "BAD_REQUEST", "Join code already taken")
+		return nil, fmt.Errorf("JOIN CODE ALREADY TAKEN")
 	}
+
 	teamRegistration.JoinCode = joinCode
+	teamRegistration.KomitmenFee = registrationDTO.BuktiPembayaran
+
+	// ID and QRIS are only for Hackathon (which uses Midtrans)
+	teamRegistration.OrderID = "-"
+	teamRegistration.QRString = "-"
 
 	// create domjudge team first before creating team
 	domJudgeUsername, domJudgePassword, err := s.domJudgeService.CreateDomJudgeTeamUser(
@@ -64,7 +75,7 @@ func (s *RegistrationService) CPTeamRegistration(
 		registrationDTO.TeamName,
 		userLead.Email,
 	)
-	if err != nil {
+	if err != nil && domJudgeUsername != "skipped" {
 		logging.Low("RegistrationService.CPTeamRegistration", "INTERNAL_SERVER_ERROR", err.Error())
 		return nil, err
 	}
@@ -120,8 +131,10 @@ func (s *RegistrationService) CPTeamRegistration(
 	}
 
 	registrasionCPResponse := &dto.RegistrationCPResponse{}
-	registrasionCPResponse.KomitmenFee = teamRegistration.KomitmenFee
 	registrasionCPResponse.JoinCode = joinCode
+	registrasionCPResponse.QRString = "-"
+	registrasionCPResponse.OrderID = "-"
+	registrasionCPResponse.PaymentStatus = teamRegistration.PaymentStatus
 	err = smapping.FillStruct(registrasionCPResponse, smapping.MapFields(cpTeam))
 	if err != nil {
 		logging.Low("RegistrationService.CPTeamRegistration", "INTERNAL_SERVER_ERROR", err.Error())
@@ -150,9 +163,11 @@ func (s *RegistrationService) HackathonTeamRegistration(
 		Supervisor:     registrationDTO.Supervisor,
 		SupervisorNIDN: registrationDTO.SupervisorNIDN,
 		ID_LeadTeam:    userLead.ID,
-		KomitmenFee:    registrationDTO.KomitmenFee,
 		Event:          "hackathon",
 	}
+
+	// Hackathon Fee: Rp 100,000
+	const hackathonFee = 100000
 
 	// generate join code
 	var joinCode string
@@ -166,6 +181,17 @@ func (s *RegistrationService) HackathonTeamRegistration(
 	}
 	teamRegistration.JoinCode = joinCode
 
+	// Generate Midtrans Order ID and QRIS
+	orderID := fmt.Sprintf("HACK-%d-%d", userLead.ID, time.Now().Unix())
+	teamRegistration.OrderID = orderID
+
+	qrString, err := s.midtransService.GenerateQRIS(orderID, int64(hackathonFee))
+	if err != nil {
+		logging.Low("RegistrationService.HackathonTeamRegistration", "INTERNAL_SERVER_ERROR", "Midtrans QR Generation failed: "+err.Error())
+		return nil, err
+	}
+	teamRegistration.QRString = qrString
+
 	tx := s.registrationRepository.DB.Begin()
 	defer func() {
 		if r := recover(); r != nil {
@@ -173,7 +199,7 @@ func (s *RegistrationService) HackathonTeamRegistration(
 		}
 	}()
 	// create team
-	err := s.registrationRepository.CreateTeam(tx, teamRegistration)
+	err = s.registrationRepository.CreateTeam(tx, teamRegistration)
 	if err != nil {
 		logging.Low("RegistrationService.HackathonTeamRegistration", "INTERNAL_SERVER_ERROR", err.Error())
 		tx.Rollback()
@@ -215,8 +241,10 @@ func (s *RegistrationService) HackathonTeamRegistration(
 	}
 
 	registrasionHackathonResponse := &dto.RegistrationHackathonResponse{}
-	registrasionHackathonResponse.KomitmenFee = teamRegistration.KomitmenFee
 	registrasionHackathonResponse.JoinCode = joinCode
+	registrasionHackathonResponse.QRString = qrString
+	registrasionHackathonResponse.OrderID = orderID
+	registrasionHackathonResponse.PaymentStatus = teamRegistration.PaymentStatus
 	err = smapping.FillStruct(registrasionHackathonResponse, smapping.MapFields(hackathonTeam))
 	if err != nil {
 		logging.Low("RegistrationService.HackathonTeamRegistration", "INTERNAL_SERVER_ERROR", err.Error())
@@ -286,3 +314,41 @@ func (s *RegistrationService) JoinTeam(
 
 	return team, nil
 }
+
+func (s *RegistrationService) UpdatePaymentStatus(orderID string, status string) error {
+	team := &entity.Team{}
+	err := s.registrationRepository.DB.Where("order_id = ?", orderID).First(team).Error
+	if err != nil {
+		return err
+	}
+
+	team.PaymentStatus = status
+	
+	tx := s.registrationRepository.DB.Begin()
+	if err := tx.Save(team).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	// If paid, update the event-specific team status to Verified and stage to Stage-1
+	if status == "Paid" {
+		if team.Event == "hackathon" {
+			err = tx.Model(&entity.HackathonTeam{}).Where("id_team = ?", team.ID_Team).Updates(map[string]interface{}{
+				"status": "Verified",
+				"stage":  "Stage-1",
+			}).Error
+		} else if team.Event == "cp" {
+			err = tx.Model(&entity.CPTeam{}).Where("id_team = ?", team.ID_Team).Updates(map[string]interface{}{
+				"status": "Verified",
+				"stage":  "Stage-1",
+			}).Error
+		}
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
+	return tx.Commit().Error
+}
+

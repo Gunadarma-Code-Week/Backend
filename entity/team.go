@@ -12,6 +12,10 @@ type Team struct {
 
 	Event string `gorm:"varchar(255); not null"`
 
+	PaymentStatus string `gorm:"varchar(50); default:'pending'"`
+	OrderID       string `gorm:"varchar(255); unique"`
+	QRString      string `gorm:"text"`
+
 	ID_LeadTeam uint64 `gorm:"not null"`
 
 	CreatedAt time.Time `gorm:"autoCreateTime"`

@@ -4,7 +4,6 @@ import "time"
 
 type RegistraionTeamRequest struct {
 	TeamName       string `json:"team_name" binding:"required"`
-	KomitmenFee    string `json:"bukti_pembayaran"`
 	Supervisor     string `json:"supervisor" binding:"required"`
 	SupervisorNIDN string `json:"supervisor_nidn" binding:"required"`
 }
@@ -18,6 +17,8 @@ type RegistrationHackathonTeamRequest struct {
 }
 
 type RegistrationCPRequest struct {
+	JoinCode        string `json:"join_code" binding:"required"`
+	BuktiPembayaran string `json:"bukti_pembayaran" binding:"required"`
 }
 
 type RegistrationCPTeamRequest struct {
@@ -29,6 +30,9 @@ type RegistraionTeamResponse struct {
 	ID_Team uint64   `json:"id_team"`
 	Members []Member `json:"member"`
 	Leader  Member   `json:"leader"`
+	QRString string   `json:"qr_string,omitempty"`
+	OrderID  string   `json:"order_id,omitempty"`
+	PaymentStatus string `json:"payment_status,omitempty"`
 	RegistraionTeamRequest
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
@@ -38,8 +42,11 @@ type RegistrationHackathonResponse struct {
 	ID_HackathonTeam uint64 `gorm:"primary_key:auto_increment"`
 	Stage            string `gorm:"varchar(255); not null"`
 	Status           string `gorm:"varchar(255); not null"`
-	KomitmenFee      string `json:"bukti_pembayaran"`
 	JoinCode         string `json:"join_code"`
+	QRString         string `json:"qr_string,omitempty"`
+	OrderID          string `json:"order_id,omitempty"`
+	PaymentStatus    string `json:"payment_status,omitempty"`
+	KomitmenFee      string `json:"bukti_pembayaran,omitempty"`
 	RegistrationHackathonRequest
 	IDTeam    uint64    `json:"id_team"`
 	CreatedAt time.Time `json:"created_at"`
@@ -50,10 +57,13 @@ type RegistrationCPResponse struct {
 	ID_CPTeam        uint64 `json:"id_cp_team"`
 	Stage            string `json:"stage"`
 	Status           string `json:"status"`
-	KomitmenFee      string `json:"bukti_pembayaran"`
 	DomjudgeUsername string `json:"domjudge_username"`
 	DomjudgePassword string `json:"domjudge_password"`
 	JoinCode         string `json:"join_code"`
+	QRString         string `json:"qr_string,omitempty"`
+	OrderID          string `json:"order_id,omitempty"`
+	PaymentStatus    string `json:"payment_status,omitempty"`
+	KomitmenFee      string `json:"bukti_pembayaran,omitempty"`
 	RegistrationCPRequest
 	IDTeam    uint64 `json:"id_team"`
 	CreatedAt time.Time

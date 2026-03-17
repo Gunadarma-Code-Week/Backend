@@ -55,7 +55,7 @@ services:
 
     #   GOOGLE_CLIENT_ID: "your-google-client-id.apps.googleusercontent.com"
 
-    #   DOMJUDGE_URL: "https://domjudge.example.com"
+    #   DOMJUDGE_URL: "http://localhost:8080"
     #   DOMJUDGE_CONTEST_ID: "1"
     #   DOMJUDGE_USERNAME: "domjudge_user"
     #   DOMJUDGE_PASSWORD: "domjudge_password"
