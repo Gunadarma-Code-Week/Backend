@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"gcw/entity"
 	"gcw/helper"
 	"gcw/helper/logging"
 	"gcw/service"
@@ -66,6 +67,23 @@ func (h *paymentHandler) ManualCheckTransaction(c *gin.Context) {
 	orderID := c.Param("order_id")
 	if orderID == "" {
 		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", "Order ID is required"))
+		return
+	}
+
+	// If it's a CP team (manual payment), skip Midtrans check
+	if len(orderID) > 3 && orderID[:3] == "CP-" {
+		// Just return the current status from DB
+		team := &entity.Team{}
+		err := h.registrationService.Repository().DB.Where("order_id = ?", orderID).First(team).Error
+		if err != nil {
+			c.JSON(http.StatusNotFound, helper.CreateErrorResponse("error", "Team not found"))
+			return
+		}
+
+		c.JSON(http.StatusOK, helper.CreateSuccessResponse("Manual payment status", gin.H{
+			"status":             team.PaymentStatus,
+			"transaction_status": "manual",
+		}))
 		return
 	}
 

@@ -33,6 +33,10 @@ func NewRegistrationService(
 	}
 }
 
+func (s *RegistrationService) Repository() *repository.RegistrationRepository {
+	return s.registrationRepository
+}
+
 func (s *RegistrationService) CPTeamRegistration(
 	registrationDTO *dto.RegistrationCPTeamRequest,
 	userLead *entity.User,
@@ -53,20 +57,23 @@ func (s *RegistrationService) CPTeamRegistration(
 		return nil, fmt.Errorf("USER ALREADY HAVE TEAM")
 	}
 
-	joinCode := registrationDTO.JoinCode
+	// generate join code
+	var joinCode string
 
-	// Check if JoinCode already exists
-	err := s.registrationRepository.FindTeamByJoinCode(&entity.Team{}, joinCode)
-	if err == nil {
-		logging.Low("RegistrationService.CPTeamRegistration", "BAD_REQUEST", "Join code already taken")
-		return nil, fmt.Errorf("JOIN CODE ALREADY TAKEN")
+	for {
+		joinCode = helper.RandomStringNumber(6)
+		err := s.registrationRepository.FindTeamByJoinCode(&entity.Team{}, joinCode)
+		if err != nil {
+			break
+		}
 	}
 
 	teamRegistration.JoinCode = joinCode
 	teamRegistration.KomitmenFee = registrationDTO.BuktiPembayaran
 
-	// ID and QRIS are only for Hackathon (which uses Midtrans)
-	teamRegistration.OrderID = "-"
+	// Generate Order ID for CP (manual payment)
+	orderID := fmt.Sprintf("CP-%d-%d", userLead.ID, time.Now().UnixNano())
+	teamRegistration.OrderID = orderID
 	teamRegistration.QRString = "-"
 
 	// create domjudge team first before creating team
@@ -133,7 +140,7 @@ func (s *RegistrationService) CPTeamRegistration(
 	registrasionCPResponse := &dto.RegistrationCPResponse{}
 	registrasionCPResponse.JoinCode = joinCode
 	registrasionCPResponse.QRString = "-"
-	registrasionCPResponse.OrderID = "-"
+	registrasionCPResponse.OrderID = teamRegistration.OrderID
 	registrasionCPResponse.PaymentStatus = teamRegistration.PaymentStatus
 	err = smapping.FillStruct(registrasionCPResponse, smapping.MapFields(cpTeam))
 	if err != nil {
@@ -182,7 +189,7 @@ func (s *RegistrationService) HackathonTeamRegistration(
 	teamRegistration.JoinCode = joinCode
 
 	// Generate Midtrans Order ID and QRIS
-	orderID := fmt.Sprintf("HACK-%d-%d", userLead.ID, time.Now().Unix())
+	orderID := fmt.Sprintf("HACK-%d-%d", userLead.ID, time.Now().UnixNano())
 	teamRegistration.OrderID = orderID
 
 	qrString, err := s.midtransService.GenerateQRIS(orderID, int64(hackathonFee))

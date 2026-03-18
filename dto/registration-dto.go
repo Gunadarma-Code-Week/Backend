@@ -17,8 +17,8 @@ type RegistrationHackathonTeamRequest struct {
 }
 
 type RegistrationCPRequest struct {
-	JoinCode        string `json:"join_code" binding:"required"`
-	BuktiPembayaran string `json:"bukti_pembayaran" binding:"required"`
+	JoinCode        string `json:"join_code"`
+	BuktiPembayaran string `json:"bukti_pembayaran"`
 }
 
 type RegistrationCPTeamRequest struct {
