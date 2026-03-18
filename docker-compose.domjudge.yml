@@ -1,0 +1,58 @@
+
+services:
+  domjudge-database:
+    image: mariadb:10.11
+    container_name: domjudge-database
+    environment:
+      - MYSQL_ROOT_PASSWORD=rootpw
+      - MYSQL_USER=domjudge
+      - MYSQL_PASSWORD=domjudgepw
+      - MYSQL_DATABASE=domjudge
+    volumes:
+      - db-data:/var/lib/mysql
+    networks:
+      - domjudge-network
+    restart: always
+
+  domserver:
+    image: domjudge/domserver:8.2.3
+    container_name: domserver
+    depends_on:
+      - domjudge-database
+    ports:
+      - "1234:80"
+    environment:
+      - MYSQL_HOST=domjudge-database
+      - MYSQL_USER=domjudge
+      - MYSQL_PASSWORD=domjudgepw
+      - MYSQL_DATABASE=domjudge
+      - MYSQL_ROOT_PASSWORD=rootpw
+      - CONTAINER_TIMEZONE=Asia/Jakarta
+    networks:
+      - domjudge-network
+    restart: always
+
+  judgehost:
+    platform: linux/amd64
+    image: domjudge/judgehost:8.2.3
+    container_name: judgehost
+    privileged: true
+    depends_on:
+      - domserver
+    environment:
+      - DOMSERVER_BASEURL=http://domserver/
+      - JUDGEDAEMON_USERNAME=judgehost
+      - JUDGEDAEMON_PASSWORD=judgehostpw
+      - CONTAINER_TIMEZONE=Asia/Jakarta
+    networks:
+      - domjudge-network
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup
+    restart: always
+
+networks:
+  domjudge-network:
+    driver: bridge
+
+volumes:
+  db-data:

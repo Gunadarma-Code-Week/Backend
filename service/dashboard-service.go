@@ -408,13 +408,25 @@ func (s *DashboardServices) UpdateHackatonService(id string, input dto.Hackaton)
 	}
 
 	oldStage := hackaton.Stage
-	hackaton.Team.TeamName = input.NamaTim
+	tx := s.DB.Begin()
+	if err := tx.Model(&entity.Team{}).
+		Where("id_team = ?", hackaton.Team.ID_Team).
+		Update("team_name", input.NamaTim).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
 	hackaton.ProposalUrl = input.ProposalUrl
 	hackaton.GithubProjectUrl = input.GithubUrl
 	hackaton.PitchDeckUrl = input.PitchDeckUrl
 	hackaton.Stage = input.Stage
 
-	if err := s.DB.Save(&hackaton).Error; err != nil {
+	if err := tx.Save(&hackaton).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	if err := tx.Commit().Error; err != nil {
 		return err
 	}
 
@@ -444,10 +456,22 @@ func (s *DashboardServices) UpdateCpService(id string, input dto.Cp) error {
 	}
 
 	oldStage := cp.Stage
-	cp.Team.TeamName = input.NamaTim
+	tx := s.DB.Begin()
+	if err := tx.Model(&entity.Team{}).
+		Where("id_team = ?", cp.Team.ID_Team).
+		Update("team_name", input.NamaTim).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
 	cp.Stage = input.Stage
 
-	if err := s.DB.Save(&cp).Error; err != nil {
+	if err := tx.Save(&cp).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	if err := tx.Commit().Error; err != nil {
 		return err
 	}
 
