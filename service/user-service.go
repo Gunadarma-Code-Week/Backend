@@ -123,10 +123,12 @@ func (s *UserService) GetEvents(userId uint64) (dto.ResponseEvents, error) {
 	// Get event data
 	var hackaton entity.HackathonTeam
 	var cp entity.CPTeam
+	var ctf entity.CTFTeam
 	var seminar entity.Seminar
 
 	_ = s.DB.Where("id_team = ?", user.IDTeam).First(&hackaton)
 	_ = s.DB.Where("id_team = ?", user.IDTeam).First(&cp)
+	_ = s.DB.Where("id_team = ?", user.IDTeam).First(&ctf)
 	_ = s.DB.Where("id_user = ?", idUserStr).First(&seminar)
 
 	seminarStatus := "Unregistered"
@@ -149,6 +151,11 @@ func (s *UserService) GetEvents(userId uint64) (dto.ResponseEvents, error) {
 		{
 			Name:   "Competitive Programming",
 			Status: getStatusOrUnregistered(cp.Stage),
+			Ticket: dto.Ticket{},
+		},
+		{
+			Name:   "Capture The Flag",
+			Status: getStatusOrUnregistered(ctf.Stage),
 			Ticket: dto.Ticket{},
 		},
 	}

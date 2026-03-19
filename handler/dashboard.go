@@ -101,6 +101,15 @@ func (h *dashboardController) GetAllDashboard(c *gin.Context) {
 
 		respondData = data
 
+	case "ctf":
+		data, err := h.Service.GetAllCtf(startDate, endDate, count, page)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "error service"))
+			return
+		}
+
+		respondData = data
+
 	default:
 		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "kegiatan not found"))
 		return
@@ -162,6 +171,18 @@ func (h *dashboardController) Update(c *gin.Context) {
 			return
 		}
 
+	case "ctf":
+		var input dto.Ctf
+		if err := c.ShouldBindJSON(&input); err != nil {
+			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "BAD_REQUEST"))
+			return
+		}
+
+		if err := h.Service.UpdateCtfService(id, input); err != nil {
+			c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("ERROR", "error service"))
+			return
+		}
+
 	default:
 		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "kegiatan not found"))
 		return
@@ -184,7 +205,7 @@ func (h *dashboardController) Delete(c *gin.Context) {
 	acara := c.Param(":acara")
 	id := c.Param(":id")
 
-	if acara != "seminar" && acara != "hackaton" && acara != "cp" {
+	if acara != "seminar" && acara != "hackaton" && acara != "cp" && acara != "ctf" {
 		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "kegiatan not found"))
 		return
 	}

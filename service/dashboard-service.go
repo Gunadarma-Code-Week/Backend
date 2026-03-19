@@ -257,6 +257,87 @@ func (s *DashboardServices) GetAllCp(startDate, endDate time.Time, count, page i
 	return response, nil
 }
 
+func (s *DashboardServices) GetAllCtf(startDate, endDate time.Time, count, page int) (dto.ResponseCtf, error) {
+	var dataCtfTeams []entity.CTFTeam
+
+	offset := page * count
+
+	if err := s.DB.Preload("Team").
+		Where("created_at BETWEEN ? AND ?", startDate, endDate).
+		Order("id_ctf_team ASC").
+		Limit(count + 1).
+		Offset(offset).
+		Find(&dataCtfTeams).Error; err != nil {
+		return dto.ResponseCtf{}, err
+	}
+
+	hasMore := false
+
+	if len(dataCtfTeams) > count {
+		hasMore = true
+		dataCtfTeams = dataCtfTeams[:count]
+	}
+
+	var responseData []dto.Ctf
+
+	for _, data := range dataCtfTeams {
+		var Leader entity.User
+		if err := s.DB.Where("id_team = ?", data.Team.ID_Team).First(&Leader).Error; err != nil {
+			return dto.ResponseCtf{}, err
+		}
+
+		dataCtf := dto.Ctf{
+			ID:          int(data.ID_CTFTeam),
+			JoinCode:    data.Team.JoinCode,
+			NamaTim:     data.Team.TeamName,
+			KomitmenFee: data.Team.KomitmenFee,
+			Stage:       data.Stage,
+			Status:      data.Status,
+		}
+
+		var anggota []entity.User
+		if err := s.DB.Where("id_team = ?", data.Team.ID_Team).Find(&anggota).Error; err != nil {
+			return dto.ResponseCtf{}, err
+		}
+
+		var members []dto.Anggota
+
+		leaderMember := dto.Anggota{
+			Name:       Leader.Name,
+			Email:      Leader.Email,
+			Role:       "leader",
+			University: Leader.Institusi,
+		}
+		members = append(members, leaderMember)
+
+		for _, dataAnggota := range anggota {
+			if dataAnggota.ID == Leader.ID {
+				continue
+			}
+
+			anggota := dto.Anggota{
+				Name:       dataAnggota.Name,
+				Email:      dataAnggota.Email,
+				Role:       "member",
+				University: dataAnggota.Institusi,
+			}
+
+			members = append(members, anggota)
+		}
+
+		dataCtf.Members = members
+
+		responseData = append(responseData, dataCtf)
+	}
+
+	response := dto.ResponseCtf{
+		Ctf:     responseData,
+		HasMore: hasMore,
+	}
+
+	return response, nil
+}
+
 // func (s *DashboardServices) GetEventSevice(id_user string) (dto.ResponseEvents, error) {
 // 	var user entity.User
 // 	if err := s.DB.Preload("Team").Where("id = ?", id_user).First(&user).Error; err != nil {
@@ -366,6 +447,18 @@ func (s *DashboardServices) DeletePesertaService(acara, id_user string) (string,
 
 	case "cp":
 		var data entity.CPTeam
+		if err := s.DB.Where("id_user = ?", id_user).First(&data).Error; err != nil {
+			return "", err
+		}
+
+		data.IsDeleted = true
+
+		if err := s.DB.Save(&data).Error; err != nil {
+			return "", err
+		}
+
+	case "ctf":
+		var data entity.CTFTeam
 		if err := s.DB.Where("id_user = ?", id_user).First(&data).Error; err != nil {
 			return "", err
 		}
@@ -486,6 +579,51 @@ func (s *DashboardServices) UpdateCpService(id string, input dto.Cp) error {
 			}
 			if len(emails) > 0 {
 				msg := fmt.Sprintf("Selamat Tim %s, Anda berhasil lolos ke tahap %s!", cp.Team.TeamName, input.Stage)
+				_ = s.EmailService.SendEmail("Pembaruan Status Tim - GCW 2026", emails, msg)
+			}
+		}
+	}
+
+	return nil
+}
+
+func (s *DashboardServices) UpdateCtfService(id string, input dto.Ctf) error {
+	var ctf entity.CTFTeam
+	if err := s.DB.Preload("Team").Where("id_ctf_team = ?", id).First(&ctf).Error; err != nil {
+		return err
+	}
+
+	oldStage := ctf.Stage
+	tx := s.DB.Begin()
+	if err := tx.Model(&entity.Team{}).
+		Where("id_team = ?", ctf.Team.ID_Team).
+		Update("team_name", input.NamaTim).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	ctf.Stage = input.Stage
+
+	if err := tx.Save(&ctf).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		return err
+	}
+
+	if oldStage != input.Stage {
+		var teamMembers []entity.User
+		if err := s.DB.Where("id_team = ?", ctf.Team.ID_Team).Find(&teamMembers).Error; err == nil {
+			var emails []string
+			for _, m := range teamMembers {
+				if m.Email != "" {
+					emails = append(emails, m.Email)
+				}
+			}
+			if len(emails) > 0 {
+				msg := fmt.Sprintf("Selamat Tim %s, Anda berhasil lolos ke tahap %s!", ctf.Team.TeamName, input.Stage)
 				_ = s.EmailService.SendEmail("Pembaruan Status Tim - GCW 2026", emails, msg)
 			}
 		}

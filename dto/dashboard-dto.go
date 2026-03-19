@@ -64,3 +64,18 @@ type ResponseCp struct {
 	Cp      []Cp `json:"cp"`
 	HasMore bool `json:"has_more"`
 }
+
+type Ctf struct {
+	ID          int       `json:"id"`
+	NamaTim     string    `json:"nama_tim"`
+	JoinCode     string    `json:"join_code"`
+	Members     []Anggota `json:"members"`
+	KomitmenFee string    `json:"komitmen_fee"`
+	Stage       string    `json:"stage"`
+	Status      string    `json:"status"`
+}
+
+type ResponseCtf struct {
+	Ctf     []Ctf `json:"ctf"`
+	HasMore bool  `json:"has_more"`
+}

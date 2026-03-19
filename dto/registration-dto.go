@@ -79,3 +79,31 @@ type RegistrationHackathonTeamResponse struct {
 	Team          RegistraionTeamResponse
 	HackathonTeam RegistrationHackathonResponse
 }
+
+type RegistrationCTFRequest struct {
+}
+
+type RegistrationCTFTeamRequest struct {
+	RegistraionTeamRequest
+	RegistrationCTFRequest
+	BuktiPembayaran string `json:"bukti_pembayaran"`
+}
+
+type RegistrationCTFResponse struct {
+	ID_CTFTeam    uint64    `json:"id_ctf_team"`
+	Stage         string    `json:"stage"`
+	Status        string    `json:"status"`
+	JoinCode      string    `json:"join_code"`
+	QRString      string    `json:"qr_string,omitempty"`
+	OrderID       string    `json:"order_id,omitempty"`
+	PaymentStatus string    `json:"payment_status,omitempty"`
+	KomitmenFee   string    `json:"bukti_pembayaran,omitempty"`
+	IDTeam        uint64    `json:"id_team"`
+	CreatedAt     time.Time `json:"created_at"`
+	UpdatedAt     time.Time `json:"updated_at"`
+}
+
+type RegistrationCTFTeamResponse struct {
+	Team    RegistraionTeamResponse
+	CTFTeam RegistrationCTFResponse
+}

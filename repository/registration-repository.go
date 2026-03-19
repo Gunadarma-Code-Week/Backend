@@ -40,6 +40,14 @@ func (r *RegistrationRepository) CreateCPTeam(tx *gorm.DB, u *entity.CPTeam) err
 	return nil
 }
 
+func (r *RegistrationRepository) CreateCTFTeam(tx *gorm.DB, u *entity.CTFTeam) error {
+	res := tx.Create(&u)
+	if err := res.Error; err != nil {
+		return err
+	}
+	return nil
+}
+
 func (r *RegistrationRepository) FindTeamByJoinCode(team *entity.Team, joinCode string) error {
 	res := r.DB.Where("join_code = ?", joinCode).First(&team)
 	if err := res.Error; err != nil {

@@ -81,6 +81,34 @@ func (h *registrationHandler) RegistrationHackathonTeam(c *gin.Context) {
 	c.JSON(http.StatusCreated, helper.CreateSuccessResponse("Success register hackathon team", registrationHackathonTeamResponse))
 }
 
+// @Summary Register CTF Team
+// @Tags Team Registration
+// @Accept json
+// @Produce  json
+// @Param request body dto.RegistrationCTFTeamRequest true "Register CTF Team"
+// @Success 200 {object} helper.Response{data=dto.RegistrationCTFTeamResponse}
+// @Router /team/registration/ctf [post]
+func (h *registrationHandler) RegistrationCTFTeam(c *gin.Context) {
+	registrationDto := &dto.RegistrationCTFTeamRequest{}
+
+	if err := c.ShouldBind(registrationDto); err != nil {
+		logging.Low("ProfileHandler.Create", "BAD_REQUEST", err.Error())
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
+		return
+	}
+
+	userAuth := c.MustGet("user").(*entity.User)
+
+	registrationCTFTeamResponse, err := h.registrationService.CTFTeamRegistration(registrationDto, userAuth)
+	if err != nil {
+		logging.Low("ProfileHandler.Create", "BAD_REQUEST", err.Error())
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
+		return
+	}
+
+	c.JSON(http.StatusCreated, helper.CreateSuccessResponse("Success register ctf team", registrationCTFTeamResponse))
+}
+
 // @Summary Find Team
 // @Tags Team Registration
 // @Produce  json
