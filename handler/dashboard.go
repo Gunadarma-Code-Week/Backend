@@ -33,11 +33,11 @@ func DashboardController(db *gorm.DB) DashboardControllerInterface {
 func (h *dashboardController) Statistics(c *gin.Context) {}
 
 // @Summary Get All Dashboard
-// @Description Retrieve all dashboard data based on the specified event type (seminar, hackaton, cp).
+// @Description Retrieve all dashboard data based on the specified event type (seminar, hackaton, cp, ctf).
 // @Tags Dashboard
 // @Accept  json
 // @Produce  json
-// @Param acara path string true "Event type (seminar, hackaton, cp)"
+// @Param acara path string true "Event type (seminar, hackaton, cp, ctf)"
 // @Param count path int true "Number of items per page"
 // @Param page path int true "Page number"
 // @Param search query string false "Search by id_tiket, name, or email"
@@ -123,7 +123,7 @@ func (h *dashboardController) GetAllDashboard(c *gin.Context) {
 // @Tags Dashboard
 // @Accept  json
 // @Produce  json
-// @Param acara path string true "Event type (seminar, hackaton, cp)"
+// @Param acara path string true "Event type (seminar, hackaton, cp, ctf)"
 // @Param id path string true "Event ID"
 // @Param request body interface{} true "Event data to update"
 // @Success 200 {object} helper.Response{data=string}
@@ -196,7 +196,7 @@ func (h *dashboardController) Update(c *gin.Context) {
 // @Tags Dashboard
 // @Accept  json
 // @Produce  json
-// @Param acara path string true "Event type (seminar, hackaton, cp)"
+// @Param acara path string true "Event type (seminar, hackaton, cp, ctf)"
 // @Param id path string true "Event ID"
 // @Success 200 {object} helper.Response{data=string}
 // @Failure 400 {object} helper.Response{message=string}

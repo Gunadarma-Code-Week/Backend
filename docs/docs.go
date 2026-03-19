@@ -752,7 +752,7 @@ const docTemplate = `{
         },
         "/dashboard/{acara}/{count}/{page}": {
             "get": {
-                "description": "Retrieve all dashboard data based on the specified event type (seminar, hackaton, cp).",
+                "description": "Retrieve all dashboard data based on the specified event type (seminar, hackaton, cp, ctf).",
                 "consumes": [
                     "application/json"
                 ],
@@ -766,7 +766,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Event type (seminar, hackaton, cp)",
+                        "description": "Event type (seminar, hackaton, cp, ctf)",
                         "name": "acara",
                         "in": "path",
                         "required": true
@@ -846,7 +846,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Event type (seminar, hackaton, cp)",
+                        "description": "Event type (seminar, hackaton, cp, ctf)",
                         "name": "acara",
                         "in": "path",
                         "required": true
@@ -938,7 +938,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Event type (seminar, hackaton, cp)",
+                        "description": "Event type (seminar, hackaton, cp, ctf)",
                         "name": "acara",
                         "in": "path",
                         "required": true
@@ -1479,6 +1479,22 @@ const docTemplate = `{
                 }
             }
         },
+        "/payment/notification": {
+            "post": {
+                "description": "Callback endpoint for Midtrans to notify payment status",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Payment"
+                ],
+                "summary": "Midtrans Payment Notification",
+                "responses": {}
+            }
+        },
         "/profile/events": {
             "get": {
                 "produces": [
@@ -1918,6 +1934,51 @@ const docTemplate = `{
                                     "properties": {
                                         "data": {
                                             "$ref": "#/definitions/dto.RegistrationCPTeamResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/team/registration/ctf": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Team Registration"
+                ],
+                "summary": "Register CTF Team",
+                "parameters": [
+                    {
+                        "description": "Register CTF Team",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.RegistrationCTFTeamRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/helper.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.RegistrationCTFTeamResponse"
                                         }
                                     }
                                 }
@@ -2428,9 +2489,6 @@ const docTemplate = `{
                 "team_name"
             ],
             "properties": {
-                "bukti_pembayaran": {
-                    "type": "string"
-                },
                 "created_at": {
                     "type": "string"
                 },
@@ -2445,6 +2503,15 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/dto.Member"
                     }
+                },
+                "order_id": {
+                    "type": "string"
+                },
+                "payment_status": {
+                    "type": "string"
+                },
+                "qr_string": {
+                    "type": "string"
                 },
                 "supervisor": {
                     "type": "string"
@@ -2484,6 +2551,15 @@ const docTemplate = `{
                 "join_code": {
                     "type": "string"
                 },
+                "order_id": {
+                    "type": "string"
+                },
+                "payment_status": {
+                    "type": "string"
+                },
+                "qr_string": {
+                    "type": "string"
+                },
                 "stage": {
                     "type": "string"
                 },
@@ -2504,6 +2580,9 @@ const docTemplate = `{
             ],
             "properties": {
                 "bukti_pembayaran": {
+                    "type": "string"
+                },
+                "join_code": {
                     "type": "string"
                 },
                 "supervisor": {
@@ -2528,6 +2607,77 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.RegistrationCTFResponse": {
+            "type": "object",
+            "properties": {
+                "bukti_pembayaran": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id_ctf_team": {
+                    "type": "integer"
+                },
+                "id_team": {
+                    "type": "integer"
+                },
+                "join_code": {
+                    "type": "string"
+                },
+                "order_id": {
+                    "type": "string"
+                },
+                "payment_status": {
+                    "type": "string"
+                },
+                "qr_string": {
+                    "type": "string"
+                },
+                "stage": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.RegistrationCTFTeamRequest": {
+            "type": "object",
+            "required": [
+                "supervisor",
+                "supervisor_nidn",
+                "team_name"
+            ],
+            "properties": {
+                "bukti_pembayaran": {
+                    "type": "string"
+                },
+                "supervisor": {
+                    "type": "string"
+                },
+                "supervisor_nidn": {
+                    "type": "string"
+                },
+                "team_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.RegistrationCTFTeamResponse": {
+            "type": "object",
+            "properties": {
+                "ctfteam": {
+                    "$ref": "#/definitions/dto.RegistrationCTFResponse"
+                },
+                "team": {
+                    "$ref": "#/definitions/dto.RegistraionTeamResponse"
+                }
+            }
+        },
         "dto.RegistrationHackathonResponse": {
             "type": "object",
             "properties": {
@@ -2544,6 +2694,15 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "join_code": {
+                    "type": "string"
+                },
+                "order_id": {
+                    "type": "string"
+                },
+                "payment_status": {
+                    "type": "string"
+                },
+                "qr_string": {
                     "type": "string"
                 },
                 "stage": {
@@ -2565,9 +2724,6 @@ const docTemplate = `{
                 "team_name"
             ],
             "properties": {
-                "bukti_pembayaran": {
-                    "type": "string"
-                },
                 "supervisor": {
                     "type": "string"
                 },
@@ -2908,6 +3064,15 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "komitmenFee": {
+                    "type": "string"
+                },
+                "orderID": {
+                    "type": "string"
+                },
+                "paymentStatus": {
+                    "type": "string"
+                },
+                "qrstring": {
                     "type": "string"
                 },
                 "supervisor": {
