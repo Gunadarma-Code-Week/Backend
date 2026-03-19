@@ -41,6 +41,7 @@ func (s *RegistrationService) CPTeamRegistration(
 	registrationDTO *dto.RegistrationCPTeamRequest,
 	userLead *entity.User,
 ) (*dto.RegistrationCPTeamResponse, error) {
+	var err error
 	teamRegistration := &entity.Team{
 		TeamName:       registrationDTO.TeamName,
 		Supervisor:     registrationDTO.Supervisor,
@@ -57,12 +58,18 @@ func (s *RegistrationService) CPTeamRegistration(
 		return nil, fmt.Errorf("USER ALREADY HAVE TEAM")
 	}
 
+	// Check duplicate team name
+	if err = s.registrationRepository.FindTeamByNameAndEvent(&entity.Team{}, registrationDTO.TeamName, "cp"); err == nil {
+		logging.Low("RegistrationService.CPTeamRegistration", "BAD_REQUEST", "Team name already taken")
+		return nil, fmt.Errorf("TEAM NAME ALREADY TAKEN")
+	}
+
 	// generate join code
 	var joinCode string
 
 	for {
 		joinCode = helper.RandomStringNumber(6)
-		err := s.registrationRepository.FindTeamByJoinCode(&entity.Team{}, joinCode)
+		err = s.registrationRepository.FindTeamByJoinCode(&entity.Team{}, joinCode)
 		if err != nil {
 			break
 		}
@@ -160,9 +167,16 @@ func (s *RegistrationService) HackathonTeamRegistration(
 	registrationDTO *dto.RegistrationHackathonTeamRequest,
 	userLead *entity.User,
 ) (*dto.RegistrationHackathonTeamResponse, error) {
+	var err error
 	if userLead.IDTeam != nil {
 		logging.Low("RegistrationService.HackathonTeamRegistration", "BAD_REQUEST", "User already have team")
 		return nil, fmt.Errorf("USER ALREADY HAVE TEAM")
+	}
+
+	// Check duplicate team name
+	if err = s.registrationRepository.FindTeamByNameAndEvent(&entity.Team{}, registrationDTO.TeamName, "hackathon"); err == nil {
+		logging.Low("RegistrationService.HackathonTeamRegistration", "BAD_REQUEST", "Team name already taken")
+		return nil, fmt.Errorf("TEAM NAME ALREADY TAKEN")
 	}
 
 	teamRegistration := &entity.Team{
@@ -181,7 +195,7 @@ func (s *RegistrationService) HackathonTeamRegistration(
 
 	for {
 		joinCode = helper.RandomStringNumber(6)
-		err := s.registrationRepository.FindTeamByJoinCode(&entity.Team{}, joinCode)
+		err = s.registrationRepository.FindTeamByJoinCode(&entity.Team{}, joinCode)
 		if err != nil {
 			break
 		}
@@ -192,10 +206,13 @@ func (s *RegistrationService) HackathonTeamRegistration(
 	orderID := fmt.Sprintf("HACK-%d-%d", userLead.ID, time.Now().UnixNano())
 	teamRegistration.OrderID = orderID
 
-	qrString, err := s.midtransService.GenerateQRIS(orderID, int64(hackathonFee))
-	if err != nil {
-		logging.Low("RegistrationService.HackathonTeamRegistration", "INTERNAL_SERVER_ERROR", "Midtrans QR Generation failed: "+err.Error())
-		return nil, err
+	qrString := "-"
+	if s.midtransService != nil {
+		qrString, err = s.midtransService.GenerateQRIS(orderID, int64(hackathonFee))
+		if err != nil {
+			logging.Low("RegistrationService.HackathonTeamRegistration", "INTERNAL_SERVER_ERROR", "Midtrans QR Generation failed: "+err.Error())
+			return nil, err
+		}
 	}
 	teamRegistration.QRString = qrString
 
