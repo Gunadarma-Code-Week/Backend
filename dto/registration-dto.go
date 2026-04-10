@@ -9,6 +9,7 @@ type RegistraionTeamRequest struct {
 }
 
 type RegistrationHackathonRequest struct {
+	BuktiPembayaran string `json:"bukti_pembayaran"`
 }
 
 type RegistrationHackathonTeamRequest struct {

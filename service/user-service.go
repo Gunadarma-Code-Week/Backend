@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"gorm.io/gorm"
+	"os"
 )
 
 type UserService struct {
@@ -136,27 +137,36 @@ func (s *UserService) GetEvents(userId uint64) (dto.ResponseEvents, error) {
 		seminarStatus = "Registered"
 	}
 
+	paymentType := "manual"
+	if os.Getenv("MIDTRANS_ACTIVE") == "true" {
+		paymentType = "midtrans"
+	}
+
 	// Fill event data
 	events := []dto.Event{
 		{
-			Name:   "Seminar",
-			Status: seminarStatus,
-			Ticket: dto.Ticket{},
+			Name:        "Seminar",
+			Status:      seminarStatus,
+			PaymentType: paymentType,
+			Ticket:      dto.Ticket{},
 		},
 		{
-			Name:   "Hackathon",
-			Status: getStatusOrUnregistered(hackaton.Stage),
-			Ticket: dto.Ticket{},
+			Name:        "Hackathon",
+			Status:      getStatusOrUnregistered(hackaton.Stage),
+			PaymentType: paymentType,
+			Ticket:      dto.Ticket{},
 		},
 		{
-			Name:   "Competitive Programming",
-			Status: getStatusOrUnregistered(cp.Stage),
-			Ticket: dto.Ticket{},
+			Name:        "Competitive Programming",
+			Status:      getStatusOrUnregistered(cp.Stage),
+			PaymentType: paymentType,
+			Ticket:      dto.Ticket{},
 		},
 		{
-			Name:   "Capture The Flag",
-			Status: getStatusOrUnregistered(ctf.Stage),
-			Ticket: dto.Ticket{},
+			Name:        "Capture The Flag",
+			Status:      getStatusOrUnregistered(ctf.Stage),
+			PaymentType: paymentType,
+			Ticket:      dto.Ticket{},
 		},
 	}
 
