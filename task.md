@@ -1,0 +1,5 @@
+- [/] Advanced Team Name Integration (Search & Sort)
+  - [/] [BACKEND] Join with teams table in AdminGetAllUsers
+  - [ ] [BACKEND] Update search logic to include teams.team_name
+  - [ ] [BACKEND] Update sort logic to allow team_name
+  - [ ] [VERIFY] Trigger Air reload and check frontend

@@ -113,4 +113,4 @@ func main() {
 	log.Println("Server exiting")
 }
 
-// trigger action
+// trigger action: v2 team integration applied

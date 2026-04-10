@@ -60,8 +60,8 @@ func (s *RegistrationService) CPTeamRegistration(
 
 	// Check duplicate team name
 	if err = s.registrationRepository.FindTeamByNameAndEvent(&entity.Team{}, registrationDTO.TeamName, "cp"); err == nil {
-		logging.Low("RegistrationService.CPTeamRegistration", "BAD_REQUEST", "Team name already taken")
-		return nil, fmt.Errorf("TEAM NAME ALREADY TAKEN")
+		logging.Low("RegistrationService.CPTeamRegistration", "BAD_REQUEST", "Nama Tim Sudah Digunakan")
+		return nil, fmt.Errorf("Nama Tim Sudah Digunakan")
 	}
 
 	// generate join code
@@ -175,8 +175,8 @@ func (s *RegistrationService) HackathonTeamRegistration(
 
 	// Check duplicate team name
 	if err = s.registrationRepository.FindTeamByNameAndEvent(&entity.Team{}, registrationDTO.TeamName, "hackathon"); err == nil {
-		logging.Low("RegistrationService.HackathonTeamRegistration", "BAD_REQUEST", "Team name already taken")
-		return nil, fmt.Errorf("TEAM NAME ALREADY TAKEN")
+		logging.Low("RegistrationService.HackathonTeamRegistration", "BAD_REQUEST", "Nama Tim Sudah Digunakan")
+		return nil, fmt.Errorf("Nama Tim Sudah Digunakan")
 	}
 
 	teamRegistration := &entity.Team{
@@ -306,8 +306,8 @@ func (s *RegistrationService) CTFTeamRegistration(
 
 	// Check duplicate team name
 	if err = s.registrationRepository.FindTeamByNameAndEvent(&entity.Team{}, registrationDTO.TeamName, "ctf"); err == nil {
-		logging.Low("RegistrationService.CTFTeamRegistration", "BAD_REQUEST", "Team name already taken")
-		return nil, fmt.Errorf("TEAM NAME ALREADY TAKEN")
+		logging.Low("RegistrationService.CTFTeamRegistration", "BAD_REQUEST", "Nama Tim Sudah Digunakan")
+		return nil, fmt.Errorf("Nama Tim Sudah Digunakan")
 	}
 
 	// generate join code

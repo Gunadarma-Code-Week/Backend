@@ -175,26 +175,27 @@ func (s *UserService) AdminGetAllUsers(query dto.AdminGetUsersQueryDTO) (dto.Adm
 	var totalUsers int64
 
 	// Build query
-	db := s.DB.Model(&entity.User{})
+	// Build query with LEFT JOIN to teams table
+	db := s.DB.Model(&entity.User{}).Joins("LEFT JOIN teams ON users.id_team = teams.id_team")
 
 	// Apply date filters if provided
 	if query.StartDate != "" {
 		startDate, err := time.Parse("2006-01-02", query.StartDate)
 		if err == nil {
-			db = db.Where("created_at >= ?", startDate)
+			db = db.Where("users.created_at >= ?", startDate)
 		}
 	}
 	if query.EndDate != "" {
 		endDate, err := time.Parse("2006-01-02", query.EndDate)
 		if err == nil {
-			db = db.Where("created_at <= ?", endDate.Add(24*time.Hour))
+			db = db.Where("users.created_at <= ?", endDate.Add(24*time.Hour))
 		}
 	}
 
 	// Apply search filter if provided
 	if query.Q != "" {
 		searchTerm := "%" + query.Q + "%"
-		db = db.Where("name ILIKE ? OR email ILIKE ? OR institusi ILIKE ?", searchTerm, searchTerm, searchTerm)
+		db = db.Where("users.name ILIKE ? OR users.email ILIKE ? OR users.institusi ILIKE ? OR teams.team_name ILIKE ?", searchTerm, searchTerm, searchTerm, searchTerm)
 	}
 
 	// Count total users
@@ -203,14 +204,20 @@ func (s *UserService) AdminGetAllUsers(query dto.AdminGetUsersQueryDTO) (dto.Adm
 	}
 
 	// Apply sorting
-	sortBy := "id"
+	sortBy := "users.id"
 	if query.SortBy != "" {
-		validSortFields := map[string]bool{
-			"id": true, "institusi": true, "id_team": true, "nim": true,
-			"soc_med_document": true, "profile_has_updated": true, "data_has_verified": true,
+		validSortFields := map[string]string{
+			"id":                  "users.id",
+			"institusi":           "users.institusi",
+			"id_team":             "users.id_team",
+			"team_name":           "teams.team_name",
+			"nim":                 "users.nim",
+			"soc_med_document":    "users.soc_med_document",
+			"profile_has_updated": "users.profile_has_updated",
+			"data_has_verified":   "users.data_has_verified",
 		}
-		if validSortFields[query.SortBy] {
-			sortBy = query.SortBy
+		if field, ok := validSortFields[query.SortBy]; ok {
+			sortBy = field
 		}
 	}
 
@@ -219,9 +226,9 @@ func (s *UserService) AdminGetAllUsers(query dto.AdminGetUsersQueryDTO) (dto.Adm
 		sortOrder = "DESC"
 	}
 
-	// Apply pagination and sorting
+	// Apply pagination and sorting with Preload Team
 	offset := (query.Page - 1) * query.Limit
-	if err := db.Order(sortBy + " " + sortOrder).Limit(query.Limit).Offset(offset).Find(&users).Error; err != nil {
+	if err := db.Preload("Team").Order(sortBy + " " + sortOrder).Limit(query.Limit).Offset(offset).Find(&users).Error; err != nil {
 		return dto.AdminUsersListResponseDTO{}, err
 	}
 
@@ -262,6 +269,7 @@ func (s *UserService) AdminGetAllUsers(query dto.AdminGetUsersQueryDTO) (dto.Adm
 		}
 		userResponse.SocMedDocument = user.SocMedDocument
 		userResponse.DokumenFilename = user.DokumenFilename
+		userResponse.TeamName = user.Team.TeamName
 
 		userResponses = append(userResponses, userResponse)
 	}
@@ -285,7 +293,7 @@ func (s *UserService) AdminGetAllUsers(query dto.AdminGetUsersQueryDTO) (dto.Adm
 // AdminGetUserById - Get user by ID for admin
 func (s *UserService) AdminGetUserById(id uint64) (*dto.AdminUserResponseDTO, error) {
 	var user entity.User
-	if err := s.DB.Where("id = ?", id).First(&user).Error; err != nil {
+	if err := s.DB.Preload("Team").Where("id = ?", id).First(&user).Error; err != nil {
 		return nil, err
 	}
 
@@ -323,6 +331,7 @@ func (s *UserService) AdminGetUserById(id uint64) (*dto.AdminUserResponseDTO, er
 	}
 	userResponse.SocMedDocument = user.SocMedDocument
 	userResponse.DokumenFilename = user.DokumenFilename
+	userResponse.TeamName = user.Team.TeamName
 
 	return userResponse, nil
 }

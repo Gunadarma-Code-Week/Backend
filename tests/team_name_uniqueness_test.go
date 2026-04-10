@@ -32,8 +32,8 @@ func TestTeamNameUniqueness(t *testing.T) {
 
 		lead2 := createTestUser(t, db, "lead2-cp")
 		_, err = regSvc.CPTeamRegistration(&request1, &lead2)
-		if err == nil || err.Error() != "TEAM NAME ALREADY TAKEN" {
-			t.Fatalf("expected TEAM NAME ALREADY TAKEN error, got %v", err)
+		if err == nil || err.Error() != "Nama Tim Sudah Digunakan" {
+			t.Fatalf("expected Nama Tim Sudah Digunakan error, got %v", err)
 		}
 	})
 
@@ -50,8 +50,8 @@ func TestTeamNameUniqueness(t *testing.T) {
 
 		lead2 := createTestUser(t, db, "lead2-hack")
 		_, err = regSvc.HackathonTeamRegistration(&request1, &lead2)
-		if err == nil || err.Error() != "TEAM NAME ALREADY TAKEN" {
-			t.Fatalf("expected TEAM NAME ALREADY TAKEN error, got %v", err)
+		if err == nil || err.Error() != "Nama Tim Sudah Digunakan" {
+			t.Fatalf("expected Nama Tim Sudah Digunakan error, got %v", err)
 		}
 	})
 
