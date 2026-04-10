@@ -175,8 +175,7 @@ func (s *UserService) AdminGetAllUsers(query dto.AdminGetUsersQueryDTO) (dto.Adm
 	var totalUsers int64
 
 	// Build query
-	// Build query with LEFT JOIN to teams table
-	db := s.DB.Model(&entity.User{}).Joins("LEFT JOIN teams ON users.id_team = teams.id_team")
+	db := s.DB.Model(&entity.User{}).Joins("Team")
 
 	// Apply date filters if provided
 	if query.StartDate != "" {
@@ -195,7 +194,7 @@ func (s *UserService) AdminGetAllUsers(query dto.AdminGetUsersQueryDTO) (dto.Adm
 	// Apply search filter if provided
 	if query.Q != "" {
 		searchTerm := "%" + query.Q + "%"
-		db = db.Where("users.name ILIKE ? OR users.email ILIKE ? OR users.institusi ILIKE ? OR teams.team_name ILIKE ?", searchTerm, searchTerm, searchTerm, searchTerm)
+		db = db.Where("users.name ILIKE ? OR users.email ILIKE ? OR users.institusi ILIKE ? OR \"Team\".team_name ILIKE ?", searchTerm, searchTerm, searchTerm, searchTerm)
 	}
 
 	// Count total users
@@ -210,7 +209,7 @@ func (s *UserService) AdminGetAllUsers(query dto.AdminGetUsersQueryDTO) (dto.Adm
 			"id":                  "users.id",
 			"institusi":           "users.institusi",
 			"id_team":             "users.id_team",
-			"team_name":           "teams.team_name",
+			"team_name":           "\"Team\".team_name",
 			"nim":                 "users.nim",
 			"soc_med_document":    "users.soc_med_document",
 			"profile_has_updated": "users.profile_has_updated",
@@ -228,7 +227,7 @@ func (s *UserService) AdminGetAllUsers(query dto.AdminGetUsersQueryDTO) (dto.Adm
 
 	// Apply pagination and sorting with Preload Team
 	offset := (query.Page - 1) * query.Limit
-	if err := db.Preload("Team").Order(sortBy + " " + sortOrder).Limit(query.Limit).Offset(offset).Find(&users).Error; err != nil {
+	if err := db.Order(sortBy + " " + sortOrder).Limit(query.Limit).Offset(offset).Find(&users).Error; err != nil {
 		return dto.AdminUsersListResponseDTO{}, err
 	}
 
