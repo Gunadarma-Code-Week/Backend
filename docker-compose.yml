@@ -6,8 +6,8 @@ services:
     environment:
       - ADMINER_DESIGN=pepa-linha
     command: php -S 0.0.0.0:8080 -t /var/www/html
-    # ports:
-    #   - "0.0.0.0:8081:8080"
+    ports:
+      - "0.0.0.0:8081:8080"
     depends_on:
       db:
         condition: service_healthy
