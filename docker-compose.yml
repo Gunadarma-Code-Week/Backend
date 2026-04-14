@@ -22,7 +22,7 @@ services:
       POSTGRES_PASSWORD: ${DB_PASS}
       POSTGRES_DB: ${DB_NAME}
     volumes:
-      - db-data:/var/lib/postgresql/data
+      - db-data2:/var/lib/postgresql/data
     # ports:
     #   - "5432:5432"
     networks:
@@ -87,7 +87,7 @@ services:
         max-file: "3"
 
 volumes:
-  db-data:
+  db-data2:
     driver: local
 
 networks:
