@@ -73,8 +73,8 @@ services:
       MIDTRANS_ENVIRONMENT: ${MIDTRANS_ENVIRONMENT}
 
     command: /bin/sh -c "go mod download && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /src/gcw main.go && /src/gcw"
-    # ports:
-    #   - "8000:8000"
+    ports:
+      - "8000:8000"
     networks:
       - gcw-network
     depends_on:
