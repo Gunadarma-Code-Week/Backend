@@ -1,22 +1,30 @@
 version: "3.8"
 
 services:
-  # db:
-    # image: postgres:15
-    # restart: unless-stopped
-    # environment:
-    #   POSTGRES_USER: gcw_user
-    #   POSTGRES_PASSWORD: changeme
-    #   POSTGRES_DB: gcw_db
-    # volumes:
-    #   - db-data:/var/lib/postgresql/data
-    # # ports:
-    # #   - "5432:5432"
-    # healthcheck:
-    #   test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
-    #   interval: 10s
-    #   timeout: 5s
-    #   retries: 5
+  adminer:
+    image: adminer
+    environment:
+      - ADMINER_DESIGN=pepa-linha
+    command: php -S 0.0.0.0:8080 -t /var/www/html
+    ports:
+      - "0.0.0.0:8081:8080"
+    
+  db:
+    image: postgres:15
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    # ports:
+    #   - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   app:
     image: golang:1.23
@@ -60,18 +68,18 @@ services:
     command: /bin/sh -c "go mod download && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /src/gcw main.go && /src/gcw"
     # ports:
     #   - "8000:8000"
-    # depends_on:
-    #   db:
-    #     condition: service_healthy
+    depends_on:
+      db:
+        condition: service_healthy
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
 
-# volumes:
-#   db-data:
-#     driver: local
+volumes:
+  db-data:
+    driver: local
 
 # Notes:
 # - Dokploy clones the repo before running docker-compose; this compose expects the repo files present (build: .)
