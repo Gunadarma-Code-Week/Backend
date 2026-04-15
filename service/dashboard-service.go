@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"gcw/dto"
 	"gcw/entity"
+	"os"
 	"time"
 
 	"gorm.io/gorm"
@@ -532,7 +533,7 @@ func (s *DashboardServices) UpdateHackatonService(id string, input dto.Hackaton)
 					emails = append(emails, m.Email)
 				}
 			}
-			if len(emails) > 0 {
+			if len(emails) > 0 && os.Getenv("AUTO_EMAIL") == "true" {
 				msg := fmt.Sprintf("Selamat Tim %s, Anda berhasil lolos ke tahap %s!", hackaton.Team.TeamName, input.Stage)
 				_ = s.EmailService.SendEmail("Pembaruan Status Tim - GCW 2026", emails, msg)
 			}
@@ -577,7 +578,7 @@ func (s *DashboardServices) UpdateCpService(id string, input dto.Cp) error {
 					emails = append(emails, m.Email)
 				}
 			}
-			if len(emails) > 0 {
+			if len(emails) > 0 && os.Getenv("AUTO_EMAIL") == "true" {
 				msg := fmt.Sprintf("Selamat Tim %s, Anda berhasil lolos ke tahap %s!", cp.Team.TeamName, input.Stage)
 				_ = s.EmailService.SendEmail("Pembaruan Status Tim - GCW 2026", emails, msg)
 			}
@@ -622,7 +623,7 @@ func (s *DashboardServices) UpdateCtfService(id string, input dto.Ctf) error {
 					emails = append(emails, m.Email)
 				}
 			}
-			if len(emails) > 0 {
+			if len(emails) > 0 && os.Getenv("AUTO_EMAIL") == "true" {
 				msg := fmt.Sprintf("Selamat Tim %s, Anda berhasil lolos ke tahap %s!", ctf.Team.TeamName, input.Stage)
 				_ = s.EmailService.SendEmail("Pembaruan Status Tim - GCW 2026", emails, msg)
 			}
