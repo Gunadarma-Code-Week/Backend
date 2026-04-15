@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"gcw/config"
+	"gcw/middleware"
 	"gcw/router"
 	"log"
 	"net/http"
@@ -77,11 +78,14 @@ func main() {
 
 	corsConfig := cors.DefaultConfig()
 	corsConfig.AllowOrigins = origins
-	corsConfig.AllowHeaders = []string{"Origin", "Content-Type", "Accept", "x-token", "cache-control", "Authorization"}
+	corsConfig.AllowHeaders = []string{"Origin", "Content-Type", "Accept", "x-token", "cache-control", "Authorization", "If-None-Match"}
 	corsConfig.AllowCredentials = true
 	corsConfig.AllowMethods = []string{"POST", "DELETE", "GET", "PUT", "PATCH", "OPTIONS"}
+	corsConfig.ExposeHeaders = []string{"ETag"}
 
 	r.Use(cors.New(corsConfig))
+	r.Use(middleware.RateLimiter())
+	r.Use(middleware.ETagMiddleware())
 
 	router.SetupRouter(r)
 
