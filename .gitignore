@@ -27,3 +27,6 @@ go.work.sum
 log
 .gocache/
 .DS_Store
+bin/
+bin/*
+bin

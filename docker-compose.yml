@@ -1,19 +1,34 @@
 version: "3.8"
 
 services:
+  adminer:
+    image: adminer
+    environment:
+      - ADMINER_DESIGN=pepa-linha
+    command: php -S 0.0.0.0:8080 -t /var/www/html
+    ports:
+      - "0.0.0.0:8081:8080"
+    networks:
+      - gcw-network
+    depends_on:
+      db:
+        condition: service_healthy
+    
   db:
     image: postgres:15
     restart: unless-stopped
     environment:
-      POSTGRES_USER: gcw_user
-      POSTGRES_PASSWORD: changeme
-      POSTGRES_DB: gcw_db
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_DB: ${DB_NAME}
     volumes:
-      - db-data:/var/lib/postgresql/data
+      - db-data2:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    networks:
+      - gcw-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -24,45 +39,44 @@ services:
     working_dir: /src
     volumes:
       - ./:/src
-    # environment embedded here (placeholders)
-    # environment:
-    #   ENVIRONMENT: "local"
-    #   VERSION: "1"
-    #   APP_NAME: "GCW"
-    #   PORT: "8000"
-    #   MODE: "debug"
-    #   HOST_HEADER: "localhost:8000"
-    #   CORS_ORIGIN: "http://localhost:3000"
-    #   API_BASE_URL: "/api/v1/gcw/resources"
-    #   ADMIN_API_BASE_URL: "/admin/api/v1/gcw/resources"
-
-    #   DB_CONNECTION: "postgres"
-    #   DB_HOST: "db"
-    #   DB_PORT: "5432"
-    #   DB_NAME: "gcw_db"
-    #   DB_USER: "gcw_user"
-    #   DB_PASS: "changeme"
-
-    #   JWT_SECRET: "change_me_secret"
-    #   JWT_REFRESH_SECRET: "change_me_refresh_secret"
-    #   JWT_ISSUER: "gcw"
-
-    #   EMAIL_HOST: "smtp.gmail.com"
-    #   EMAIL_PORT: "587"
-    #   EMAIL_USERNAME: "your-email@gmail.com"
-    #   EMAIL_PASSWORD: "your-email-password"
-    #   EMAIL_FROM: "no-reply@yourdomain.com"
-
-    #   GOOGLE_CLIENT_ID: "your-google-client-id.apps.googleusercontent.com"
-
-    #   DOMJUDGE_URL: "http://localhost:8080"
-    #   DOMJUDGE_CONTEST_ID: "1"
-    #   DOMJUDGE_USERNAME: "domjudge_user"
-    #   DOMJUDGE_PASSWORD: "domjudge_password"
+    environment:
+      ENVIRONMENT: ${ENVIRONMENT}
+      VERSION: ${VERSION}
+      APP_NAME: ${APP_NAME}
+      PORT: ${PORT}
+      MODE: ${MODE}
+      HOST_HEADER: ${HOST_HEADER}
+      CORS_ORIGIN: ${CORS_ORIGIN}
+      DB_CONNECTION: ${DB_CONNECTION}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASS: ${DB_PASS}
+      API_BASE_URL: ${API_BASE_URL}
+      ADMIN_API_BASE_URL: ${ADMIN_API_BASE_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      JWT_ISSUER: ${JWT_ISSUER}
+      EMAIL_HOST: ${EMAIL_HOST}
+      EMAIL_PORT: ${EMAIL_PORT}
+      EMAIL_USERNAME: ${EMAIL_USERNAME}
+      EMAIL_PASSWORD: ${EMAIL_PASSWORD}
+      EMAIL_FROM: ${EMAIL_FROM}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID} p
+      DOMJUDGE_URL: ${DOMJUDGE_URL}
+      DOMJUDGE_CONTEST_ID: ${DOMJUDGE_CONTEST_ID}
+      DOMJUDGE_USERNAME: ${DOMJUDGE_USERNAME}
+      DOMJUDGE_PASSWORD: ${DOMJUDGE_PASSWORD}
+      MIDTRANS_SERVER_KEY: ${MIDTRANS_SERVER_KEY}
+      MIDTRANS_CLIENT_KEY: ${MIDTRANS_CLIENT_KEY}
+      MIDTRANS_ENVIRONMENT: ${MIDTRANS_ENVIRONMENT}
 
     command: /bin/sh -c "go mod download && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /src/gcw main.go && /src/gcw"
     ports:
       - "8000:8000"
+    networks:
+      - gcw-network
     depends_on:
       db:
         condition: service_healthy
@@ -73,10 +87,9 @@ services:
         max-file: "3"
 
 volumes:
-  db-data:
+  db-data2:
     driver: local
 
-# Notes:
-# - Dokploy clones the repo before running docker-compose; this compose expects the repo files present (build: .)
-# - Copy `.env.example` to `.env` and set real secrets before deploy.
-# - For production set ENVIRONMENT=production and secure secrets via Dokploy secrets or an external secrets manager.
+networks:
+  gcw-network:
+    driver: bridge
