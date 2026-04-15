@@ -24,6 +24,7 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
+
 func createLogFile() (*os.File, error) {
 	err := os.MkdirAll("log", os.ModePerm)
 	if err != nil {
