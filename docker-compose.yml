@@ -23,8 +23,8 @@ services:
       POSTGRES_DB: ${DB_NAME}
     volumes:
       - db-data2:/var/lib/postgresql/data
-    # ports:
-    #   - "5432:5432"
+    ports:
+      - "5432:5432"
     networks:
       - gcw-network
     healthcheck:
