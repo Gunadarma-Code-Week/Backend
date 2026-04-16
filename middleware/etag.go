@@ -5,13 +5,9 @@ import (
 	"crypto/sha1"
 	"fmt"
 	"net/http"
-	"sync"
 
 	"github.com/gin-gonic/gin"
 )
-
-// etagStore maps request URI → last known ETag (server-wide, thread-safe).
-var etagStore sync.Map
 
 // etagWriter fully buffers the response body and captures the status code.
 // Nothing is written to the wire until flush() is called, which allows us to
@@ -58,42 +54,42 @@ func (w *etagWriter) flush(etag string, send304 bool) {
 }
 
 // ETagMiddleware implements ETag/If-None-Match HTTP caching for GET requests.
-//
-// Flow:
-//  1. If client sends If-None-Match matching stored ETag → respond 304 immediately.
-//  2. Otherwise buffer the full response, compute SHA-1 ETag, store and respond 200+ETag.
+// This middleware fully buffers the response body to compute a strong ETag (SHA-1).
 func ETagMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		// Only apply to GET requests
 		if c.Request.Method != http.MethodGet {
 			c.Next()
 			return
 		}
 
-		key := c.Request.RequestURI
-
-		// Step 1: check If-None-Match
-		if clientETag := c.GetHeader("If-None-Match"); clientETag != "" {
-			if stored, ok := etagStore.Load(key); ok && stored.(string) == clientETag {
-				c.AbortWithStatus(http.StatusNotModified)
-				c.Header("ETag", clientETag)
-				c.Header("Cache-Control", "no-cache")
-				return
-			}
-		}
-
-		// Step 2: buffer response
+		// Buffer the response
 		ew := &etagWriter{ResponseWriter: c.Writer, status: http.StatusOK}
+		originalWriter := c.Writer
 		c.Writer = ew
+
+		// Step 1: Run the handler to get the actual data from DB/service
 		c.Next()
 
-		// Step 3: compute ETag and flush
+		// Step 2: After handler finished, compute ETag of the actual response body
 		status := ew.Status()
+		// Only cache successful 200-OKish responses with a body
 		if status >= http.StatusOK && status < http.StatusMultipleChoices && ew.buf.Len() > 0 {
 			hash := sha1.Sum(ew.buf.Bytes())
 			etag := fmt.Sprintf(`"%x"`, hash)
-			etagStore.Store(key, etag)
-			ew.flush(etag, false)
+
+			// Step 3: Compare with client's If-None-Match
+			clientETag := c.GetHeader("If-None-Match")
+			if clientETag == etag {
+				// Match! We can avoid sending the body.
+				ew.flush(etag, true)
+			} else {
+				// No match or no ETag sent, send the new data + new ETag
+				ew.flush(etag, false)
+			}
 		} else {
+			// Response was an error or empty, just flush normally without ETag
+			c.Writer = originalWriter
 			ew.flush("", false)
 		}
 	}

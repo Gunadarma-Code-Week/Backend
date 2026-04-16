@@ -503,17 +503,28 @@ func (s *DashboardServices) UpdateHackatonService(id string, input dto.Hackaton)
 
 	oldStage := hackaton.Stage
 	tx := s.DB.Begin()
-	if err := tx.Model(&entity.Team{}).
-		Where("id_team = ?", hackaton.Team.ID_Team).
-		Update("team_name", input.NamaTim).Error; err != nil {
-		tx.Rollback()
-		return err
+	
+	if input.NamaTim != "" {
+		if err := tx.Model(&entity.Team{}).
+			Where("id_team = ?", hackaton.Team.ID_Team).
+			Update("team_name", input.NamaTim).Error; err != nil {
+			tx.Rollback()
+			return err
+		}
 	}
 
-	hackaton.ProposalUrl = input.ProposalUrl
-	hackaton.GithubProjectUrl = input.GithubUrl
-	hackaton.PitchDeckUrl = input.PitchDeckUrl
-	hackaton.Stage = input.Stage
+	if input.ProposalUrl != "" {
+		hackaton.ProposalUrl = input.ProposalUrl
+	}
+	if input.GithubUrl != "" {
+		hackaton.GithubProjectUrl = input.GithubUrl
+	}
+	if input.PitchDeckUrl != "" {
+		hackaton.PitchDeckUrl = input.PitchDeckUrl
+	}
+	if input.Stage != "" {
+		hackaton.Stage = input.Stage
+	}
 
 	if err := tx.Save(&hackaton).Error; err != nil {
 		tx.Rollback()
@@ -551,14 +562,19 @@ func (s *DashboardServices) UpdateCpService(id string, input dto.Cp) error {
 
 	oldStage := cp.Stage
 	tx := s.DB.Begin()
-	if err := tx.Model(&entity.Team{}).
-		Where("id_team = ?", cp.Team.ID_Team).
-		Update("team_name", input.NamaTim).Error; err != nil {
-		tx.Rollback()
-		return err
+	
+	if input.NamaTim != "" {
+		if err := tx.Model(&entity.Team{}).
+			Where("id_team = ?", cp.Team.ID_Team).
+			Update("team_name", input.NamaTim).Error; err != nil {
+			tx.Rollback()
+			return err
+		}
 	}
 
-	cp.Stage = input.Stage
+	if input.Stage != "" {
+		cp.Stage = input.Stage
+	}
 
 	if err := tx.Save(&cp).Error; err != nil {
 		tx.Rollback()
@@ -596,14 +612,19 @@ func (s *DashboardServices) UpdateCtfService(id string, input dto.Ctf) error {
 
 	oldStage := ctf.Stage
 	tx := s.DB.Begin()
-	if err := tx.Model(&entity.Team{}).
-		Where("id_team = ?", ctf.Team.ID_Team).
-		Update("team_name", input.NamaTim).Error; err != nil {
-		tx.Rollback()
-		return err
+	
+	if input.NamaTim != "" {
+		if err := tx.Model(&entity.Team{}).
+			Where("id_team = ?", ctf.Team.ID_Team).
+			Update("team_name", input.NamaTim).Error; err != nil {
+			tx.Rollback()
+			return err
+		}
 	}
 
-	ctf.Stage = input.Stage
+	if input.Stage != "" {
+		ctf.Stage = input.Stage
+	}
 
 	if err := tx.Save(&ctf).Error; err != nil {
 		tx.Rollback()

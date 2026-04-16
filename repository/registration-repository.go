@@ -74,7 +74,7 @@ func (r *RegistrationRepository) FindTeamByNameAndEvent(team *entity.Team, name 
 }
 
 func (r *RegistrationRepository) UpdateUserTeam(tx *gorm.DB, u *entity.User, id_team uint64, id_user uint64) error {
-	res := tx.Model(&u).Where("id = ?", id_user).Update("id_team", id_team)
+	res := tx.Model(&entity.User{}).Where("id = ?", id_user).Update("id_team", id_team)
 	if err := res.Error; err != nil {
 		return err
 	}

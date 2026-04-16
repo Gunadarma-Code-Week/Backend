@@ -93,6 +93,18 @@ func (s *UserService) GetEvents(userId uint64) (dto.ResponseEvents, error) {
 		return dto.ResponseEvents{}, err
 	}
 
+	// Healing logic: If user has no team (IDTeam is NULL), check if they are a leader of any team
+	if user.IDTeam == nil {
+		var team entity.Team
+		if err := s.DB.Where("id_lead_team = ?", user.ID).First(&team).Error; err == nil {
+			// Found the team where this user is the leader, restore the relationship
+			user.IDTeam = &team.ID_Team
+			user.Team = team
+			// Update database to fix the inconsistency for future calls
+			_ = s.DB.Model(&entity.User{}).Where("id = ?", user.ID).Update("id_team", team.ID_Team)
+		}
+	}
+
 	// Get all team members
 	var member []entity.User
 	if err := s.DB.Where("id_team = ?", user.IDTeam).Find(&member).Error; err != nil {
