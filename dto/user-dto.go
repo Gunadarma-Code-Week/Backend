@@ -50,7 +50,7 @@ type AdminGetUsersQueryDTO struct {
 type AdminUpdateUserDTO struct {
 	Name              string `json:"name"`
 	Email             string `json:"email"`
-	Role              string `json:"role" binding:"oneof=user admin superadmin"`
+	Role              string `json:"role" binding:"omitempty,oneof=user admin superadmin"`
 	Institusi         string `json:"institusi"`
 	Phone             string `json:"phone"`
 	Jenjang           string `json:"jenjang"`
