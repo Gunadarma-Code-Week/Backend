@@ -71,6 +71,8 @@ type Ctf struct {
 	JoinCode     string    `json:"join_code"`
 	Members     []Anggota `json:"members"`
 	KomitmenFee string    `json:"komitmen_fee"`
+	Username    string    `json:"username"`
+	Password    string    `json:"password"`
 	Stage       string    `json:"stage"`
 	Status      string    `json:"status"`
 }

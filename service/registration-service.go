@@ -373,6 +373,17 @@ func (s *RegistrationService) CTFTeamRegistration(
 	teamRegistration.OrderID = orderID
 	teamRegistration.QRString = qrString
 
+	// create domjudge team first before creating team
+	domJudgeUsername, domJudgePassword, err := s.domJudgeService.CreateDomJudgeTeamUser(
+		joinCode,
+		registrationDTO.TeamName,
+		userLead.Email,
+	)
+	if err != nil && domJudgeUsername != "skipped" {
+		logging.Low("RegistrationService.CTFTeamRegistration", "INTERNAL_SERVER_ERROR", err.Error())
+		return nil, err
+	}
+
 	tx := s.registrationRepository.DB.Begin()
 	defer func() {
 		if r := recover(); r != nil {
@@ -389,9 +400,11 @@ func (s *RegistrationService) CTFTeamRegistration(
 
 	// create ctf team
 	ctfTeam := &entity.CTFTeam{
-		IDTeam: teamRegistration.ID_Team,
-		Stage:  "Registered",
-		Status: "Registration",
+		IDTeam:           teamRegistration.ID_Team,
+		Stage:            "Registered",
+		Status:           "Registration",
+		DomjudgeUsername: domJudgeUsername,
+		DomjudgePassword: domJudgePassword,
 	}
 	err = s.registrationRepository.CreateCTFTeam(tx, ctfTeam)
 	if err != nil {

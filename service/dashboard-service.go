@@ -292,6 +292,8 @@ func (s *DashboardServices) GetAllCtf(startDate, endDate time.Time, count, page 
 			JoinCode:    data.Team.JoinCode,
 			NamaTim:     data.Team.TeamName,
 			KomitmenFee: data.Team.KomitmenFee,
+			Username:    data.DomjudgeUsername,
+			Password:    data.DomjudgePassword,
 			Stage:       data.Stage,
 			Status:      data.Status,
 		}
@@ -572,6 +574,12 @@ func (s *DashboardServices) UpdateCpService(id string, input dto.Cp) error {
 		}
 	}
 
+	if input.Username != "" {
+		cp.DomjudgeUsername = input.Username
+	}
+	if input.Password != "" {
+		cp.DomjudgePassword = input.Password
+	}
 	if input.Stage != "" {
 		cp.Stage = input.Stage
 	}
@@ -622,6 +630,12 @@ func (s *DashboardServices) UpdateCtfService(id string, input dto.Ctf) error {
 		}
 	}
 
+	if input.Username != "" {
+		ctf.DomjudgeUsername = input.Username
+	}
+	if input.Password != "" {
+		ctf.DomjudgePassword = input.Password
+	}
 	if input.Stage != "" {
 		ctf.Stage = input.Stage
 	}
