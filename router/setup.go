@@ -33,6 +33,7 @@ var (
 	newsletterService = service.NewNewsletterService(newsletterRepository)
 	SubmissionService = service.NewSubmissionService(database)
 	cpService         = service.NewCpService(database)
+	ctfService        = service.NewCtfService(database)
 	seminarService    = service.NewSeminarService(database)
 
 	authHandler         = handler.NewAuthHandler(authService, jwtService, emailService)
@@ -42,6 +43,7 @@ var (
 	// newsletterHandler   = handler.NewNewsletterHandler(newsletterService)
 	submissionHandler = handler.GateHackathonHandler(SubmissionService)
 	cpHandler         = handler.GateCompetitiveHandler(cpService)
+	ctfHandler        = handler.NewCTFHandler(ctfService)
 	hackathonHandler  = handler.GateHackathonHandler(SubmissionService)
 	seminarHandler    = handler.NewSeminarHandler(seminarService)
 
@@ -146,6 +148,11 @@ func SetupRouter(r *gin.Engine) {
 	{
 		cp := router.Group("/cp")
 		cp.GET("/:join_code", cpHandler.GetDetail)
+	}
+
+	{
+		ctf := router.Group("/ctf")
+		ctf.GET("/:join_code", ctfHandler.GetDetail)
 	}
 
 	{

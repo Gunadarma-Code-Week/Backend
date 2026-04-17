@@ -94,6 +94,8 @@ type RegistrationCTFResponse struct {
 	ID_CTFTeam    uint64    `json:"id_ctf_team"`
 	Stage         string    `json:"stage"`
 	Status        string    `json:"status"`
+	DomjudgeUsername string `json:"domjudge_username"`
+	DomjudgePassword string `json:"domjudge_password"`
 	JoinCode      string    `json:"join_code"`
 	QRString      string    `json:"qr_string,omitempty"`
 	OrderID       string    `json:"order_id,omitempty"`
