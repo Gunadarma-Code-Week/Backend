@@ -4,8 +4,8 @@ import "time"
 
 type RegistraionTeamRequest struct {
 	TeamName       string `json:"team_name" binding:"required"`
-	Supervisor     string `json:"supervisor" binding:"required"`
-	SupervisorNIDN string `json:"supervisor_nidn" binding:"required"`
+	Supervisor     string `json:"supervisor"`
+	SupervisorNIDN string `json:"supervisor_nidn"`
 }
 
 type RegistrationHackathonRequest struct {
