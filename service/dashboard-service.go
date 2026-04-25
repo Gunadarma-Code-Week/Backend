@@ -1,12 +1,10 @@
 package service
 
 import (
-	"fmt"
 	"gcw/dto"
 	"gcw/entity"
 	"os"
 	"time"
-
 	"gorm.io/gorm"
 )
 
@@ -547,8 +545,11 @@ func (s *DashboardServices) UpdateHackatonService(id string, input dto.Hackaton)
 				}
 			}
 			if len(emails) > 0 && os.Getenv("AUTO_EMAIL") == "true" {
-				msg := fmt.Sprintf("Selamat Tim %s, Anda berhasil lolos ke tahap %s!", hackaton.Team.TeamName, input.Stage)
-				_ = s.EmailService.SendEmail("Pembaruan Status Tim - GCW 2026", emails, msg)
+				if input.Stage == "Stage-1" {
+					go s.EmailService.SendEmailHTML("Registration Confirmation - GCW 2.0 Hackathon", emails, "template/email/hackathon_stage1.html", map[string]interface{}{"TeamName": hackaton.Team.TeamName})
+				} else {
+					go s.EmailService.SendEmailHTML("Congratulations! You are selected - GCW 2.0 Hackathon", emails, "template/email/hackathon_announcement.html", map[string]interface{}{"TeamName": hackaton.Team.TeamName})
+				}
 			}
 		}
 	}
@@ -603,8 +604,11 @@ func (s *DashboardServices) UpdateCpService(id string, input dto.Cp) error {
 				}
 			}
 			if len(emails) > 0 && os.Getenv("AUTO_EMAIL") == "true" {
-				msg := fmt.Sprintf("Selamat Tim %s, Anda berhasil lolos ke tahap %s!", cp.Team.TeamName, input.Stage)
-				_ = s.EmailService.SendEmail("Pembaruan Status Tim - GCW 2026", emails, msg)
+				if input.Stage == "Stage-1" {
+					go s.EmailService.SendEmailHTML("Registration Confirmation - GCW 2.0 Competitive Programming", emails, "template/email/cp_stage1.html", map[string]interface{}{"TeamName": cp.Team.TeamName})
+				} else {
+					go s.EmailService.SendEmailHTML("Congratulations! You are selected - GCW 2.0 Competitive Programming", emails, "template/email/cp_announcement.html", map[string]interface{}{"TeamName": cp.Team.TeamName})
+				}
 			}
 		}
 	}
@@ -659,8 +663,11 @@ func (s *DashboardServices) UpdateCtfService(id string, input dto.Ctf) error {
 				}
 			}
 			if len(emails) > 0 && os.Getenv("AUTO_EMAIL") == "true" {
-				msg := fmt.Sprintf("Selamat Tim %s, Anda berhasil lolos ke tahap %s!", ctf.Team.TeamName, input.Stage)
-				_ = s.EmailService.SendEmail("Pembaruan Status Tim - GCW 2026", emails, msg)
+				if input.Stage == "Stage-1" {
+					go s.EmailService.SendEmailHTML("Registration Confirmation - GCW 2.0 Capture The Flag", emails, "template/email/ctf_stage1.html", map[string]interface{}{"TeamName": ctf.Team.TeamName})
+				} else {
+					go s.EmailService.SendEmailHTML("Congratulations! You are selected - GCW 2.0 Capture The Flag", emails, "template/email/ctf_announcement.html", map[string]interface{}{"TeamName": ctf.Team.TeamName})
+				}
 			}
 		}
 	}
