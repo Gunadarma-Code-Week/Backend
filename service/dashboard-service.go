@@ -1,11 +1,12 @@
 package service
 
 import (
+	"fmt"
 	"gcw/dto"
 	"gcw/entity"
-	"fmt"
 	"os"
 	"time"
+
 	"gorm.io/gorm"
 )
 
@@ -109,7 +110,7 @@ func (s *DashboardServices) GetAllHackaton(startDate, endDate time.Time, count, 
 
 	for _, data := range dataSeminars {
 		var Leader entity.User
-		if err := s.DB.Where("id_team = ?", data.Team.ID_Team).First(&Leader).Error; err != nil {
+		if err := s.DB.Where("id = ?", data.Team.ID_LeadTeam).First(&Leader).Error; err != nil {
 			return dto.ResponseHackaton{}, err
 		}
 
@@ -206,7 +207,7 @@ func (s *DashboardServices) GetAllCp(startDate, endDate time.Time, count, page i
 	for _, data := range dataSeminars {
 		fmt.Println("[dashboard.GetAllCp] processing team:", data.Team.ID_Team, "cp_team_id:", data.ID_CPTeam, "join_code:", data.Team.JoinCode)
 		var Leader entity.User
-		if err := s.DB.Where("id_team = ?", data.Team.ID_Team).First(&Leader).Error; err != nil {
+		if err := s.DB.Where("id = ?", data.Team.ID_LeadTeam).First(&Leader).Error; err != nil {
 			fmt.Println("[dashboard.GetAllCp] leader lookup error for team:", data.Team.ID_Team, "error:", err)
 			return dto.ResponseCp{}, err
 		}
@@ -295,7 +296,7 @@ func (s *DashboardServices) GetAllCtf(startDate, endDate time.Time, count, page 
 
 	for _, data := range dataCtfTeams {
 		var Leader entity.User
-		if err := s.DB.Where("id_team = ?", data.Team.ID_Team).First(&Leader).Error; err != nil {
+		if err := s.DB.Where("id = ?", data.Team.ID_LeadTeam).First(&Leader).Error; err != nil {
 			return dto.ResponseCtf{}, err
 		}
 
@@ -517,7 +518,7 @@ func (s *DashboardServices) UpdateHackatonService(id string, input dto.Hackaton)
 
 	oldStage := hackaton.Stage
 	tx := s.DB.Begin()
-	
+
 	if input.NamaTim != "" {
 		if err := tx.Model(&entity.Team{}).
 			Where("id_team = ?", hackaton.Team.ID_Team).
@@ -579,7 +580,7 @@ func (s *DashboardServices) UpdateCpService(id string, input dto.Cp) error {
 
 	oldStage := cp.Stage
 	tx := s.DB.Begin()
-	
+
 	if input.NamaTim != "" {
 		if err := tx.Model(&entity.Team{}).
 			Where("id_team = ?", cp.Team.ID_Team).
@@ -638,7 +639,7 @@ func (s *DashboardServices) UpdateCtfService(id string, input dto.Ctf) error {
 
 	oldStage := ctf.Stage
 	tx := s.DB.Begin()
-	
+
 	if input.NamaTim != "" {
 		if err := tx.Model(&entity.Team{}).
 			Where("id_team = ?", ctf.Team.ID_Team).
