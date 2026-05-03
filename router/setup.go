@@ -50,7 +50,7 @@ var (
 	seminarHandler    = handler.NewSeminarHandler(seminarService)
 	auditLogHandler   = handler.NewAuditLogHandler(auditLogService)
 
-	authMiddleware = middleware.NewAuthMiddleware(authService, jwtService)
+	authMiddleware  = middleware.NewAuthMiddleware(authService, jwtService)
 	auditMiddleware = middleware.NewAuditMiddleware(auditLogService)
 
 	dashboards = handler.DashboardController(database)

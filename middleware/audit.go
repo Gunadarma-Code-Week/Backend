@@ -26,7 +26,7 @@ func NewAuditMiddleware(als service.AuditLogService) AuditMiddlewareI {
 	}
 }
 
-// AuditLogMiddleware records user activity for authenticated requests
+// AuditLogMiddleware records user activity for authenticated requests (excluding GET/HEAD)
 func (m *auditMiddleware) AuditLogMiddleware(c *gin.Context) {
 	// Only log authenticated requests
 	userInterface, exists := c.Get("user")
@@ -43,6 +43,18 @@ func (m *auditMiddleware) AuditLogMiddleware(c *gin.Context) {
 
 	// Skip logging for certain endpoints (like health checks)
 	if shouldSkipAuditLog(c.Request.URL.Path) {
+		c.Next()
+		return
+	}
+
+	// Skip logging for authentication and registration endpoints
+	if shouldSkipAuthAuditLog(c.Request.URL.Path) {
+		c.Next()
+		return
+	}
+
+	// Skip logging for GET and HEAD requests
+	if c.Request.Method == "GET" || c.Request.Method == "HEAD" {
 		c.Next()
 		return
 	}
@@ -132,4 +144,9 @@ func shouldSkipAuditLog(path string) bool {
 	}
 
 	return false
+}
+
+// shouldSkipAuthAuditLog returns true for auth and registration routes that should not be audited
+func shouldSkipAuthAuditLog(path string) bool {
+	return strings.Contains(path, "/auth/") || strings.HasSuffix(path, "/auth")
 }

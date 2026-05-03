@@ -1,8 +1,8 @@
 # Audit Log System Documentation
 
 ## Overview
-Sistem audit log merekam semua aktivitas user yang terauthentikasi di backend. Data yang dicatat meliputi:
-- **Method**: HTTP method (GET, POST, PUT, DELETE, PATCH, dll)
+Sistem audit log merekam aktivitas user yang terauthentikasi di backend. Data yang dicatat meliputi:
+- **Method**: HTTP method (POST, PUT, DELETE, PATCH, dll) - **GET requests tidak dicatat**
 - **Endpoint**: Path/route yang diakses
 - **User ID**: ID pengguna yang melakukan aksi
 - **Request Body**: Data yang dikirim user
@@ -56,7 +56,8 @@ Middleware untuk menangkap dan merekam aktivitas user:
 - Dijalankan setelah authentication middleware
 - Menangkap method, endpoint, request body, response code
 - Mengambil IP address dan user agent
-- Secara otomatis merekam setiap request dari authenticated user
+- Secara otomatis merekam setiap request **modifikasi data** (POST, PUT, DELETE, PATCH) dari authenticated user
+- **GET dan HEAD requests TIDAK dicatat** untuk mengurangi noise
 
 ### 5. Handler: AuditLogHandler (`handler/audit-log.go`)
 Handler API untuk mengakses audit logs:
@@ -247,7 +248,7 @@ CREATE INDEX idx_audit_logs_created_at ON audit_logs(created_at);
 
 ## Fitur-Fitur
 
-✅ **Automatic Logging**: Semua authenticated requests otomatis tercatat
+✅ **Automatic Logging**: Semua authenticated requests (POST, PUT, DELETE, PATCH) otomatis tercatat, GET requests tidak dicatat
 ✅ **Detailed Tracking**: Method, endpoint, request body, response code, IP, user agent
 ✅ **Pagination**: Semua endpoint mendukung pagination untuk performa
 ✅ **Date Range Filter**: Bisa filter logs berdasarkan range tanggal
@@ -259,15 +260,25 @@ CREATE INDEX idx_audit_logs_created_at ON audit_logs(created_at);
 
 ## Endpoints yang Tercatat
 
-Semua endpoint authenticated (yang memiliki middleware `JwtAuthMiddleware`) akan otomatis tercatat, termasuk:
+Semua endpoint authenticated dengan method **POST, PUT, DELETE, PATCH** akan otomatis tercatat. **GET requests tidak dicatat** untuk mengurangi noise di audit log.
 
-- ✅ Profile routes: `/profile/my`
-- ✅ Team registration: `/team/registration/*`
-- ✅ Submission: `/submission/*`
-- ✅ Seminar: `/seminar/*`
-- ✅ Admin routes: `/admin/*`
-- ✅ Dashboard: `/dashboard/*`
-- Dan semua authenticated routes lainnya
+Endpoints yang tercatat:
+
+- ✅ Profile update: `POST /profile/my`
+- ✅ Team registration: `POST /team/registration/*`
+- ✅ Submission: `POST /submission/*`
+- ✅ Seminar: `POST /seminar/join`
+- ✅ Admin routes: `PUT/DELETE /admin/*`
+- ✅ Semua method modifikasi data (POST, PUT, DELETE, PATCH) lainnya
+
+Endpoints yang TIDAK dicatat:
+
+- ❌ `GET /profile/my` (read-only)
+- ❌ `GET /profile/events` (read-only)
+- ❌ `GET /team/registration/find/*` (read-only)
+- ❌ `GET /admin/users` (read-only)
+- ❌ `GET /seminar/my-ticket` (read-only)
+- ❌ Semua GET requests
 
 ---
 
