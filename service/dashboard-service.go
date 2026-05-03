@@ -30,7 +30,7 @@ func (s *DashboardServices) GetAllSeminar(startDate, endDate time.Time, count, p
 	offset := page * count
 
 	query := s.DB.Preload("User").
-		Where("created_at BETWEEN ? AND ?", startDate, endDate)
+		Where("seminars.created_at BETWEEN ? AND ?", startDate, endDate)
 
 	// Add search functionality
 	if search != "" {
@@ -91,7 +91,7 @@ func (s *DashboardServices) GetAllHackaton(startDate, endDate time.Time, count, 
 	offset := page * count
 
 	if err := s.DB.Preload("Team").
-		Where("created_at BETWEEN ? AND ?", startDate, endDate).
+		Where("hackathon_teams.created_at BETWEEN ? AND ?", startDate, endDate).
 		Order("id_hackathon_team ASC").
 		Limit(count + 1).
 		Offset(offset).
@@ -109,6 +109,9 @@ func (s *DashboardServices) GetAllHackaton(startDate, endDate time.Time, count, 
 	var responseHackatons []dto.Hackaton
 
 	for _, data := range dataSeminars {
+		if data.Team.ID_Team == 0 {
+			continue // Skip if team info is missing
+		}
 		var Leader entity.User
 		if err := s.DB.Where("id = ?", data.Team.ID_LeadTeam).First(&Leader).Error; err != nil {
 			return dto.ResponseHackaton{}, err
@@ -184,7 +187,7 @@ func (s *DashboardServices) GetAllCp(startDate, endDate time.Time, count, page i
 		"offset=", offset)
 
 	if err := s.DB.Preload("Team").
-		Where("created_at BETWEEN ? AND ?", startDate, endDate).
+		Where("cp_teams.created_at BETWEEN ? AND ?", startDate, endDate).
 		Order("id_cp_team ASC").
 		Limit(count + 1).
 		Offset(offset).
@@ -205,10 +208,18 @@ func (s *DashboardServices) GetAllCp(startDate, endDate time.Time, count, page i
 	var responseData []dto.Cp
 
 	for _, data := range dataSeminars {
+<<<<<<< Updated upstream
 		fmt.Println("[dashboard.GetAllCp] processing team:", data.Team.ID_Team, "cp_team_id:", data.ID_CPTeam, "join_code:", data.Team.JoinCode)
 		var Leader entity.User
 		if err := s.DB.Where("id = ?", data.Team.ID_LeadTeam).First(&Leader).Error; err != nil {
 			fmt.Println("[dashboard.GetAllCp] leader lookup error for team:", data.Team.ID_Team, "error:", err)
+=======
+		if data.Team.ID_Team == 0 {
+			continue
+		}
+		var Leader entity.User
+		if err := s.DB.Where("id = ?", data.Team.ID_LeadTeam).First(&Leader).Error; err != nil {
+>>>>>>> Stashed changes
 			return dto.ResponseCp{}, err
 		}
 
@@ -277,7 +288,7 @@ func (s *DashboardServices) GetAllCtf(startDate, endDate time.Time, count, page 
 	offset := page * count
 
 	if err := s.DB.Preload("Team").
-		Where("created_at BETWEEN ? AND ?", startDate, endDate).
+		Where("ctf_teams.created_at BETWEEN ? AND ?", startDate, endDate).
 		Order("id_ctf_team ASC").
 		Limit(count + 1).
 		Offset(offset).
@@ -295,6 +306,9 @@ func (s *DashboardServices) GetAllCtf(startDate, endDate time.Time, count, page 
 	var responseData []dto.Ctf
 
 	for _, data := range dataCtfTeams {
+		if data.Team.ID_Team == 0 {
+			continue
+		}
 		var Leader entity.User
 		if err := s.DB.Where("id = ?", data.Team.ID_LeadTeam).First(&Leader).Error; err != nil {
 			return dto.ResponseCtf{}, err

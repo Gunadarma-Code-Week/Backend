@@ -67,6 +67,7 @@ func (h *dashboardController) GetAllDashboard(c *gin.Context) {
 	if errCount != nil || errPage != nil {
 		fmt.Println("[dashboard.GetAllDashboard] invalid count/page:", errCount, errPage)
 		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "count or page are error"))
+		return
 	}
 
 	fmt.Println("[dashboard.GetAllDashboard] parsed count/page:", count, page)
@@ -226,10 +227,10 @@ func (h *dashboardController) Update(c *gin.Context) {
 // @Failure 400 {object} helper.Response{message=string}
 // @Router /dashboard/{acara}/{id} [delete]
 func (h *dashboardController) Delete(c *gin.Context) {
-	acara := c.Param(":acara")
-	id := c.Param(":id")
+	acara := c.Param("acara")
+	id := c.Param("id")
 
-	if acara != "seminar" && acara != "hackaton" && acara != "cp" && acara != "ctf" {
+	if acara != "seminar" && acara != "hackaton" && acara != "hackathon" && acara != "cp" && acara != "ctf" {
 		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "kegiatan not found"))
 		return
 	}
