@@ -3,6 +3,7 @@ package service
 import (
 	"gcw/dto"
 	"gcw/entity"
+	"fmt"
 	"os"
 	"time"
 	"gorm.io/gorm"
@@ -174,6 +175,12 @@ func (s *DashboardServices) GetAllCp(startDate, endDate time.Time, count, page i
 	var dataSeminars []entity.CPTeam
 
 	offset := page * count
+	fmt.Println("[dashboard.GetAllCp] query params:",
+		"start=", startDate.Format(time.RFC3339),
+		"end=", endDate.Format(time.RFC3339),
+		"count=", count,
+		"page=", page,
+		"offset=", offset)
 
 	if err := s.DB.Preload("Team").
 		Where("created_at BETWEEN ? AND ?", startDate, endDate).
@@ -181,8 +188,11 @@ func (s *DashboardServices) GetAllCp(startDate, endDate time.Time, count, page i
 		Limit(count + 1).
 		Offset(offset).
 		Find(&dataSeminars).Error; err != nil {
+		fmt.Println("[dashboard.GetAllCp] main query error:", err)
 		return dto.ResponseCp{}, err
 	}
+
+	fmt.Println("[dashboard.GetAllCp] rows fetched:", len(dataSeminars))
 
 	hasMore := false
 
@@ -194,8 +204,10 @@ func (s *DashboardServices) GetAllCp(startDate, endDate time.Time, count, page i
 	var responseData []dto.Cp
 
 	for _, data := range dataSeminars {
+		fmt.Println("[dashboard.GetAllCp] processing team:", data.Team.ID_Team, "cp_team_id:", data.ID_CPTeam, "join_code:", data.Team.JoinCode)
 		var Leader entity.User
 		if err := s.DB.Where("id_team = ?", data.Team.ID_Team).First(&Leader).Error; err != nil {
+			fmt.Println("[dashboard.GetAllCp] leader lookup error for team:", data.Team.ID_Team, "error:", err)
 			return dto.ResponseCp{}, err
 		}
 
@@ -212,8 +224,10 @@ func (s *DashboardServices) GetAllCp(startDate, endDate time.Time, count, page i
 
 		var anggota []entity.User
 		if err := s.DB.Where("id_team = ?", data.Team.ID_Team).Find(&anggota).Error; err != nil {
+			fmt.Println("[dashboard.GetAllCp] anggota lookup error for team:", data.Team.ID_Team, "error:", err)
 			return dto.ResponseCp{}, err
 		}
+		fmt.Println("[dashboard.GetAllCp] anggota rows:", len(anggota))
 
 		// Create members list including leader
 		var members []dto.Anggota
