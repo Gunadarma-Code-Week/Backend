@@ -18,6 +18,7 @@ var (
 	newsletterRepository = repository.NewNewsletterRepository(database)
 	// profileRepository      = repository.GateProfileRepository(database)
 	registrationRepository = repository.GateRegistrationRepository(database)
+	auditLogRepository     = repository.NewAuditLogRepository(database)
 
 	jwtService          = service.NewJwtService()
 	emailService        = service.NewEmailService()
@@ -35,6 +36,7 @@ var (
 	cpService         = service.NewCpService(database)
 	ctfService        = service.NewCtfService(database)
 	seminarService    = service.NewSeminarService(database)
+	auditLogService   = service.NewAuditLogService(auditLogRepository)
 
 	authHandler         = handler.NewAuthHandler(authService, jwtService, emailService)
 	userHandler         = handler.NewUserHandler(userService)
@@ -46,8 +48,10 @@ var (
 	ctfHandler        = handler.NewCTFHandler(ctfService)
 	hackathonHandler  = handler.GateHackathonHandler(SubmissionService)
 	seminarHandler    = handler.NewSeminarHandler(seminarService)
+	auditLogHandler   = handler.NewAuditLogHandler(auditLogService)
 
 	authMiddleware = middleware.NewAuthMiddleware(authService, jwtService)
+	auditMiddleware = middleware.NewAuditMiddleware(auditLogService)
 
 	dashboards = handler.DashboardController(database)
 )
@@ -63,6 +67,7 @@ func SetupRouter(r *gin.Engine) {
 
 	mustAuth := router.Group("")
 	mustAuth.Use(authMiddleware.JwtAuthMiddleware)
+	mustAuth.Use(auditMiddleware.AuditLogMiddleware)
 	mustAuth.GET("mustauth/ping", authHandler.Ping)
 
 	// Profile Route
@@ -137,6 +142,17 @@ func SetupRouter(r *gin.Engine) {
 		adminUsers.PUT("/:id", userHandler.AdminUpdateUser)
 		adminUsers.DELETE("/:id", userHandler.AdminDeleteUser)
 		adminUsers.GET("/analytics/growth", userHandler.AdminGetUserGrowthAnalytics)
+	}
+
+	// Audit Log Routes
+	{
+		auditLogs := router.Group("/admin/audit-logs")
+		auditLogs.Use(authMiddleware.JwtAuthMiddleware)
+		auditLogs.Use(authMiddleware.MustAdmin)
+
+		auditLogs.GET("", auditLogHandler.GetAllAuditLogs)
+		auditLogs.GET("/user/:user_id", auditLogHandler.GetUserAuditLogs)
+		auditLogs.GET("/date-range", auditLogHandler.GetAuditLogsByDateRange)
 	}
 
 	{
