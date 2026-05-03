@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"gcw/dto"
 	"gcw/helper"
 	"gcw/service"
@@ -52,31 +53,48 @@ func (h *dashboardController) GetAllDashboard(c *gin.Context) {
 	endDateStr := c.Param("end_date")
 	search := c.Query("search")
 
+	fmt.Println("[dashboard.GetAllDashboard] incoming request:",
+		"acara=", acara,
+		"start_date=", startDateStr,
+		"end_date=", endDateStr,
+		"count=", strCount,
+		"page=", strPage,
+		"search=", search)
+
 	count, errCount := strconv.Atoi(strCount)
 	page, errPage := strconv.Atoi(strPage)
 
 	if errCount != nil || errPage != nil {
+		fmt.Println("[dashboard.GetAllDashboard] invalid count/page:", errCount, errPage)
 		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "count or page are error"))
 	}
 
+	fmt.Println("[dashboard.GetAllDashboard] parsed count/page:", count, page)
+
 	startDate, err := time.Parse("2006-01-02", startDateStr)
 	if err != nil {
+		fmt.Println("[dashboard.GetAllDashboard] invalid start_date:", startDateStr, "error:", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid start_date format"})
 		return
 	}
 
 	endDate, err := time.Parse("2006-01-02", endDateStr)
 	if err != nil {
+		fmt.Println("[dashboard.GetAllDashboard] invalid end_date:", endDateStr, "error:", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid end_date format"})
 		return
 	}
+
+	fmt.Println("[dashboard.GetAllDashboard] parsed dates:", startDate.Format(time.RFC3339), endDate.Format(time.RFC3339))
 
 	var respondData interface{}
 
 	switch acara {
 	case "seminar":
+		fmt.Println("[dashboard.GetAllDashboard] entering seminar branch")
 		data, err := h.Service.GetAllSeminar(startDate, endDate, count, page, search)
 		if err != nil {
+			fmt.Println("[dashboard.GetAllDashboard] seminar service error:", err)
 			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "error service"))
 			return
 		}
@@ -84,8 +102,10 @@ func (h *dashboardController) GetAllDashboard(c *gin.Context) {
 		respondData = data
 
 	case "hackaton":
+		fmt.Println("[dashboard.GetAllDashboard] entering hackaton branch")
 		data, err := h.Service.GetAllHackaton(startDate, endDate, count, page)
 		if err != nil {
+			fmt.Println("[dashboard.GetAllDashboard] hackaton service error:", err)
 			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "error service"))
 			return
 		}
@@ -93,8 +113,10 @@ func (h *dashboardController) GetAllDashboard(c *gin.Context) {
 		respondData = data
 
 	case "cp":
+		fmt.Println("[dashboard.GetAllDashboard] entering cp branch")
 		data, err := h.Service.GetAllCp(startDate, endDate, count, page)
 		if err != nil {
+			fmt.Println("[dashboard.GetAllDashboard] cp service error:", err)
 			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "error service"))
 			return
 		}
@@ -102,8 +124,10 @@ func (h *dashboardController) GetAllDashboard(c *gin.Context) {
 		respondData = data
 
 	case "ctf":
+		fmt.Println("[dashboard.GetAllDashboard] entering ctf branch")
 		data, err := h.Service.GetAllCtf(startDate, endDate, count, page)
 		if err != nil {
+			fmt.Println("[dashboard.GetAllDashboard] ctf service error:", err)
 			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "error service"))
 			return
 		}
