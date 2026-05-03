@@ -208,10 +208,11 @@ func (s *DashboardServices) GetAllCp(startDate, endDate time.Time, count, page i
 	var responseData []dto.Cp
 
 	for _, data := range dataSeminars {
-		fmt.Println("[dashboard.GetAllCp] processing team:", data.Team.ID_Team, "cp_team_id:", data.ID_CPTeam, "join_code:", data.Team.JoinCode)
+		if data.Team.ID_Team == 0 {
+			continue
+		}
 		var Leader entity.User
 		if err := s.DB.Where("id = ?", data.Team.ID_LeadTeam).First(&Leader).Error; err != nil {
-			fmt.Println("[dashboard.GetAllCp] leader lookup error for team:", data.Team.ID_Team, "error:", err)
 			return dto.ResponseCp{}, err
 		}
 
