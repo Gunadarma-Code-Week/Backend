@@ -139,9 +139,11 @@ func (s *UserService) GetEvents(userId uint64) (dto.ResponseEvents, error) {
 	var ctf entity.CTFTeam
 	var seminar entity.Seminar
 
-	_ = s.DB.Where("id_team = ?", user.IDTeam).First(&hackaton)
-	_ = s.DB.Where("id_team = ?", user.IDTeam).First(&cp)
-	_ = s.DB.Where("id_team = ?", user.IDTeam).First(&ctf)
+	if user.IDTeam != nil {
+		_ = s.DB.Where("id_team = ?", user.IDTeam).First(&hackaton)
+		_ = s.DB.Where("id_team = ?", user.IDTeam).First(&cp)
+		_ = s.DB.Where("id_team = ?", user.IDTeam).First(&ctf)
+	}
 	_ = s.DB.Where("id_user = ?", idUserStr).First(&seminar)
 
 	seminarStatus := "Unregistered"
