@@ -134,6 +134,7 @@ func (h *dashboardController) GetAllDashboard(c *gin.Context) {
 		return
 	}
 
+	fmt.Println("[dashboard.GetAllDashboard] sending response for", acara, "with data:", respondData)
 	c.JSON(http.StatusOK, helper.CreateSuccessResponse("SUCCESS", respondData))
 }
 
