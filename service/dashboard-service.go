@@ -5,7 +5,6 @@ import (
 	"gcw/dto"
 	"gcw/entity"
 	"os"
-	"time"
 
 	"gorm.io/gorm"
 )
@@ -24,13 +23,12 @@ func NewDashboardServices(db *gorm.DB) DashboardServices {
 
 func FindUserById(id string) {}
 
-func (s *DashboardServices) GetAllSeminar(startDate, endDate time.Time, count, page int, search string) (dto.ResponseSeminar, error) {
+func (s *DashboardServices) GetAllSeminar(count, page int, search string) (dto.ResponseSeminar, error) {
 	var dataSeminars []entity.Seminar
 
 	offset := page * count
 
-	query := s.DB.Preload("User").
-		Where("seminars.created_at BETWEEN ? AND ?", startDate, endDate)
+	query := s.DB.Preload("User").Where("is_deleted = ? OR is_deleted IS NULL", false)
 
 	// Add search functionality
 	if search != "" {
@@ -85,13 +83,13 @@ func (s *DashboardServices) GetAllSeminar(startDate, endDate time.Time, count, p
 	return response, nil
 }
 
-func (s *DashboardServices) GetAllHackaton(startDate, endDate time.Time, count, page int) (dto.ResponseHackaton, error) {
+func (s *DashboardServices) GetAllHackaton(count, page int) (dto.ResponseHackaton, error) {
 	var dataSeminars []entity.HackathonTeam
 
 	offset := page * count
 
 	if err := s.DB.Preload("Team").
-		Where("hackathon_teams.created_at BETWEEN ? AND ?", startDate, endDate).
+		Where("is_deleted = ? OR is_deleted IS NULL", false).
 		Order("id_hackathon_team ASC").
 		Limit(count + 1).
 		Offset(offset).
@@ -114,7 +112,7 @@ func (s *DashboardServices) GetAllHackaton(startDate, endDate time.Time, count, 
 		}
 		var Leader entity.User
 		if err := s.DB.Where("id = ?", data.Team.ID_LeadTeam).First(&Leader).Error; err != nil {
-			return dto.ResponseHackaton{}, err
+			continue
 		}
 
 		dataHackaton := dto.Hackaton{
@@ -175,19 +173,17 @@ func (s *DashboardServices) GetAllHackaton(startDate, endDate time.Time, count, 
 	return responseData, nil
 }
 
-func (s *DashboardServices) GetAllCp(startDate, endDate time.Time, count, page int) (dto.ResponseCp, error) {
+func (s *DashboardServices) GetAllCp(count, page int) (dto.ResponseCp, error) {
 	var dataSeminars []entity.CPTeam
 
 	offset := page * count
 	fmt.Println("[dashboard.GetAllCp] query params:",
-		"start=", startDate.Format(time.RFC3339),
-		"end=", endDate.Format(time.RFC3339),
 		"count=", count,
 		"page=", page,
 		"offset=", offset)
 
 	if err := s.DB.Preload("Team").
-		Where("cp_teams.created_at BETWEEN ? AND ?", startDate, endDate).
+		Where("is_deleted = ? OR is_deleted IS NULL", false).
 		Order("id_cp_team ASC").
 		Limit(count + 1).
 		Offset(offset).
@@ -213,7 +209,7 @@ func (s *DashboardServices) GetAllCp(startDate, endDate time.Time, count, page i
 		}
 		var Leader entity.User
 		if err := s.DB.Where("id = ?", data.Team.ID_LeadTeam).First(&Leader).Error; err != nil {
-			return dto.ResponseCp{}, err
+			continue
 		}
 
 		dataCp := dto.Cp{
@@ -275,13 +271,13 @@ func (s *DashboardServices) GetAllCp(startDate, endDate time.Time, count, page i
 	return response, nil
 }
 
-func (s *DashboardServices) GetAllCtf(startDate, endDate time.Time, count, page int) (dto.ResponseCtf, error) {
+func (s *DashboardServices) GetAllCtf(count, page int) (dto.ResponseCtf, error) {
 	var dataCtfTeams []entity.CTFTeam
 
 	offset := page * count
 
 	if err := s.DB.Preload("Team").
-		Where("ctf_teams.created_at BETWEEN ? AND ?", startDate, endDate).
+		Where("is_deleted = ? OR is_deleted IS NULL", false).
 		Order("id_ctf_team ASC").
 		Limit(count + 1).
 		Offset(offset).
@@ -304,7 +300,7 @@ func (s *DashboardServices) GetAllCtf(startDate, endDate time.Time, count, page 
 		}
 		var Leader entity.User
 		if err := s.DB.Where("id = ?", data.Team.ID_LeadTeam).First(&Leader).Error; err != nil {
-			return dto.ResponseCtf{}, err
+			continue
 		}
 
 		dataCtf := dto.Ctf{
@@ -446,7 +442,7 @@ func (s *DashboardServices) DeletePesertaService(acara, id_user string) (string,
 	switch acara {
 	case "seminar":
 		var data entity.Seminar
-		if err := s.DB.Where("id_user = ?", id_user).First(&data).Error; err != nil {
+		if err := s.DB.Where("id_seminar = ?", id_user).First(&data).Error; err != nil {
 			return "", err
 		}
 
@@ -458,7 +454,7 @@ func (s *DashboardServices) DeletePesertaService(acara, id_user string) (string,
 
 	case "hackaton":
 		var data entity.HackathonTeam
-		if err := s.DB.Where("id_user = ?", id_user).First(&data).Error; err != nil {
+		if err := s.DB.Where("id_hackathon_team = ?", id_user).First(&data).Error; err != nil {
 			return "", err
 		}
 
@@ -470,7 +466,7 @@ func (s *DashboardServices) DeletePesertaService(acara, id_user string) (string,
 
 	case "cp":
 		var data entity.CPTeam
-		if err := s.DB.Where("id_user = ?", id_user).First(&data).Error; err != nil {
+		if err := s.DB.Where("id_cp_team = ?", id_user).First(&data).Error; err != nil {
 			return "", err
 		}
 
@@ -482,7 +478,7 @@ func (s *DashboardServices) DeletePesertaService(acara, id_user string) (string,
 
 	case "ctf":
 		var data entity.CTFTeam
-		if err := s.DB.Where("id_user = ?", id_user).First(&data).Error; err != nil {
+		if err := s.DB.Where("id_ctf_team = ?", id_user).First(&data).Error; err != nil {
 			return "", err
 		}
 
@@ -569,7 +565,7 @@ func (s *DashboardServices) UpdateHackatonService(id string, input dto.Hackaton)
 			if len(emails) > 0 && os.Getenv("AUTO_EMAIL") == "true" {
 				if input.Stage == "Stage-1" {
 					go s.EmailService.SendEmailHTML("Registration Confirmation - GCW 2.0 Hackathon", emails, "template/email/hackathon_stage1.html", map[string]interface{}{"TeamName": hackaton.Team.TeamName})
-				} else {
+				} else if input.Stage != "Registered" {
 					go s.EmailService.SendEmailHTML("Congratulations! You are selected - GCW 2.0 Hackathon", emails, "template/email/hackathon_announcement.html", map[string]interface{}{"TeamName": hackaton.Team.TeamName})
 				}
 			}
@@ -628,7 +624,7 @@ func (s *DashboardServices) UpdateCpService(id string, input dto.Cp) error {
 			if len(emails) > 0 && os.Getenv("AUTO_EMAIL") == "true" {
 				if input.Stage == "Stage-1" {
 					go s.EmailService.SendEmailHTML("Registration Confirmation - GCW 2.0 Competitive Programming", emails, "template/email/cp_stage1.html", map[string]interface{}{"TeamName": cp.Team.TeamName})
-				} else {
+				} else if input.Stage != "Registered" {
 					go s.EmailService.SendEmailHTML("Congratulations! You are selected - GCW 2.0 Competitive Programming", emails, "template/email/cp_announcement.html", map[string]interface{}{"TeamName": cp.Team.TeamName})
 				}
 			}
@@ -687,7 +683,7 @@ func (s *DashboardServices) UpdateCtfService(id string, input dto.Ctf) error {
 			if len(emails) > 0 && os.Getenv("AUTO_EMAIL") == "true" {
 				if input.Stage == "Stage-1" {
 					go s.EmailService.SendEmailHTML("Registration Confirmation - GCW 2.0 Capture The Flag", emails, "template/email/ctf_stage1.html", map[string]interface{}{"TeamName": ctf.Team.TeamName})
-				} else {
+				} else if input.Stage != "Registered" {
 					go s.EmailService.SendEmailHTML("Congratulations! You are selected - GCW 2.0 Capture The Flag", emails, "template/email/ctf_announcement.html", map[string]interface{}{"TeamName": ctf.Team.TeamName})
 				}
 			}

@@ -55,10 +55,10 @@ func TestTeamNameUniqueness(t *testing.T) {
 		}
 	})
 
-	// --- 3. Test Same Name Different Events ---
-	t.Run("Same Name Different Events", func(t *testing.T) {
+	// --- 3. Test Same Name Lintas Event (Global Uniqueness) ---
+	t.Run("Same Name Different Events (Global Unique)", func(t *testing.T) {
 		teamName := "Shared Team Name"
-		
+
 		// Register CP
 		leadCP := createTestUser(t, db, "lead-cp-shared")
 		requestCP := createCPRequest(teamName)
@@ -67,12 +67,57 @@ func TestTeamNameUniqueness(t *testing.T) {
 			t.Fatalf("CP registration with shared name failed: %v", err)
 		}
 
-		// Register Hackathon (should succeed)
+		// Register Hackathon dengan nama yang sama — harus DITOLAK (global uniqueness)
 		leadHack := createTestUser(t, db, "lead-hack-shared")
 		requestHack := createHackathonRequest(teamName)
 		_, err = regSvc.HackathonTeamRegistration(&requestHack, &leadHack)
+		if err == nil || err.Error() != "Nama Tim Sudah Digunakan" {
+			t.Fatalf("expected Nama Tim Sudah Digunakan error when name used across events, got %v", err)
+		}
+	})
+
+
+	t.Run("Case Insensitive Duplicate Name", func(t *testing.T) {
+		teamName1 := "Ctf Team Name"
+		teamName2 := "ctF tEAM nAme"
+		
+		lead1 := createTestUser(t, db, "lead1-ctf")
+		request1 := createCTFRequest(teamName1)
+		_, err := regSvc.CTFTeamRegistration(&request1, &lead1)
 		if err != nil {
-			t.Fatalf("Hackathon registration with shared name failed: %v", err)
+			t.Fatalf("first CTF registration failed: %v", err)
+		}
+
+		lead2 := createTestUser(t, db, "lead2-ctf")
+		request2 := createCTFRequest(teamName2)
+		_, err = regSvc.CTFTeamRegistration(&request2, &lead2)
+		if err == nil || err.Error() != "Nama Tim Sudah Digunakan" {
+			t.Fatalf("expected Nama Tim Sudah Digunakan error, got %v", err)
+		}
+	})
+
+	// --- 5. Test Ignored Soft Deleted Team Name ---
+	t.Run("Ignored Soft Deleted Team Name", func(t *testing.T) {
+		teamName := "Deleted Hackathon Team"
+		
+		lead1 := createTestUser(t, db, "lead-hack-del1")
+		request1 := createHackathonRequest(teamName)
+		resp1, err := regSvc.HackathonTeamRegistration(&request1, &lead1)
+		if err != nil {
+			t.Fatalf("first Hackathon registration failed: %v", err)
+		}
+
+		// Soft delete the first team
+		err = db.Model(&entity.HackathonTeam{}).Where("id_team = ?", resp1.Team.ID_Team).Update("is_deleted", true).Error
+		if err != nil {
+			t.Fatalf("failed to soft delete hackathon team: %v", err)
+		}
+
+		lead2 := createTestUser(t, db, "lead-hack-del2")
+		request2 := createHackathonRequest(teamName)
+		_, err = regSvc.HackathonTeamRegistration(&request2, &lead2)
+		if err != nil {
+			t.Fatalf("second Hackathon registration after soft delete failed: %v", err)
 		}
 	})
 }
@@ -108,6 +153,19 @@ func createHackathonRequest(name string) dto.RegistrationHackathonTeamRequest {
 			TeamName:       name,
 			Supervisor:     "Supervisor",
 			SupervisorNIDN: "1234567890",
+		},
+	}
+}
+
+func createCTFRequest(name string) dto.RegistrationCTFTeamRequest {
+	return dto.RegistrationCTFTeamRequest{
+		RegistraionTeamRequest: dto.RegistraionTeamRequest{
+			TeamName:       name,
+			Supervisor:     "Supervisor",
+			SupervisorNIDN: "1234567890",
+		},
+		RegistrationCTFRequest: dto.RegistrationCTFRequest{
+			BuktiPembayaran: "-",
 		},
 	}
 }

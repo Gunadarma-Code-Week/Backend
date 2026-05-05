@@ -17,13 +17,53 @@ import (
 type AuthService struct {
 	userRepository repository.UserRepository
 	googleClientId string
+	db             *gorm.DB
 }
 
-func NewAuthService(ur repository.UserRepository) *AuthService {
+func NewAuthService(ur repository.UserRepository, db *gorm.DB) *AuthService {
 	return &AuthService{
 		userRepository: ur,
 		googleClientId: os.Getenv("GOOGLE_CLIENT_ID"),
+		db:             db,
 	}
+}
+
+// IsUserTeamDeleted checks whether the event-specific team record linked to
+// the user has been soft-deleted (is_deleted = true). It returns (true, event)
+// when deleted, or (false, "") when the team is still active.
+func (s *AuthService) IsUserTeamDeleted(user *entity.User) (bool, string) {
+	if s.db == nil || user.IDTeam == nil {
+		return false, ""
+	}
+
+	// Fetch the parent team first to know which event it belongs to
+	var team entity.Team
+	if err := s.db.Where("id_team = ?", *user.IDTeam).First(&team).Error; err != nil {
+		return false, ""
+	}
+
+	switch team.Event {
+	case "hackathon":
+		var ht entity.HackathonTeam
+		if err := s.db.Where("id_team = ?", *user.IDTeam).First(&ht).Error; err != nil {
+			return false, ""
+		}
+		return ht.IsDeleted, "hackathon"
+	case "cp":
+		var ct entity.CPTeam
+		if err := s.db.Where("id_team = ?", *user.IDTeam).First(&ct).Error; err != nil {
+			return false, ""
+		}
+		return ct.IsDeleted, "cp"
+	case "ctf":
+		var ctf entity.CTFTeam
+		if err := s.db.Where("id_team = ?", *user.IDTeam).First(&ctf).Error; err != nil {
+			return false, ""
+		}
+		return ctf.IsDeleted, "ctf"
+	}
+
+	return false, ""
 }
 
 func (s *AuthService) GetUserByGoogleIdToken(idToken string) (*entity.User, error) {

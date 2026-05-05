@@ -24,7 +24,7 @@ var (
 	emailService        = service.NewEmailService()
 	domJudgeService     = service.NewDomJudgeService()
 	midtransService     = service.NewMidtransService()
-	authService         = service.NewAuthService(userRepository)
+	authService         = service.NewAuthService(userRepository, database)
 	userService         = service.NewUserService(userRepository)
 	registrationService = service.NewRegistrationService(
 		registrationRepository,
@@ -125,7 +125,7 @@ func SetupRouter(r *gin.Engine) {
 		dashboard.Use(authMiddleware.JwtAuthMiddleware)
 		dashboard.Use(authMiddleware.MustAdmin) // Add admin role check
 
-		dashboard.GET("/:acara/:start_date/:end_date/:count/:page", dashboards.GetAllDashboard)
+		dashboard.GET("/:acara/:count/:page", dashboards.GetAllDashboard)
 		dashboard.DELETE("/:acara/:id", dashboards.Delete)
 		dashboard.PUT("/:acara/:id", dashboards.Update)
 		// dashboard.GET("/events/:id_user", dashboards.GetEvent)
