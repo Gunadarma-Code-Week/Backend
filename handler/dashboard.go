@@ -145,10 +145,12 @@ func (h *dashboardController) Update(c *gin.Context) {
 			return
 		}
 
-		if err := h.Service.UpdateSeminarService(id, input); err != nil {
+		targetName, err := h.Service.UpdateSeminarService(id, input)
+		if err != nil {
 			c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("ERROR", "error service"))
 			return
 		}
+		c.Set("target_name", targetName)
 
 	case "hackathon":
 		var input dto.Hackaton
@@ -157,10 +159,12 @@ func (h *dashboardController) Update(c *gin.Context) {
 			return
 		}
 
-		if err := h.Service.UpdateHackatonService(id, input); err != nil {
+		targetName, err := h.Service.UpdateHackatonService(id, input)
+		if err != nil {
 			c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("ERROR", "error service"))
 			return
 		}
+		c.Set("target_name", targetName)
 
 	case "cp":
 		var input dto.Cp
@@ -169,10 +173,12 @@ func (h *dashboardController) Update(c *gin.Context) {
 			return
 		}
 
-		if err := h.Service.UpdateCpService(id, input); err != nil {
+		targetName, err := h.Service.UpdateCpService(id, input)
+		if err != nil {
 			c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("ERROR", "error service"))
 			return
 		}
+		c.Set("target_name", targetName)
 
 	case "ctf":
 		var input dto.Ctf
@@ -181,10 +187,12 @@ func (h *dashboardController) Update(c *gin.Context) {
 			return
 		}
 
-		if err := h.Service.UpdateCtfService(id, input); err != nil {
+		targetName, err := h.Service.UpdateCtfService(id, input)
+		if err != nil {
 			c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("ERROR", "error service"))
 			return
 		}
+		c.Set("target_name", targetName)
 
 	default:
 		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "kegiatan not found"))
@@ -213,13 +221,14 @@ func (h *dashboardController) Delete(c *gin.Context) {
 		return
 	}
 
-	id_user, err := h.Service.DeletePesertaService(acara, id)
+	targetName, err := h.Service.DeletePesertaService(acara, id)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "Error delete service"))
 		return
 	}
+	c.Set("target_name", targetName)
 
-	c.JSON(http.StatusOK, helper.CreateSuccessResponse("UPDATED", id_user))
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("UPDATED", targetName))
 }
 
 // @Summary Get User Events

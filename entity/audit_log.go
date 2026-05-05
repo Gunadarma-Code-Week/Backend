@@ -11,6 +11,7 @@ type AuditLog struct {
 	UserID       uint64          `gorm:"not null; index"`
 	Method       string          `gorm:"varchar(10); not null"` // POST, PUT, DELETE, PATCH (GET not logged)
 	Endpoint     string          `gorm:"varchar(255); not null; index"`
+	Description  string          `gorm:"type:text"`             // Human-readable description of the action
 	RequestBody  json.RawMessage `gorm:"type:jsonb"`
 	ResponseCode int             `gorm:"default:0"`
 	ResponseBody json.RawMessage `gorm:"type:jsonb"`
@@ -21,12 +22,10 @@ type AuditLog struct {
 	UpdatedAt    time.Time       `gorm:"autoUpdateTime"`
 }
 
-// Scan implements sql.Scanner interface
 func (a *AuditLog) Scan(value interface{}) error {
 	return nil
 }
 
-// Value implements driver.Valuer interface
 func (a AuditLog) Value() (driver.Value, error) {
 	return json.Marshal(a)
 }

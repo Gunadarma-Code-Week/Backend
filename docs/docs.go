@@ -15,6 +15,144 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/admin/audit-logs": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Get all audit logs with pagination. Requires admin role.",
+                "tags": [
+                    "AuditLog"
+                ],
+                "summary": "Get all audit logs",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number (default: 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Items per page (default: 10)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/audit-logs/date-range": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Get audit logs within a specific date range with optional user filter.",
+                "tags": [
+                    "AuditLog"
+                ],
+                "summary": "Get audit logs by date range",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Start date (YYYY-MM-DD format)",
+                        "name": "start_date",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "End date (YYYY-MM-DD format)",
+                        "name": "end_date",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Filter by user ID",
+                        "name": "user_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page number (default: 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Items per page (default: 10)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/audit-logs/user/{user_id}": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Get audit logs for a specific user with pagination.",
+                "tags": [
+                    "AuditLog"
+                ],
+                "summary": "Get user audit logs",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page number (default: 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Items per page (default: 10)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/admin/users": {
             "get": {
                 "description": "Get all users with pagination, filtering, and sorting for admin",
@@ -2269,6 +2407,9 @@ const docTemplate = `{
                 "soc_med_document": {
                     "type": "string"
                 },
+                "team_name": {
+                    "type": "string"
+                },
                 "updated_at": {
                     "type": "string"
                 }
@@ -2365,6 +2506,9 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "name": {
+                    "type": "string"
+                },
+                "payment_type": {
                     "type": "string"
                 },
                 "status": {
@@ -2484,8 +2628,6 @@ const docTemplate = `{
         "dto.RegistraionTeamResponse": {
             "type": "object",
             "required": [
-                "supervisor",
-                "supervisor_nidn",
                 "team_name"
             ],
             "properties": {
@@ -2574,8 +2716,6 @@ const docTemplate = `{
         "dto.RegistrationCPTeamRequest": {
             "type": "object",
             "required": [
-                "supervisor",
-                "supervisor_nidn",
                 "team_name"
             ],
             "properties": {
@@ -2616,6 +2756,12 @@ const docTemplate = `{
                 "created_at": {
                     "type": "string"
                 },
+                "domjudge_password": {
+                    "type": "string"
+                },
+                "domjudge_username": {
+                    "type": "string"
+                },
                 "id_ctf_team": {
                     "type": "integer"
                 },
@@ -2648,8 +2794,6 @@ const docTemplate = `{
         "dto.RegistrationCTFTeamRequest": {
             "type": "object",
             "required": [
-                "supervisor",
-                "supervisor_nidn",
                 "team_name"
             ],
             "properties": {
@@ -2719,11 +2863,12 @@ const docTemplate = `{
         "dto.RegistrationHackathonTeamRequest": {
             "type": "object",
             "required": [
-                "supervisor",
-                "supervisor_nidn",
                 "team_name"
             ],
             "properties": {
+                "bukti_pembayaran": {
+                    "type": "string"
+                },
                 "supervisor": {
                     "type": "string"
                 },

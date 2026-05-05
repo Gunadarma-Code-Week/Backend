@@ -34,7 +34,7 @@ func NewAuditLogHandler(auditLogService service.AuditLogService) AuditLogHandler
 // @Param page query int false "Page number (default: 1)"
 // @Param limit query int false "Items per page (default: 10)"
 // @Success 200 {object} map[string]interface{}
-// @Router /audit-logs [get]
+// @Router /admin/audit-logs [get]
 func (h *auditLogHandler) GetAllAuditLogs(c *gin.Context) {
 	page := 1
 	limit := 10
@@ -81,7 +81,7 @@ func (h *auditLogHandler) GetAllAuditLogs(c *gin.Context) {
 // @Param page query int false "Page number (default: 1)"
 // @Param limit query int false "Items per page (default: 10)"
 // @Success 200 {object} map[string]interface{}
-// @Router /audit-logs/user/{user_id} [get]
+// @Router /admin/audit-logs/user/{user_id} [get]
 func (h *auditLogHandler) GetUserAuditLogs(c *gin.Context) {
 	userIDStr := c.Param("user_id")
 	userID, err := strconv.ParseUint(userIDStr, 10, 64)
@@ -137,7 +137,7 @@ func (h *auditLogHandler) GetUserAuditLogs(c *gin.Context) {
 // @Param page query int false "Page number (default: 1)"
 // @Param limit query int false "Items per page (default: 10)"
 // @Success 200 {object} map[string]interface{}
-// @Router /audit-logs/date-range [get]
+// @Router /admin/audit-logs/date-range [get]
 func (h *auditLogHandler) GetAuditLogsByDateRange(c *gin.Context) {
 	startDateStr := c.Query("start_date")
 	endDateStr := c.Query("end_date")

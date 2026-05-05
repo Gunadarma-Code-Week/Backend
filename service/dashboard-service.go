@@ -438,65 +438,60 @@ func (s *DashboardServices) GetAllCtf(count, page int) (dto.ResponseCtf, error) 
 // }
 
 func (s *DashboardServices) DeletePesertaService(acara, id_user string) (string, error) {
-	var idUser string
+	var targetName string
 	switch acara {
 	case "seminar":
 		var data entity.Seminar
-		if err := s.DB.Where("id_seminar = ?", id_user).First(&data).Error; err != nil {
+		if err := s.DB.Preload("User").Where("id_seminar = ?", id_user).First(&data).Error; err != nil {
 			return "", err
 		}
-
+		targetName = data.User.Name
 		data.IsDeleted = true
-
 		if err := s.DB.Save(&data).Error; err != nil {
 			return "", err
 		}
 
-	case "hackaton":
+	case "hackaton", "hackathon":
 		var data entity.HackathonTeam
-		if err := s.DB.Where("id_hackathon_team = ?", id_user).First(&data).Error; err != nil {
+		if err := s.DB.Preload("Team").Where("id_hackathon_team = ?", id_user).First(&data).Error; err != nil {
 			return "", err
 		}
-
+		targetName = data.Team.TeamName
 		data.IsDeleted = true
-
 		if err := s.DB.Save(&data).Error; err != nil {
 			return "", err
 		}
 
 	case "cp":
 		var data entity.CPTeam
-		if err := s.DB.Where("id_cp_team = ?", id_user).First(&data).Error; err != nil {
+		if err := s.DB.Preload("Team").Where("id_cp_team = ?", id_user).First(&data).Error; err != nil {
 			return "", err
 		}
-
+		targetName = data.Team.TeamName
 		data.IsDeleted = true
-
 		if err := s.DB.Save(&data).Error; err != nil {
 			return "", err
 		}
 
 	case "ctf":
 		var data entity.CTFTeam
-		if err := s.DB.Where("id_ctf_team = ?", id_user).First(&data).Error; err != nil {
+		if err := s.DB.Preload("Team").Where("id_ctf_team = ?", id_user).First(&data).Error; err != nil {
 			return "", err
 		}
-
+		targetName = data.Team.TeamName
 		data.IsDeleted = true
-
 		if err := s.DB.Save(&data).Error; err != nil {
 			return "", err
 		}
-
 	}
 
-	return idUser, nil
+	return targetName, nil
 }
 
-func (s *DashboardServices) UpdateSeminarService(id string, input dto.Seminar) error {
+func (s *DashboardServices) UpdateSeminarService(id string, input dto.Seminar) (string, error) {
 	var seminar entity.Seminar
 	if err := s.DB.Preload("User").Where("id_seminar = ?", id).First(&seminar).Error; err != nil {
-		return err
+		return "", err
 	}
 
 	seminar.User.Name = input.User.Name
@@ -507,16 +502,16 @@ func (s *DashboardServices) UpdateSeminarService(id string, input dto.Seminar) e
 	seminar.PaymentStatus = input.PaymentStatus
 
 	if err := s.DB.Save(&seminar).Error; err != nil {
-		return err
+		return "", err
 	}
 
-	return nil
+	return seminar.User.Name, nil
 }
 
-func (s *DashboardServices) UpdateHackatonService(id string, input dto.Hackaton) error {
+func (s *DashboardServices) UpdateHackatonService(id string, input dto.Hackaton) (string, error) {
 	var hackaton entity.HackathonTeam
 	if err := s.DB.Preload("Team").Where("id_hackathon_team = ?", id).First(&hackaton).Error; err != nil {
-		return err
+		return "", err
 	}
 
 	oldStage := hackaton.Stage
@@ -527,7 +522,7 @@ func (s *DashboardServices) UpdateHackatonService(id string, input dto.Hackaton)
 			Where("id_team = ?", hackaton.Team.ID_Team).
 			Update("team_name", input.NamaTim).Error; err != nil {
 			tx.Rollback()
-			return err
+			return "", err
 		}
 	}
 
@@ -546,11 +541,16 @@ func (s *DashboardServices) UpdateHackatonService(id string, input dto.Hackaton)
 
 	if err := tx.Save(&hackaton).Error; err != nil {
 		tx.Rollback()
-		return err
+		return "", err
 	}
 
 	if err := tx.Commit().Error; err != nil {
-		return err
+		return "", err
+	}
+
+	teamName := hackaton.Team.TeamName
+	if input.NamaTim != "" {
+		teamName = input.NamaTim
 	}
 
 	if oldStage != input.Stage {
@@ -572,13 +572,13 @@ func (s *DashboardServices) UpdateHackatonService(id string, input dto.Hackaton)
 		}
 	}
 
-	return nil
+	return teamName, nil
 }
 
-func (s *DashboardServices) UpdateCpService(id string, input dto.Cp) error {
+func (s *DashboardServices) UpdateCpService(id string, input dto.Cp) (string, error) {
 	var cp entity.CPTeam
 	if err := s.DB.Preload("Team").Where("id_cp_team = ?", id).First(&cp).Error; err != nil {
-		return err
+		return "", err
 	}
 
 	oldStage := cp.Stage
@@ -589,7 +589,7 @@ func (s *DashboardServices) UpdateCpService(id string, input dto.Cp) error {
 			Where("id_team = ?", cp.Team.ID_Team).
 			Update("team_name", input.NamaTim).Error; err != nil {
 			tx.Rollback()
-			return err
+			return "", err
 		}
 	}
 
@@ -605,11 +605,16 @@ func (s *DashboardServices) UpdateCpService(id string, input dto.Cp) error {
 
 	if err := tx.Save(&cp).Error; err != nil {
 		tx.Rollback()
-		return err
+		return "", err
 	}
 
 	if err := tx.Commit().Error; err != nil {
-		return err
+		return "", err
+	}
+
+	teamName := cp.Team.TeamName
+	if input.NamaTim != "" {
+		teamName = input.NamaTim
 	}
 
 	if oldStage != input.Stage {
@@ -631,13 +636,13 @@ func (s *DashboardServices) UpdateCpService(id string, input dto.Cp) error {
 		}
 	}
 
-	return nil
+	return teamName, nil
 }
 
-func (s *DashboardServices) UpdateCtfService(id string, input dto.Ctf) error {
+func (s *DashboardServices) UpdateCtfService(id string, input dto.Ctf) (string, error) {
 	var ctf entity.CTFTeam
 	if err := s.DB.Preload("Team").Where("id_ctf_team = ?", id).First(&ctf).Error; err != nil {
-		return err
+		return "", err
 	}
 
 	oldStage := ctf.Stage
@@ -648,7 +653,7 @@ func (s *DashboardServices) UpdateCtfService(id string, input dto.Ctf) error {
 			Where("id_team = ?", ctf.Team.ID_Team).
 			Update("team_name", input.NamaTim).Error; err != nil {
 			tx.Rollback()
-			return err
+			return "", err
 		}
 	}
 
@@ -664,11 +669,16 @@ func (s *DashboardServices) UpdateCtfService(id string, input dto.Ctf) error {
 
 	if err := tx.Save(&ctf).Error; err != nil {
 		tx.Rollback()
-		return err
+		return "", err
 	}
 
 	if err := tx.Commit().Error; err != nil {
-		return err
+		return "", err
+	}
+
+	teamName := ctf.Team.TeamName
+	if input.NamaTim != "" {
+		teamName = input.NamaTim
 	}
 
 	if oldStage != input.Stage {
@@ -690,5 +700,5 @@ func (s *DashboardServices) UpdateCtfService(id string, input dto.Ctf) error {
 		}
 	}
 
-	return nil
+	return teamName, nil
 }

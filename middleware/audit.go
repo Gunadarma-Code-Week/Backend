@@ -72,6 +72,7 @@ func (m *auditMiddleware) AuditLogMiddleware(c *gin.Context) {
 			if strings.Contains(contentType, "application/json") {
 				var jsonBody map[string]interface{}
 				if err := json.Unmarshal(bodyBytes, &jsonBody); err == nil {
+					sanitizeSensitiveFields(jsonBody)
 					requestBody = jsonBody
 				}
 			} else if strings.Contains(contentType, "application/x-www-form-urlencoded") {
@@ -101,10 +102,12 @@ func (m *auditMiddleware) AuditLogMiddleware(c *gin.Context) {
 	c.Next()
 
 	// Record audit log with response code
+	description := generateDescription(c.Request.Method, c.Request.URL.Path, requestBody, user, c)
 	err := m.auditLogService.RecordActivityWithResponse(
 		user.ID,
 		c.Request.Method,
 		c.Request.URL.Path,
+		description,
 		requestBody,
 		responseWriter.statusCode,
 		nil,
@@ -149,4 +152,141 @@ func shouldSkipAuditLog(path string) bool {
 // shouldSkipAuthAuditLog returns true for auth and registration routes that should not be audited
 func shouldSkipAuthAuditLog(path string) bool {
 	return strings.Contains(path, "/auth/") || strings.HasSuffix(path, "/auth")
+}
+
+// sensitiveFields is the list of JSON keys whose values will be redacted in audit logs
+var sensitiveFields = []string{
+	"password",
+	"domjudge_password",
+	"token",
+	"access_token",
+	"refresh_token",
+	"secret",
+}
+
+// sanitizeSensitiveFields replaces sensitive field values with "[REDACTED]" in-place
+func sanitizeSensitiveFields(body map[string]interface{}) {
+	for _, field := range sensitiveFields {
+		if _, ok := body[field]; ok {
+			body[field] = "[REDACTED]"
+		}
+	}
+}
+
+// generateDescription generates a human-readable Indonesian description based on HTTP method, path, request body, user, and context
+func generateDescription(method, path string, body interface{}, user *entity.User, c *gin.Context) string {
+	// User identifier: use email if available, otherwise "User"
+	userLabel := "User"
+	if user != nil && user.Email != "" {
+		userLabel = user.Email
+	}
+
+	// Target name from context if set by handler
+	targetName := c.GetString("target_name")
+
+	// Normalize path segments
+	segments := strings.Split(strings.Trim(path, "/"), "/")
+
+	// Dashboard actions: /api/v1/gcw/resources/dashboard/{acara}/{id}
+	if len(segments) >= 2 {
+		n := len(segments)
+		acara := segments[n-2]
+		id := segments[n-1]
+		if acara == "hackaton" || acara == "hackathon" || acara == "cp" || acara == "ctf" || acara == "seminar" {
+			acaraLabel := map[string]string{
+				"hackaton":  "Hackathon",
+				"hackathon": "Hackathon",
+				"cp":        "Competitive Programming",
+				"ctf":       "CTF",
+				"seminar":   "Seminar",
+			}[acara]
+			targetLabel := "dengan ID " + id
+			if targetName != "" {
+				targetLabel = "dengan nama " + targetName
+			}
+
+			switch method {
+			case "DELETE":
+				return userLabel + " menghapus tim " + acaraLabel + " " + targetLabel
+			case "PUT", "PATCH":
+				// Detect specific field changes from request body
+				if bodyMap, ok := body.(map[string]interface{}); ok {
+					var changes []string
+					if _, hasPass := bodyMap["password"]; hasPass {
+						changes = append(changes, "password DomJudge")
+					}
+					if _, hasUser := bodyMap["username"]; hasUser {
+						changes = append(changes, "username DomJudge")
+					}
+					if _, hasStage := bodyMap["stage"]; hasStage {
+						changes = append(changes, "stage")
+					}
+					if _, hasNama := bodyMap["nama_tim"]; hasNama {
+						changes = append(changes, "nama tim")
+					}
+					if len(changes) > 0 {
+						return userLabel + " memperbarui " + strings.Join(changes, ", ") + " tim " + acaraLabel + " " + targetLabel
+					}
+				}
+				return userLabel + " memperbarui data tim " + acaraLabel + " " + targetLabel
+			}
+		}
+	}
+
+	// Admin user management: /admin/users/{id}
+	if strings.Contains(path, "/admin/users/") {
+		id := segments[len(segments)-1]
+		targetLabel := "dengan ID " + id
+		if targetName != "" {
+			targetLabel = "dengan nama " + targetName
+		}
+		switch method {
+		case "PUT", "PATCH":
+			return userLabel + " memperbarui data user " + targetLabel
+		case "DELETE":
+			return userLabel + " menghapus user " + targetLabel
+		}
+	}
+
+	// Team registration
+	if strings.Contains(path, "/team/registration/") {
+		switch method {
+		case "POST":
+			if strings.Contains(path, "/join/") {
+				return userLabel + " bergabung ke tim"
+			}
+			return userLabel + " mendaftarkan tim baru"
+		}
+	}
+
+	// Profile update
+	if strings.Contains(path, "/profile/my") && method == "POST" {
+		return userLabel + " memperbarui profil"
+	}
+
+	// Seminar
+	if strings.Contains(path, "/seminar/join") && method == "POST" {
+		return userLabel + " mendaftar seminar"
+	}
+	if strings.Contains(path, "/seminar/admin/add-participant") && method == "POST" {
+		return userLabel + " menambahkan peserta seminar"
+	}
+
+	// Submission
+	if strings.Contains(path, "/submission/") && method == "POST" {
+		return userLabel + " mengirimkan submission"
+	}
+
+	// Fallback: generic description
+	actionMap := map[string]string{
+		"POST":   "membuat",
+		"PUT":    "memperbarui",
+		"PATCH":  "memperbarui",
+		"DELETE": "menghapus",
+	}
+	action, ok := actionMap[method]
+	if !ok {
+		action = "mengakses"
+	}
+	return userLabel + " " + action + " resource pada " + path
 }

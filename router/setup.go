@@ -123,7 +123,8 @@ func SetupRouter(r *gin.Engine) {
 	{
 		dashboard := router.Group("/dashboard")
 		dashboard.Use(authMiddleware.JwtAuthMiddleware)
-		dashboard.Use(authMiddleware.MustAdmin) // Add admin role check
+		dashboard.Use(authMiddleware.MustAdmin)    // Add admin role check
+		dashboard.Use(auditMiddleware.AuditLogMiddleware) // Record admin delete/update actions
 
 		dashboard.GET("/:acara/:count/:page", dashboards.GetAllDashboard)
 		dashboard.DELETE("/:acara/:id", dashboards.Delete)
