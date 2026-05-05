@@ -284,6 +284,7 @@ func (s *DashboardServices) GetAllCtf(count, page int) (dto.ResponseCtf, error) 
 		Find(&dataCtfTeams).Error; err != nil {
 		return dto.ResponseCtf{}, err
 	}
+	fmt.Println("[dashboard.GetAllCtf] rows found:", len(dataCtfTeams))
 
 	hasMore := false
 
