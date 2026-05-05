@@ -65,22 +65,15 @@ func (h *dashboardController) GetAllDashboard(c *gin.Context) {
 		strPage = "0"
 	}
 
-	fmt.Println("[dashboard.GetAllDashboard] incoming request:",
-		"acara=", acara,
-		"count=", strCount,
-		"page=", strPage,
-		"search=", search)
 
 	count, errCount := strconv.Atoi(strCount)
 	page, errPage := strconv.Atoi(strPage)
 
 	if errCount != nil || errPage != nil {
-		fmt.Println("[dashboard.GetAllDashboard] invalid count/page strings:", strCount, strPage)
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "count or page must be integers. got count="+strCount+", page="+strPage))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "count and page must be integers"))
 		return
 	}
 
-	fmt.Println("[dashboard.GetAllDashboard] parsed count/page:", count, page)
 
 	var respondData interface{}
 
