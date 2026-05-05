@@ -1,0 +1,57 @@
+[GIN-debug] [WARNING] Creating an Engine instance with the Logger and Recovery middleware already attached.
+
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /swagger/*any             --> github.com/swaggo/gin-swagger.CustomWrapHandler.func1 (3 handlers)
+[GIN-debug] GET    /api/v1/gcw/resources/ping --> gcw/handler.(*authHandler).Ping-fm (4 handlers)
+[GIN-debug] POST   /api/v1/gcw/resources/auth/validate-google-id-token --> gcw/handler.(*authHandler).ValidateGoogleIdToken-fm (4 handlers)
+[GIN-debug] POST   /api/v1/gcw/resources/auth/refresh-token --> gcw/handler.(*authHandler).RefreshToken-fm (4 handlers)
+[GIN-debug] POST   /api/v1/gcw/resources/auth/send-mail-test --> gcw/handler.(*authHandler).SendEmailVerificationExample-fm (4 handlers)
+[GIN-debug] POST   /api/v1/gcw/resources/auth/login --> gcw/handler.(*authHandler).Login-fm (5 handlers)
+[GIN-debug] POST   /api/v1/gcw/resources/auth/registration --> gcw/handler.(*authHandler).Registration-fm (5 handlers)
+[GIN-debug] GET    /api/v1/gcw/resources/mustauth/ping --> gcw/handler.(*authHandler).Ping-fm (5 handlers)
+[GIN-debug] GET    /api/v1/gcw/resources/profile/my --> gcw/handler.(*UserHandler).GetMyProfile-fm (5 handlers)
+[GIN-debug] POST   /api/v1/gcw/resources/profile/my --> gcw/handler.(*UserHandler).UpdateMyProfile-fm (5 handlers)
+[GIN-debug] GET    /api/v1/gcw/resources/profile/events --> gcw/handler.(*UserHandler).GetEvents-fm (5 handlers)
+[GIN-debug] GET    /api/v1/gcw/resources/profile/all/:start_date/:end_date/:count/:page --> gcw/handler.(*UserHandler).GetAllUser-fm (4 handlers)
+[GIN-debug] GET    /api/v1/gcw/resources/mustauth/authupdate/ping --> gcw/handler.(*authHandler).Ping-fm (6 handlers)
+[GIN-debug] POST   /api/v1/gcw/resources/team/registration/hackathon --> gcw/handler.(*registrationHandler).RegistrationHackathonTeam-fm (6 handlers)
+[GIN-debug] POST   /api/v1/gcw/resources/team/registration/cp --> gcw/handler.(*registrationHandler).RegistrationCPTeam-fm (6 handlers)
+[GIN-debug] POST   /api/v1/gcw/resources/team/registration/ctf --> gcw/handler.(*registrationHandler).RegistrationCTFTeam-fm (6 handlers)
+[GIN-debug] GET    /api/v1/gcw/resources/team/registration/find/:join_code --> gcw/handler.(*registrationHandler).FindTeam-fm (6 handlers)
+[GIN-debug] POST   /api/v1/gcw/resources/team/registration/join/:join_code --> gcw/handler.(*registrationHandler).UserJoinTeam-fm (6 handlers)
+[GIN-debug] POST   /api/v1/gcw/resources/payment/notification --> gcw/handler.(*paymentHandler).Notification-fm (4 handlers)
+[GIN-debug] GET    /api/v1/gcw/resources/payment/check/:order_id --> gcw/handler.(*paymentHandler).ManualCheckTransaction-fm (4 handlers)
+[GIN-debug] GET    /api/v1/gcw/resources/dashboard/:acara/:start_date/:end_date/:count/:page --> gcw/handler.DashboardControllerInterface.GetAllDashboard-fm (6 handlers)
+[GIN-debug] DELETE /api/v1/gcw/resources/dashboard/:acara/:id --> gcw/handler.DashboardControllerInterface.Delete-fm (6 handlers)
+[GIN-debug] PUT    /api/v1/gcw/resources/dashboard/:acara/:id --> gcw/handler.DashboardControllerInterface.Update-fm (6 handlers)
+[GIN-debug] GET    /api/v1/gcw/resources/admin/users --> gcw/handler.(*UserHandler).AdminGetAllUsers-fm (6 handlers)
+[GIN-debug] GET    /api/v1/gcw/resources/admin/users/:id --> gcw/handler.(*UserHandler).AdminGetUserById-fm (6 handlers)
+[GIN-debug] PUT    /api/v1/gcw/resources/admin/users/:id --> gcw/handler.(*UserHandler).AdminUpdateUser-fm (6 handlers)
+[GIN-debug] DELETE /api/v1/gcw/resources/admin/users/:id --> gcw/handler.(*UserHandler).AdminDeleteUser-fm (6 handlers)
+[GIN-debug] GET    /api/v1/gcw/resources/admin/users/analytics/growth --> gcw/handler.(*UserHandler).AdminGetUserGrowthAnalytics-fm (6 handlers)
+[GIN-debug] POST   /api/v1/gcw/resources/submission/hackaton/:stage/:join_code --> gcw/handler.HackathonHandler.SubmissionHackaton-fm (4 handlers)
+[GIN-debug] GET    /api/v1/gcw/resources/submission/hackaton/:join_code --> gcw/handler.HackathonHandler.HackathonStageStatus-fm (4 handlers)
+[GIN-debug] GET    /api/v1/gcw/resources/cp/:join_code --> gcw/handler.(*CompetitiveHandler).GetDetail-fm (4 handlers)
+[GIN-debug] POST   /api/v1/gcw/resources/seminar/join --> gcw/handler.(*SeminarHandler).JoinSeminar-fm (5 handlers)
+[GIN-debug] GET    /api/v1/gcw/resources/seminar/my-ticket --> gcw/handler.(*SeminarHandler).GetMyTicket-fm (5 handlers)
+[GIN-debug] GET    /api/v1/gcw/resources/seminar/ticket/:ticket_id --> gcw/handler.(*SeminarHandler).GetTicketByID-fm (6 handlers)
+[GIN-debug] POST   /api/v1/gcw/resources/seminar/admin/add-participant --> gcw/handler.(*SeminarHandler).AdminAddParticipant-fm (6 handlers)
+
+2026/04/10 11:07:22 [31;1m/home/adit/Documents/coding/project-kerja/gcw-2026/gcw-api/service/user-service.go:129 [35;1mrecord not found
+[0m[33m[0.254ms] [34;1m[rows:0][0m SELECT * FROM "hackathon_teams" WHERE id_team = NULL ORDER BY "hackathon_teams"."id_hackathon_team" LIMIT 1
+
+2026/04/10 11:07:22 [31;1m/home/adit/Documents/coding/project-kerja/gcw-2026/gcw-api/service/user-service.go:130 [35;1mrecord not found
+[0m[33m[0.268ms] [34;1m[rows:0][0m SELECT * FROM "cp_teams" WHERE id_team = NULL ORDER BY "cp_teams"."id_cp_team" LIMIT 1
+
+2026/04/10 11:07:22 [31;1m/home/adit/Documents/coding/project-kerja/gcw-2026/gcw-api/service/user-service.go:131 [35;1mrecord not found
+[0m[33m[0.287ms] [34;1m[rows:0][0m SELECT * FROM "ctf_teams" WHERE id_team = NULL ORDER BY "ctf_teams"."id_ctf_team" LIMIT 1
+
+2026/04/10 11:07:22 [31;1m/home/adit/Documents/coding/project-kerja/gcw-2026/gcw-api/service/user-service.go:132 [35;1mrecord not found
+[0m[33m[0.306ms] [34;1m[rows:0][0m SELECT * FROM "seminars" WHERE id_user = '4' ORDER BY "seminars"."id_seminar" LIMIT 1
+[GIN] 2026/04/10 - 11:07:22 | 200 |    6.334709ms |       127.0.0.1 | GET      "/api/v1/gcw/resources/profile/events"
+[GIN] 2026/04/10 - 11:07:22 | 200 |    8.241697ms |       127.0.0.1 | GET      "/api/v1/gcw/resources/admin/users?startDate=2026-01-01&endDate=2026-04-10&page=1&limit=10"
+[GIN] 2026/04/10 - 11:07:22 | 200 |  176.060791ms |       127.0.0.1 | GET      "/api/v1/gcw/resources/admin/users/analytics/growth?startDate=2023-01-01&endDate=2026-04-10"
+signal: killed

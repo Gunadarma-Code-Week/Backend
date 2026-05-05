@@ -1,0 +1,12 @@
+.git
+.gitignore
+.env
+.env.*
+README.md
+bin/
+docs/
+node_modules/
+.vscode/
+*.log
+*.tmp
+**/.DS_Store

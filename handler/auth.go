@@ -118,6 +118,15 @@ func (h *authHandler) RefreshToken(c *gin.Context) {
 	c.JSON(http.StatusOK, helper.CreateSuccessResponse("success", response))
 }
 
+// @Summary Register new account
+// @Description Register a new user account with email, password, and name
+// @Tags Auth
+// @Accept  json
+// @Produce  json
+// @Param request body dto.RegisterDTO true "Register Payload"
+// @Success 200 {object} helper.Response{data=dto.AuthResponseDTO}
+// @Failure 400 {object} helper.Response
+// @Router /auth/registration [post]
 func (h *authHandler) Registration(c *gin.Context) {
 	// Get the validated DTO from the context
 	auth, _ := c.Get("dto")
@@ -143,6 +152,15 @@ func (h *authHandler) Registration(c *gin.Context) {
 	c.JSON(http.StatusOK, helper.CreateSuccessResponse("success", response))
 }
 
+// @Summary Login
+// @Description Login with email and password to get access token
+// @Tags Auth
+// @Accept  json
+// @Produce  json
+// @Param request body dto.LoginDTO true "Login Payload"
+// @Success 200 {object} helper.Response{data=dto.AuthResponseDTO}
+// @Failure 400 {object} helper.Response
+// @Router /auth/login [post]
 func (h *authHandler) Login(c *gin.Context) {
 	// Get the validated DTO from the context
 	auth, _ := c.Get("dto")

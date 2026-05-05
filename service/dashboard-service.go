@@ -1,20 +1,24 @@
 package service
 
 import (
+	"fmt"
 	"gcw/dto"
 	"gcw/entity"
+	"os"
 	"time"
 
 	"gorm.io/gorm"
 )
 
 type DashboardServices struct {
-	DB *gorm.DB
+	DB           *gorm.DB
+	EmailService *EmailService
 }
 
 func NewDashboardServices(db *gorm.DB) DashboardServices {
 	return DashboardServices{
-		DB: db,
+		DB:           db,
+		EmailService: NewEmailService(),
 	}
 }
 
@@ -26,7 +30,7 @@ func (s *DashboardServices) GetAllSeminar(startDate, endDate time.Time, count, p
 	offset := page * count
 
 	query := s.DB.Preload("User").
-		Where("created_at BETWEEN ? AND ?", startDate, endDate)
+		Where("seminars.created_at BETWEEN ? AND ?", startDate, endDate)
 
 	// Add search functionality
 	if search != "" {
@@ -87,7 +91,7 @@ func (s *DashboardServices) GetAllHackaton(startDate, endDate time.Time, count, 
 	offset := page * count
 
 	if err := s.DB.Preload("Team").
-		Where("created_at BETWEEN ? AND ?", startDate, endDate).
+		Where("hackathon_teams.created_at BETWEEN ? AND ?", startDate, endDate).
 		Order("id_hackathon_team ASC").
 		Limit(count + 1).
 		Offset(offset).
@@ -105,8 +109,11 @@ func (s *DashboardServices) GetAllHackaton(startDate, endDate time.Time, count, 
 	var responseHackatons []dto.Hackaton
 
 	for _, data := range dataSeminars {
+		if data.Team.ID_Team == 0 {
+			continue // Skip if team info is missing
+		}
 		var Leader entity.User
-		if err := s.DB.Where("id_team = ?", data.Team.ID_Team).First(&Leader).Error; err != nil {
+		if err := s.DB.Where("id = ?", data.Team.ID_LeadTeam).First(&Leader).Error; err != nil {
 			return dto.ResponseHackaton{}, err
 		}
 
@@ -172,15 +179,24 @@ func (s *DashboardServices) GetAllCp(startDate, endDate time.Time, count, page i
 	var dataSeminars []entity.CPTeam
 
 	offset := page * count
+	fmt.Println("[dashboard.GetAllCp] query params:",
+		"start=", startDate.Format(time.RFC3339),
+		"end=", endDate.Format(time.RFC3339),
+		"count=", count,
+		"page=", page,
+		"offset=", offset)
 
 	if err := s.DB.Preload("Team").
-		Where("created_at BETWEEN ? AND ?", startDate, endDate).
+		Where("cp_teams.created_at BETWEEN ? AND ?", startDate, endDate).
 		Order("id_cp_team ASC").
 		Limit(count + 1).
 		Offset(offset).
 		Find(&dataSeminars).Error; err != nil {
+		fmt.Println("[dashboard.GetAllCp] main query error:", err)
 		return dto.ResponseCp{}, err
 	}
+
+	fmt.Println("[dashboard.GetAllCp] rows fetched:", len(dataSeminars))
 
 	hasMore := false
 
@@ -192,8 +208,11 @@ func (s *DashboardServices) GetAllCp(startDate, endDate time.Time, count, page i
 	var responseData []dto.Cp
 
 	for _, data := range dataSeminars {
+		if data.Team.ID_Team == 0 {
+			continue
+		}
 		var Leader entity.User
-		if err := s.DB.Where("id_team = ?", data.Team.ID_Team).First(&Leader).Error; err != nil {
+		if err := s.DB.Where("id = ?", data.Team.ID_LeadTeam).First(&Leader).Error; err != nil {
 			return dto.ResponseCp{}, err
 		}
 
@@ -210,8 +229,10 @@ func (s *DashboardServices) GetAllCp(startDate, endDate time.Time, count, page i
 
 		var anggota []entity.User
 		if err := s.DB.Where("id_team = ?", data.Team.ID_Team).Find(&anggota).Error; err != nil {
+			fmt.Println("[dashboard.GetAllCp] anggota lookup error for team:", data.Team.ID_Team, "error:", err)
 			return dto.ResponseCp{}, err
 		}
+		fmt.Println("[dashboard.GetAllCp] anggota rows:", len(anggota))
 
 		// Create members list including leader
 		var members []dto.Anggota
@@ -248,6 +269,92 @@ func (s *DashboardServices) GetAllCp(startDate, endDate time.Time, count, page i
 
 	response := dto.ResponseCp{
 		Cp:      responseData,
+		HasMore: hasMore,
+	}
+
+	return response, nil
+}
+
+func (s *DashboardServices) GetAllCtf(startDate, endDate time.Time, count, page int) (dto.ResponseCtf, error) {
+	var dataCtfTeams []entity.CTFTeam
+
+	offset := page * count
+
+	if err := s.DB.Preload("Team").
+		Where("ctf_teams.created_at BETWEEN ? AND ?", startDate, endDate).
+		Order("id_ctf_team ASC").
+		Limit(count + 1).
+		Offset(offset).
+		Find(&dataCtfTeams).Error; err != nil {
+		return dto.ResponseCtf{}, err
+	}
+
+	hasMore := false
+
+	if len(dataCtfTeams) > count {
+		hasMore = true
+		dataCtfTeams = dataCtfTeams[:count]
+	}
+
+	var responseData []dto.Ctf
+
+	for _, data := range dataCtfTeams {
+		if data.Team.ID_Team == 0 {
+			continue
+		}
+		var Leader entity.User
+		if err := s.DB.Where("id = ?", data.Team.ID_LeadTeam).First(&Leader).Error; err != nil {
+			return dto.ResponseCtf{}, err
+		}
+
+		dataCtf := dto.Ctf{
+			ID:          int(data.ID_CTFTeam),
+			JoinCode:    data.Team.JoinCode,
+			NamaTim:     data.Team.TeamName,
+			KomitmenFee: data.Team.KomitmenFee,
+			Username:    data.DomjudgeUsername,
+			Password:    data.DomjudgePassword,
+			Stage:       data.Stage,
+			Status:      data.Status,
+		}
+
+		var anggota []entity.User
+		if err := s.DB.Where("id_team = ?", data.Team.ID_Team).Find(&anggota).Error; err != nil {
+			return dto.ResponseCtf{}, err
+		}
+
+		var members []dto.Anggota
+
+		leaderMember := dto.Anggota{
+			Name:       Leader.Name,
+			Email:      Leader.Email,
+			Role:       "leader",
+			University: Leader.Institusi,
+		}
+		members = append(members, leaderMember)
+
+		for _, dataAnggota := range anggota {
+			if dataAnggota.ID == Leader.ID {
+				continue
+			}
+
+			anggota := dto.Anggota{
+				Name:       dataAnggota.Name,
+				Email:      dataAnggota.Email,
+				Role:       "member",
+				University: dataAnggota.Institusi,
+			}
+
+			members = append(members, anggota)
+		}
+
+		dataCtf.Members = members
+
+		responseData = append(responseData, dataCtf)
+	}
+
+	response := dto.ResponseCtf{
+		Ctf:     responseData,
 		HasMore: hasMore,
 	}
 
@@ -373,6 +480,18 @@ func (s *DashboardServices) DeletePesertaService(acara, id_user string) (string,
 			return "", err
 		}
 
+	case "ctf":
+		var data entity.CTFTeam
+		if err := s.DB.Where("id_user = ?", id_user).First(&data).Error; err != nil {
+			return "", err
+		}
+
+		data.IsDeleted = true
+
+		if err := s.DB.Save(&data).Error; err != nil {
+			return "", err
+		}
+
 	}
 
 	return idUser, nil
@@ -404,14 +523,57 @@ func (s *DashboardServices) UpdateHackatonService(id string, input dto.Hackaton)
 		return err
 	}
 
-	hackaton.Team.TeamName = input.NamaTim
-	hackaton.ProposalUrl = input.ProposalUrl
-	hackaton.GithubProjectUrl = input.GithubUrl
-	hackaton.PitchDeckUrl = input.PitchDeckUrl
-	hackaton.Stage = input.Stage
+	oldStage := hackaton.Stage
+	tx := s.DB.Begin()
 
-	if err := s.DB.Save(&hackaton).Error; err != nil {
+	if input.NamaTim != "" {
+		if err := tx.Model(&entity.Team{}).
+			Where("id_team = ?", hackaton.Team.ID_Team).
+			Update("team_name", input.NamaTim).Error; err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
+	if input.ProposalUrl != "" {
+		hackaton.ProposalUrl = input.ProposalUrl
+	}
+	if input.GithubUrl != "" {
+		hackaton.GithubProjectUrl = input.GithubUrl
+	}
+	if input.PitchDeckUrl != "" {
+		hackaton.PitchDeckUrl = input.PitchDeckUrl
+	}
+	if input.Stage != "" {
+		hackaton.Stage = input.Stage
+	}
+
+	if err := tx.Save(&hackaton).Error; err != nil {
+		tx.Rollback()
 		return err
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		return err
+	}
+
+	if oldStage != input.Stage {
+		var teamMembers []entity.User
+		if err := s.DB.Where("id_team = ?", hackaton.Team.ID_Team).Find(&teamMembers).Error; err == nil {
+			var emails []string
+			for _, m := range teamMembers {
+				if m.Email != "" {
+					emails = append(emails, m.Email)
+				}
+			}
+			if len(emails) > 0 && os.Getenv("AUTO_EMAIL") == "true" {
+				if input.Stage == "Stage-1" {
+					go s.EmailService.SendEmailHTML("Registration Confirmation - GCW 2.0 Hackathon", emails, "template/email/hackathon_stage1.html", map[string]interface{}{"TeamName": hackaton.Team.TeamName})
+				} else {
+					go s.EmailService.SendEmailHTML("Congratulations! You are selected - GCW 2.0 Hackathon", emails, "template/email/hackathon_announcement.html", map[string]interface{}{"TeamName": hackaton.Team.TeamName})
+				}
+			}
+		}
 	}
 
 	return nil
@@ -423,11 +585,113 @@ func (s *DashboardServices) UpdateCpService(id string, input dto.Cp) error {
 		return err
 	}
 
-	cp.Team.TeamName = input.NamaTim
-	cp.Stage = input.Stage
+	oldStage := cp.Stage
+	tx := s.DB.Begin()
 
-	if err := s.DB.Save(&cp).Error; err != nil {
+	if input.NamaTim != "" {
+		if err := tx.Model(&entity.Team{}).
+			Where("id_team = ?", cp.Team.ID_Team).
+			Update("team_name", input.NamaTim).Error; err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
+	if input.Username != "" {
+		cp.DomjudgeUsername = input.Username
+	}
+	if input.Password != "" {
+		cp.DomjudgePassword = input.Password
+	}
+	if input.Stage != "" {
+		cp.Stage = input.Stage
+	}
+
+	if err := tx.Save(&cp).Error; err != nil {
+		tx.Rollback()
 		return err
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		return err
+	}
+
+	if oldStage != input.Stage {
+		var teamMembers []entity.User
+		if err := s.DB.Where("id_team = ?", cp.Team.ID_Team).Find(&teamMembers).Error; err == nil {
+			var emails []string
+			for _, m := range teamMembers {
+				if m.Email != "" {
+					emails = append(emails, m.Email)
+				}
+			}
+			if len(emails) > 0 && os.Getenv("AUTO_EMAIL") == "true" {
+				if input.Stage == "Stage-1" {
+					go s.EmailService.SendEmailHTML("Registration Confirmation - GCW 2.0 Competitive Programming", emails, "template/email/cp_stage1.html", map[string]interface{}{"TeamName": cp.Team.TeamName})
+				} else {
+					go s.EmailService.SendEmailHTML("Congratulations! You are selected - GCW 2.0 Competitive Programming", emails, "template/email/cp_announcement.html", map[string]interface{}{"TeamName": cp.Team.TeamName})
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
+func (s *DashboardServices) UpdateCtfService(id string, input dto.Ctf) error {
+	var ctf entity.CTFTeam
+	if err := s.DB.Preload("Team").Where("id_ctf_team = ?", id).First(&ctf).Error; err != nil {
+		return err
+	}
+
+	oldStage := ctf.Stage
+	tx := s.DB.Begin()
+
+	if input.NamaTim != "" {
+		if err := tx.Model(&entity.Team{}).
+			Where("id_team = ?", ctf.Team.ID_Team).
+			Update("team_name", input.NamaTim).Error; err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
+	if input.Username != "" {
+		ctf.DomjudgeUsername = input.Username
+	}
+	if input.Password != "" {
+		ctf.DomjudgePassword = input.Password
+	}
+	if input.Stage != "" {
+		ctf.Stage = input.Stage
+	}
+
+	if err := tx.Save(&ctf).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		return err
+	}
+
+	if oldStage != input.Stage {
+		var teamMembers []entity.User
+		if err := s.DB.Where("id_team = ?", ctf.Team.ID_Team).Find(&teamMembers).Error; err == nil {
+			var emails []string
+			for _, m := range teamMembers {
+				if m.Email != "" {
+					emails = append(emails, m.Email)
+				}
+			}
+			if len(emails) > 0 && os.Getenv("AUTO_EMAIL") == "true" {
+				if input.Stage == "Stage-1" {
+					go s.EmailService.SendEmailHTML("Registration Confirmation - GCW 2.0 Capture The Flag", emails, "template/email/ctf_stage1.html", map[string]interface{}{"TeamName": ctf.Team.TeamName})
+				} else {
+					go s.EmailService.SendEmailHTML("Congratulations! You are selected - GCW 2.0 Capture The Flag", emails, "template/email/ctf_announcement.html", map[string]interface{}{"TeamName": ctf.Team.TeamName})
+				}
+			}
+		}
 	}
 
 	return nil

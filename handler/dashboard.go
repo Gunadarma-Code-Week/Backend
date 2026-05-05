@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"gcw/dto"
 	"gcw/helper"
 	"gcw/service"
@@ -33,11 +34,11 @@ func DashboardController(db *gorm.DB) DashboardControllerInterface {
 func (h *dashboardController) Statistics(c *gin.Context) {}
 
 // @Summary Get All Dashboard
-// @Description Retrieve all dashboard data based on the specified event type (seminar, hackaton, cp).
+// @Description Retrieve all dashboard data based on the specified event type (seminar, hackaton, cp, ctf).
 // @Tags Dashboard
 // @Accept  json
 // @Produce  json
-// @Param acara path string true "Event type (seminar, hackaton, cp)"
+// @Param acara path string true "Event type (seminar, hackaton, cp, ctf)"
 // @Param count path int true "Number of items per page"
 // @Param page path int true "Page number"
 // @Param search query string false "Search by id_tiket, name, or email"
@@ -52,31 +53,49 @@ func (h *dashboardController) GetAllDashboard(c *gin.Context) {
 	endDateStr := c.Param("end_date")
 	search := c.Query("search")
 
+	fmt.Println("[dashboard.GetAllDashboard] incoming request:",
+		"acara=", acara,
+		"start_date=", startDateStr,
+		"end_date=", endDateStr,
+		"count=", strCount,
+		"page=", strPage,
+		"search=", search)
+
 	count, errCount := strconv.Atoi(strCount)
 	page, errPage := strconv.Atoi(strPage)
 
 	if errCount != nil || errPage != nil {
+		fmt.Println("[dashboard.GetAllDashboard] invalid count/page:", errCount, errPage)
 		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "count or page are error"))
+		return
 	}
+
+	fmt.Println("[dashboard.GetAllDashboard] parsed count/page:", count, page)
 
 	startDate, err := time.Parse("2006-01-02", startDateStr)
 	if err != nil {
+		fmt.Println("[dashboard.GetAllDashboard] invalid start_date:", startDateStr, "error:", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid start_date format"})
 		return
 	}
 
 	endDate, err := time.Parse("2006-01-02", endDateStr)
 	if err != nil {
+		fmt.Println("[dashboard.GetAllDashboard] invalid end_date:", endDateStr, "error:", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid end_date format"})
 		return
 	}
+
+	fmt.Println("[dashboard.GetAllDashboard] parsed dates:", startDate.Format(time.RFC3339), endDate.Format(time.RFC3339))
 
 	var respondData interface{}
 
 	switch acara {
 	case "seminar":
+		fmt.Println("[dashboard.GetAllDashboard] entering seminar branch")
 		data, err := h.Service.GetAllSeminar(startDate, endDate, count, page, search)
 		if err != nil {
+			fmt.Println("[dashboard.GetAllDashboard] seminar service error:", err)
 			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "error service"))
 			return
 		}
@@ -84,8 +103,10 @@ func (h *dashboardController) GetAllDashboard(c *gin.Context) {
 		respondData = data
 
 	case "hackaton":
+		fmt.Println("[dashboard.GetAllDashboard] entering hackaton branch")
 		data, err := h.Service.GetAllHackaton(startDate, endDate, count, page)
 		if err != nil {
+			fmt.Println("[dashboard.GetAllDashboard] hackaton service error:", err)
 			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "error service"))
 			return
 		}
@@ -93,8 +114,21 @@ func (h *dashboardController) GetAllDashboard(c *gin.Context) {
 		respondData = data
 
 	case "cp":
+		fmt.Println("[dashboard.GetAllDashboard] entering cp branch")
 		data, err := h.Service.GetAllCp(startDate, endDate, count, page)
 		if err != nil {
+			fmt.Println("[dashboard.GetAllDashboard] cp service error:", err)
+			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "error service"))
+			return
+		}
+
+		respondData = data
+
+	case "ctf":
+		fmt.Println("[dashboard.GetAllDashboard] entering ctf branch")
+		data, err := h.Service.GetAllCtf(startDate, endDate, count, page)
+		if err != nil {
+			fmt.Println("[dashboard.GetAllDashboard] ctf service error:", err)
 			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "error service"))
 			return
 		}
@@ -114,7 +148,7 @@ func (h *dashboardController) GetAllDashboard(c *gin.Context) {
 // @Tags Dashboard
 // @Accept  json
 // @Produce  json
-// @Param acara path string true "Event type (seminar, hackaton, cp)"
+// @Param acara path string true "Event type (seminar, hackaton, cp, ctf)"
 // @Param id path string true "Event ID"
 // @Param request body interface{} true "Event data to update"
 // @Success 200 {object} helper.Response{data=string}
@@ -162,6 +196,18 @@ func (h *dashboardController) Update(c *gin.Context) {
 			return
 		}
 
+	case "ctf":
+		var input dto.Ctf
+		if err := c.ShouldBindJSON(&input); err != nil {
+			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "BAD_REQUEST"))
+			return
+		}
+
+		if err := h.Service.UpdateCtfService(id, input); err != nil {
+			c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("ERROR", "error service"))
+			return
+		}
+
 	default:
 		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "kegiatan not found"))
 		return
@@ -175,16 +221,16 @@ func (h *dashboardController) Update(c *gin.Context) {
 // @Tags Dashboard
 // @Accept  json
 // @Produce  json
-// @Param acara path string true "Event type (seminar, hackaton, cp)"
+// @Param acara path string true "Event type (seminar, hackaton, cp, ctf)"
 // @Param id path string true "Event ID"
 // @Success 200 {object} helper.Response{data=string}
 // @Failure 400 {object} helper.Response{message=string}
 // @Router /dashboard/{acara}/{id} [delete]
 func (h *dashboardController) Delete(c *gin.Context) {
-	acara := c.Param(":acara")
-	id := c.Param(":id")
+	acara := c.Param("acara")
+	id := c.Param("id")
 
-	if acara != "seminar" && acara != "hackaton" && acara != "cp" {
+	if acara != "seminar" && acara != "hackaton" && acara != "hackathon" && acara != "cp" && acara != "ctf" {
 		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "kegiatan not found"))
 		return
 	}

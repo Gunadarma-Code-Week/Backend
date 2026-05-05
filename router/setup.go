@@ -18,31 +18,40 @@ var (
 	newsletterRepository = repository.NewNewsletterRepository(database)
 	// profileRepository      = repository.GateProfileRepository(database)
 	registrationRepository = repository.GateRegistrationRepository(database)
+	auditLogRepository     = repository.NewAuditLogRepository(database)
 
 	jwtService          = service.NewJwtService()
 	emailService        = service.NewEmailService()
 	domJudgeService     = service.NewDomJudgeService()
+	midtransService     = service.NewMidtransService()
 	authService         = service.NewAuthService(userRepository)
 	userService         = service.NewUserService(userRepository)
 	registrationService = service.NewRegistrationService(
 		registrationRepository,
 		domJudgeService,
+		midtransService,
 	)
 	newsletterService = service.NewNewsletterService(newsletterRepository)
 	SubmissionService = service.NewSubmissionService(database)
 	cpService         = service.NewCpService(database)
+	ctfService        = service.NewCtfService(database)
 	seminarService    = service.NewSeminarService(database)
+	auditLogService   = service.NewAuditLogService(auditLogRepository)
 
 	authHandler         = handler.NewAuthHandler(authService, jwtService, emailService)
 	userHandler         = handler.NewUserHandler(userService)
 	registrationHandler = handler.GateRegistrationHandler(registrationService, userService)
+	paymentHandler      = handler.NewPaymentHandler(midtransService, registrationService)
 	// newsletterHandler   = handler.NewNewsletterHandler(newsletterService)
 	submissionHandler = handler.GateHackathonHandler(SubmissionService)
 	cpHandler         = handler.GateCompetitiveHandler(cpService)
+	ctfHandler        = handler.NewCTFHandler(ctfService)
 	hackathonHandler  = handler.GateHackathonHandler(SubmissionService)
 	seminarHandler    = handler.NewSeminarHandler(seminarService)
+	auditLogHandler   = handler.NewAuditLogHandler(auditLogService)
 
-	authMiddleware = middleware.NewAuthMiddleware(authService, jwtService)
+	authMiddleware  = middleware.NewAuthMiddleware(authService, jwtService)
+	auditMiddleware = middleware.NewAuditMiddleware(auditLogService)
 
 	dashboards = handler.DashboardController(database)
 )
@@ -58,6 +67,7 @@ func SetupRouter(r *gin.Engine) {
 
 	mustAuth := router.Group("")
 	mustAuth.Use(authMiddleware.JwtAuthMiddleware)
+	mustAuth.Use(auditMiddleware.AuditLogMiddleware)
 	mustAuth.GET("mustauth/ping", authHandler.Ping)
 
 	// Profile Route
@@ -79,8 +89,15 @@ func SetupRouter(r *gin.Engine) {
 		teamRegistration := mustUpdatedProfile.Group("team/registration")
 		teamRegistration.POST("hackathon", registrationHandler.RegistrationHackathonTeam)
 		teamRegistration.POST("cp", registrationHandler.RegistrationCPTeam)
+		teamRegistration.POST("ctf", registrationHandler.RegistrationCTFTeam)
 		teamRegistration.GET("find/:join_code", registrationHandler.FindTeam)
 		teamRegistration.POST("join/:join_code", registrationHandler.UserJoinTeam)
+	}
+
+	// Payment Notification
+	{
+		router.POST("payment/notification", paymentHandler.Notification)
+		router.GET("/payment/check/:order_id", paymentHandler.ManualCheckTransaction)
 	}
 
 	// Profile Route
@@ -127,6 +144,17 @@ func SetupRouter(r *gin.Engine) {
 		adminUsers.GET("/analytics/growth", userHandler.AdminGetUserGrowthAnalytics)
 	}
 
+	// Audit Log Routes
+	{
+		auditLogs := router.Group("/admin/audit-logs")
+		auditLogs.Use(authMiddleware.JwtAuthMiddleware)
+		auditLogs.Use(authMiddleware.MustAdmin)
+
+		auditLogs.GET("", auditLogHandler.GetAllAuditLogs)
+		auditLogs.GET("/user/:user_id", auditLogHandler.GetUserAuditLogs)
+		auditLogs.GET("/date-range", auditLogHandler.GetAuditLogsByDateRange)
+	}
+
 	{
 		submissionHandler := router.Group("/submission")
 		submissionHandler.POST("/hackaton/:stage/:join_code", hackathonHandler.SubmissionHackaton)
@@ -136,6 +164,11 @@ func SetupRouter(r *gin.Engine) {
 	{
 		cp := router.Group("/cp")
 		cp.GET("/:join_code", cpHandler.GetDetail)
+	}
+
+	{
+		ctf := router.Group("/ctf")
+		ctf.GET("/:join_code", ctfHandler.GetDetail)
 	}
 
 	{

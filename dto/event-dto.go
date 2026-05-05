@@ -31,9 +31,10 @@ type Ticket struct {
 }
 
 type Event struct {
-	Name   string `json:"name"`
-	Status string `json:"status"`
-	Ticket Ticket `json:"ticket"`
+	Name        string `json:"name"`
+	Status      string `json:"status"`
+	PaymentType string `json:"payment_type"`
+	Ticket      Ticket `json:"ticket"`
 }
 
 type ResponseEvents struct {

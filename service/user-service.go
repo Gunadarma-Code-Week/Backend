@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"gorm.io/gorm"
+	"os"
 )
 
 type UserService struct {
@@ -92,6 +93,18 @@ func (s *UserService) GetEvents(userId uint64) (dto.ResponseEvents, error) {
 		return dto.ResponseEvents{}, err
 	}
 
+	// Healing logic: If user has no team (IDTeam is NULL), check if they are a leader of any team
+	if user.IDTeam == nil {
+		var team entity.Team
+		if err := s.DB.Where("id_lead_team = ?", user.ID).First(&team).Error; err == nil {
+			// Found the team where this user is the leader, restore the relationship
+			user.IDTeam = &team.ID_Team
+			user.Team = team
+			// Update database to fix the inconsistency for future calls
+			_ = s.DB.Model(&entity.User{}).Where("id = ?", user.ID).Update("id_team", team.ID_Team)
+		}
+	}
+
 	// Get all team members
 	var member []entity.User
 	if err := s.DB.Where("id_team = ?", user.IDTeam).Find(&member).Error; err != nil {
@@ -123,10 +136,12 @@ func (s *UserService) GetEvents(userId uint64) (dto.ResponseEvents, error) {
 	// Get event data
 	var hackaton entity.HackathonTeam
 	var cp entity.CPTeam
+	var ctf entity.CTFTeam
 	var seminar entity.Seminar
 
 	_ = s.DB.Where("id_team = ?", user.IDTeam).First(&hackaton)
 	_ = s.DB.Where("id_team = ?", user.IDTeam).First(&cp)
+	_ = s.DB.Where("id_team = ?", user.IDTeam).First(&ctf)
 	_ = s.DB.Where("id_user = ?", idUserStr).First(&seminar)
 
 	seminarStatus := "Unregistered"
@@ -134,22 +149,36 @@ func (s *UserService) GetEvents(userId uint64) (dto.ResponseEvents, error) {
 		seminarStatus = "Registered"
 	}
 
+	paymentType := "manual"
+	if os.Getenv("MIDTRANS_ACTIVE") == "true" {
+		paymentType = "midtrans"
+	}
+
 	// Fill event data
 	events := []dto.Event{
 		{
-			Name:   "Seminar",
-			Status: seminarStatus,
-			Ticket: dto.Ticket{},
+			Name:        "Seminar",
+			Status:      seminarStatus,
+			PaymentType: paymentType,
+			Ticket:      dto.Ticket{},
 		},
 		{
-			Name:   "Hackathon",
-			Status: getStatusOrUnregistered(hackaton.Stage),
-			Ticket: dto.Ticket{},
+			Name:        "Hackathon",
+			Status:      getStatusOrUnregistered(hackaton.Stage),
+			PaymentType: paymentType,
+			Ticket:      dto.Ticket{},
 		},
 		{
-			Name:   "Competitive Programming",
-			Status: getStatusOrUnregistered(cp.Stage),
-			Ticket: dto.Ticket{},
+			Name:        "Competitive Programming",
+			Status:      getStatusOrUnregistered(cp.Stage),
+			PaymentType: paymentType,
+			Ticket:      dto.Ticket{},
+		},
+		{
+			Name:        "Capture The Flag",
+			Status:      getStatusOrUnregistered(ctf.Stage),
+			PaymentType: paymentType,
+			Ticket:      dto.Ticket{},
 		},
 	}
 
@@ -168,26 +197,26 @@ func (s *UserService) AdminGetAllUsers(query dto.AdminGetUsersQueryDTO) (dto.Adm
 	var totalUsers int64
 
 	// Build query
-	db := s.DB.Model(&entity.User{})
+	db := s.DB.Model(&entity.User{}).Joins("Team")
 
 	// Apply date filters if provided
 	if query.StartDate != "" {
 		startDate, err := time.Parse("2006-01-02", query.StartDate)
 		if err == nil {
-			db = db.Where("created_at >= ?", startDate)
+			db = db.Where("users.created_at >= ?", startDate)
 		}
 	}
 	if query.EndDate != "" {
 		endDate, err := time.Parse("2006-01-02", query.EndDate)
 		if err == nil {
-			db = db.Where("created_at <= ?", endDate.Add(24*time.Hour))
+			db = db.Where("users.created_at <= ?", endDate.Add(24*time.Hour))
 		}
 	}
 
 	// Apply search filter if provided
 	if query.Q != "" {
 		searchTerm := "%" + query.Q + "%"
-		db = db.Where("name ILIKE ? OR email ILIKE ? OR institusi ILIKE ?", searchTerm, searchTerm, searchTerm)
+		db = db.Where("users.name ILIKE ? OR users.email ILIKE ? OR users.institusi ILIKE ? OR \"Team\".team_name ILIKE ?", searchTerm, searchTerm, searchTerm, searchTerm)
 	}
 
 	// Count total users
@@ -196,14 +225,20 @@ func (s *UserService) AdminGetAllUsers(query dto.AdminGetUsersQueryDTO) (dto.Adm
 	}
 
 	// Apply sorting
-	sortBy := "id"
+	sortBy := "users.id"
 	if query.SortBy != "" {
-		validSortFields := map[string]bool{
-			"id": true, "institusi": true, "id_team": true, "nim": true,
-			"soc_med_document": true, "profile_has_updated": true, "data_has_verified": true,
+		validSortFields := map[string]string{
+			"id":                  "users.id",
+			"institusi":           "users.institusi",
+			"id_team":             "users.id_team",
+			"team_name":           "\"Team\".team_name",
+			"nim":                 "users.nim",
+			"soc_med_document":    "users.soc_med_document",
+			"profile_has_updated": "users.profile_has_updated",
+			"data_has_verified":   "users.data_has_verified",
 		}
-		if validSortFields[query.SortBy] {
-			sortBy = query.SortBy
+		if field, ok := validSortFields[query.SortBy]; ok {
+			sortBy = field
 		}
 	}
 
@@ -212,7 +247,7 @@ func (s *UserService) AdminGetAllUsers(query dto.AdminGetUsersQueryDTO) (dto.Adm
 		sortOrder = "DESC"
 	}
 
-	// Apply pagination and sorting
+	// Apply pagination and sorting with Preload Team
 	offset := (query.Page - 1) * query.Limit
 	if err := db.Order(sortBy + " " + sortOrder).Limit(query.Limit).Offset(offset).Find(&users).Error; err != nil {
 		return dto.AdminUsersListResponseDTO{}, err
@@ -255,6 +290,7 @@ func (s *UserService) AdminGetAllUsers(query dto.AdminGetUsersQueryDTO) (dto.Adm
 		}
 		userResponse.SocMedDocument = user.SocMedDocument
 		userResponse.DokumenFilename = user.DokumenFilename
+		userResponse.TeamName = user.Team.TeamName
 
 		userResponses = append(userResponses, userResponse)
 	}
@@ -278,7 +314,7 @@ func (s *UserService) AdminGetAllUsers(query dto.AdminGetUsersQueryDTO) (dto.Adm
 // AdminGetUserById - Get user by ID for admin
 func (s *UserService) AdminGetUserById(id uint64) (*dto.AdminUserResponseDTO, error) {
 	var user entity.User
-	if err := s.DB.Where("id = ?", id).First(&user).Error; err != nil {
+	if err := s.DB.Preload("Team").Where("id = ?", id).First(&user).Error; err != nil {
 		return nil, err
 	}
 
@@ -316,6 +352,7 @@ func (s *UserService) AdminGetUserById(id uint64) (*dto.AdminUserResponseDTO, er
 	}
 	userResponse.SocMedDocument = user.SocMedDocument
 	userResponse.DokumenFilename = user.DokumenFilename
+	userResponse.TeamName = user.Team.TeamName
 
 	return userResponse, nil
 }
@@ -375,8 +412,12 @@ func (s *UserService) AdminUpdateUser(id uint64, updateData dto.AdminUpdateUserD
 	}
 
 	// Update boolean fields
-	user.ProfileHasUpdated = updateData.ProfileHasUpdated
-	user.DataHasVerified = updateData.DataHasVerified
+	if updateData.ProfileHasUpdated != nil {
+		user.ProfileHasUpdated = *updateData.ProfileHasUpdated
+	}
+	if updateData.DataHasVerified != nil {
+		user.DataHasVerified = *updateData.DataHasVerified
+	}
 
 	if err := s.DB.Save(&user).Error; err != nil {
 		return nil, err

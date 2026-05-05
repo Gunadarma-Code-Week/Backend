@@ -62,8 +62,8 @@ type AdminUpdateUserDTO struct {
 	SocMedDocument    string `json:"soc_med_document"`
 	DokumenFilename   string `json:"dokumen_filename"`
 	ProfilePicture    string `json:"profile_picture"`
-	ProfileHasUpdated bool   `json:"profile_has_updated"`
-	DataHasVerified   bool   `json:"data_has_verified"`
+	ProfileHasUpdated *bool  `json:"profile_has_updated"`
+	DataHasVerified   *bool  `json:"data_has_verified"`
 }
 
 type AdminUserResponseDTO struct {
@@ -85,6 +85,7 @@ type AdminUserResponseDTO struct {
 	ProfileHasUpdated bool   `json:"profile_has_updated"`
 	DataHasVerified   bool   `json:"data_has_verified"`
 	IDTeam            uint64 `json:"id_team"`
+	TeamName          string `json:"team_name"`
 	CreatedAt         string `json:"created_at"`
 	UpdatedAt         string `json:"updated_at"`
 }

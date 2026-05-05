@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"gcw/config"
+	"gcw/middleware"
 	"gcw/router"
 	"log"
 	"net/http"
@@ -22,6 +23,7 @@ import (
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
+
 
 func createLogFile() (*os.File, error) {
 	err := os.MkdirAll("log", os.ModePerm)
@@ -77,11 +79,14 @@ func main() {
 
 	corsConfig := cors.DefaultConfig()
 	corsConfig.AllowOrigins = origins
-	corsConfig.AllowHeaders = []string{"Origin", "Content-Type", "Accept", "x-token", "cache-control", "Authorization"}
+	corsConfig.AllowHeaders = []string{"Origin", "Content-Type", "Accept", "x-token", "cache-control", "Authorization", "If-None-Match"}
 	corsConfig.AllowCredentials = true
 	corsConfig.AllowMethods = []string{"POST", "DELETE", "GET", "PUT", "PATCH", "OPTIONS"}
+	corsConfig.ExposeHeaders = []string{"ETag"}
 
 	r.Use(cors.New(corsConfig))
+	r.Use(middleware.RateLimiter())
+	r.Use(middleware.ETagMiddleware())
 
 	router.SetupRouter(r)
 
@@ -113,4 +118,4 @@ func main() {
 	log.Println("Server exiting")
 }
 
-// trigger action
+// trigger action: v2 team integration applied
