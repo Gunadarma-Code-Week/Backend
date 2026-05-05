@@ -127,6 +127,7 @@ func SetupRouter(r *gin.Engine) {
 		dashboard.Use(auditMiddleware.AuditLogMiddleware) // Record admin delete/update actions
 
 		dashboard.GET("/:acara/:count/:page", dashboards.GetAllDashboard)
+		dashboard.GET("/:acara", dashboards.GetAllDashboard) // Flexible route
 		dashboard.DELETE("/:acara/:id", dashboards.Delete)
 		dashboard.PUT("/:acara/:id", dashboards.Update)
 		// dashboard.GET("/events/:id_user", dashboards.GetEvent)
