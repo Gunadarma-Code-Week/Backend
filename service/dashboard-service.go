@@ -94,11 +94,8 @@ func (s *DashboardServices) GetAllHackaton(count, page int) (dto.ResponseHackato
 		Limit(count + 1).
 		Offset(offset).
 		Find(&dataSeminars).Error; err != nil {
-		fmt.Println("[dashboard.GetAllHackaton] database error:", err)
 		return dto.ResponseHackaton{}, err
 	}
-
-	fmt.Println("[dashboard.GetAllHackaton] rows found in DB:", len(dataSeminars))
 
 	hasMore := false
 
@@ -285,11 +282,8 @@ func (s *DashboardServices) GetAllCtf(count, page int) (dto.ResponseCtf, error) 
 		Limit(count + 1).
 		Offset(offset).
 		Find(&dataCtfTeams).Error; err != nil {
-		fmt.Println("[dashboard.GetAllCtf] database error:", err)
 		return dto.ResponseCtf{}, err
 	}
-
-	fmt.Println("[dashboard.GetAllCtf] rows found in DB:", len(dataCtfTeams))
 
 	hasMore := false
 
