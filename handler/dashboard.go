@@ -49,6 +49,22 @@ func (h *dashboardController) GetAllDashboard(c *gin.Context) {
 	strPage := c.Param("page")
 	search := c.Query("search")
 
+	// Fallback to query parameters if path parameters are missing
+	if strCount == "" {
+		strCount = c.Query("count")
+	}
+	if strPage == "" {
+		strPage = c.Query("page")
+	}
+
+	// Default values if still empty
+	if strCount == "" {
+		strCount = "10"
+	}
+	if strPage == "" {
+		strPage = "0"
+	}
+
 	fmt.Println("[dashboard.GetAllDashboard] incoming request:",
 		"acara=", acara,
 		"count=", strCount,
@@ -59,8 +75,8 @@ func (h *dashboardController) GetAllDashboard(c *gin.Context) {
 	page, errPage := strconv.Atoi(strPage)
 
 	if errCount != nil || errPage != nil {
-		fmt.Println("[dashboard.GetAllDashboard] invalid count/page:", errCount, errPage)
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "count or page are error"))
+		fmt.Println("[dashboard.GetAllDashboard] invalid count/page strings:", strCount, strPage)
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "count or page must be integers. got count="+strCount+", page="+strPage))
 		return
 	}
 
@@ -80,7 +96,7 @@ func (h *dashboardController) GetAllDashboard(c *gin.Context) {
 
 		respondData = data
 
-	case "hackaton":
+	case "hackaton", "hackathon":
 		fmt.Println("[dashboard.GetAllDashboard] entering hackaton branch")
 		data, err := h.Service.GetAllHackaton(count, page)
 		if err != nil {
