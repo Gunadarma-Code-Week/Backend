@@ -104,6 +104,8 @@ definitions:
         type: string
       soc_med_document:
         type: string
+      team_name:
+        type: string
       updated_at:
         type: string
     type: object
@@ -167,6 +169,8 @@ definitions:
   dto.Event:
     properties:
       name:
+        type: string
+      payment_type:
         type: string
       status:
         type: string
@@ -272,8 +276,6 @@ definitions:
       updated_at:
         type: string
     required:
-    - supervisor
-    - supervisor_nidn
     - team_name
     type: object
   dto.RegistrationCPResponse:
@@ -318,8 +320,6 @@ definitions:
       team_name:
         type: string
     required:
-    - supervisor
-    - supervisor_nidn
     - team_name
     type: object
   dto.RegistrationCPTeamResponse:
@@ -334,6 +334,10 @@ definitions:
       bukti_pembayaran:
         type: string
       created_at:
+        type: string
+      domjudge_password:
+        type: string
+      domjudge_username:
         type: string
       id_ctf_team:
         type: integer
@@ -365,8 +369,6 @@ definitions:
       team_name:
         type: string
     required:
-    - supervisor
-    - supervisor_nidn
     - team_name
     type: object
   dto.RegistrationCTFTeamResponse:
@@ -403,6 +405,8 @@ definitions:
     type: object
   dto.RegistrationHackathonTeamRequest:
     properties:
+      bukti_pembayaran:
+        type: string
       supervisor:
         type: string
       supervisor_nidn:
@@ -410,8 +414,6 @@ definitions:
       team_name:
         type: string
     required:
-    - supervisor
-    - supervisor_nidn
     - team_name
     type: object
   dto.RegistrationHackathonTeamResponse:
@@ -663,6 +665,95 @@ info:
   title: GCW API
   version: "1.0"
 paths:
+  /admin/audit-logs:
+    get:
+      description: Get all audit logs with pagination. Requires admin role.
+      parameters:
+      - description: 'Page number (default: 1)'
+        in: query
+        name: page
+        type: integer
+      - description: 'Items per page (default: 10)'
+        in: query
+        name: limit
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Get all audit logs
+      tags:
+      - AuditLog
+  /admin/audit-logs/date-range:
+    get:
+      description: Get audit logs within a specific date range with optional user
+        filter.
+      parameters:
+      - description: Start date (YYYY-MM-DD format)
+        in: query
+        name: start_date
+        required: true
+        type: string
+      - description: End date (YYYY-MM-DD format)
+        in: query
+        name: end_date
+        required: true
+        type: string
+      - description: Filter by user ID
+        in: query
+        name: user_id
+        type: integer
+      - description: 'Page number (default: 1)'
+        in: query
+        name: page
+        type: integer
+      - description: 'Items per page (default: 10)'
+        in: query
+        name: limit
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Get audit logs by date range
+      tags:
+      - AuditLog
+  /admin/audit-logs/user/{user_id}:
+    get:
+      description: Get audit logs for a specific user with pagination.
+      parameters:
+      - description: User ID
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      - description: 'Page number (default: 1)'
+        in: query
+        name: page
+        type: integer
+      - description: 'Items per page (default: 10)'
+        in: query
+        name: limit
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Get user audit logs
+      tags:
+      - AuditLog
   /admin/users:
     get:
       consumes:

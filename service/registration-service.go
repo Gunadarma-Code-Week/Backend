@@ -59,8 +59,8 @@ func (s *RegistrationService) CPTeamRegistration(
 		return nil, fmt.Errorf("USER ALREADY HAVE TEAM")
 	}
 
-	// Check duplicate team name
-	if err = s.registrationRepository.FindTeamByNameAndEvent(&entity.Team{}, registrationDTO.TeamName, "cp"); err == nil {
+	// Check duplicate team name secara global (hackathon, cp, ctf)
+	if err = s.registrationRepository.FindActiveTeamByNameGlobal(registrationDTO.TeamName); err == nil {
 		logging.Low("RegistrationService.CPTeamRegistration", "BAD_REQUEST", "Nama Tim Sudah Digunakan")
 		return nil, fmt.Errorf("Nama Tim Sudah Digunakan")
 	}
@@ -190,8 +190,8 @@ func (s *RegistrationService) HackathonTeamRegistration(
 		return nil, fmt.Errorf("USER ALREADY HAVE TEAM")
 	}
 
-	// Check duplicate team name
-	if err = s.registrationRepository.FindTeamByNameAndEvent(&entity.Team{}, registrationDTO.TeamName, "hackathon"); err == nil {
+	// Check duplicate team name secara global (hackathon, cp, ctf)
+	if err = s.registrationRepository.FindActiveTeamByNameGlobal(registrationDTO.TeamName); err == nil {
 		logging.Low("RegistrationService.HackathonTeamRegistration", "BAD_REQUEST", "Nama Tim Sudah Digunakan")
 		return nil, fmt.Errorf("Nama Tim Sudah Digunakan")
 	}
@@ -330,8 +330,8 @@ func (s *RegistrationService) CTFTeamRegistration(
 		return nil, fmt.Errorf("USER ALREADY HAVE TEAM")
 	}
 
-	// Check duplicate team name
-	if err = s.registrationRepository.FindTeamByNameAndEvent(&entity.Team{}, registrationDTO.TeamName, "ctf"); err == nil {
+	// Check duplicate team name secara global (hackathon, cp, ctf)
+	if err = s.registrationRepository.FindActiveTeamByNameGlobal(registrationDTO.TeamName); err == nil {
 		logging.Low("RegistrationService.CTFTeamRegistration", "BAD_REQUEST", "Nama Tim Sudah Digunakan")
 		return nil, fmt.Errorf("Nama Tim Sudah Digunakan")
 	}

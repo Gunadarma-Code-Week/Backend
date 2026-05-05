@@ -65,13 +65,33 @@ func (r *RegistrationRepository) CountUserByTeamID(id_team uint64) (int64, error
 	return count, nil
 }
 
-func (r *RegistrationRepository) FindTeamByNameAndEvent(team *entity.Team, name string, event string) error {
-	res := r.DB.Where("team_name = ? AND event = ?", name, event).First(&team)
-	if err := res.Error; err != nil {
+// FindActiveTeamByNameGlobal checks whether any ACTIVE (non-soft-deleted) team
+// across hackathon, cp, or ctf events already uses this name (case-insensitive).
+// Returns nil when a conflicting team IS found (caller should reject the name).
+// Returns an error (e.g. gorm.ErrRecordNotFound) when the name is available.
+func (r *RegistrationRepository) FindActiveTeamByNameGlobal(name string) error {
+	var count int64
+	err := r.DB.Raw(`
+		SELECT COUNT(*) FROM teams
+		LEFT JOIN hackathon_teams ON hackathon_teams.id_team = teams.id_team AND teams.event = 'hackathon'
+		LEFT JOIN cp_teams        ON cp_teams.id_team        = teams.id_team AND teams.event = 'cp'
+		LEFT JOIN ctf_teams       ON ctf_teams.id_team       = teams.id_team AND teams.event = 'ctf'
+		WHERE LOWER(teams.team_name) = LOWER(?)
+		AND (
+			(teams.event = 'hackathon' AND hackathon_teams.is_deleted = false)
+			OR (teams.event = 'cp'        AND cp_teams.is_deleted        = false)
+			OR (teams.event = 'ctf'       AND ctf_teams.is_deleted       = false)
+		)
+	`, name).Scan(&count).Error
+	if err != nil {
 		return err
 	}
-	return nil
+	if count > 0 {
+		return nil // nil = conflict found
+	}
+	return gorm.ErrRecordNotFound // error = name is available (no conflict)
 }
+
 
 func (r *RegistrationRepository) UpdateUserTeam(tx *gorm.DB, u *entity.User, id_team uint64, id_user uint64) error {
 	res := tx.Model(&entity.User{}).Where("id = ?", id_user).Update("id_team", id_team)

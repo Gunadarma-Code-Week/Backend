@@ -12,9 +12,9 @@ type auditLogService struct {
 }
 
 type AuditLogService interface {
-	RecordActivity(userID uint64, method string, endpoint string, requestBody interface{}, ipAddress string, userAgent string) error
-	RecordActivityWithResponse(userID uint64, method string, endpoint string, requestBody interface{}, responseCode int, responseBody interface{}, ipAddress string, userAgent string) error
-	RecordActivityWithError(userID uint64, method string, endpoint string, requestBody interface{}, responseCode int, errorMessage string, ipAddress string, userAgent string) error
+	RecordActivity(userID uint64, method string, endpoint string, description string, requestBody interface{}, ipAddress string, userAgent string) error
+	RecordActivityWithResponse(userID uint64, method string, endpoint string, description string, requestBody interface{}, responseCode int, responseBody interface{}, ipAddress string, userAgent string) error
+	RecordActivityWithError(userID uint64, method string, endpoint string, description string, requestBody interface{}, responseCode int, errorMessage string, ipAddress string, userAgent string) error
 	GetUserActivityLogs(userID uint64, limit int, offset int) ([]*entity.AuditLog, int64, error)
 	GetEndpointActivityLogs(endpoint string, limit int, offset int) ([]*entity.AuditLog, int64, error)
 	GetActivityLogsByDateRange(startDate time.Time, endDate time.Time, limit int, offset int) ([]*entity.AuditLog, int64, error)
@@ -29,7 +29,7 @@ func NewAuditLogService(repo repository.AuditLogRepository) AuditLogService {
 }
 
 // RecordActivity records user activity without response data
-func (s *auditLogService) RecordActivity(userID uint64, method string, endpoint string, requestBody interface{}, ipAddress string, userAgent string) error {
+func (s *auditLogService) RecordActivity(userID uint64, method string, endpoint string, description string, requestBody interface{}, ipAddress string, userAgent string) error {
 	var requestJSON json.RawMessage
 	if requestBody != nil {
 		data, err := json.Marshal(requestBody)
@@ -46,6 +46,7 @@ func (s *auditLogService) RecordActivity(userID uint64, method string, endpoint 
 		UserID:      userID,
 		Method:      method,
 		Endpoint:    endpoint,
+		Description: description,
 		RequestBody: requestJSON,
 		IPAddress:   ipAddress,
 		UserAgent:   userAgent,
@@ -55,7 +56,7 @@ func (s *auditLogService) RecordActivity(userID uint64, method string, endpoint 
 }
 
 // RecordActivityWithResponse records user activity with response data
-func (s *auditLogService) RecordActivityWithResponse(userID uint64, method string, endpoint string, requestBody interface{}, responseCode int, responseBody interface{}, ipAddress string, userAgent string) error {
+func (s *auditLogService) RecordActivityWithResponse(userID uint64, method string, endpoint string, description string, requestBody interface{}, responseCode int, responseBody interface{}, ipAddress string, userAgent string) error {
 	var requestJSON json.RawMessage
 	if requestBody != nil {
 		data, err := json.Marshal(requestBody)
@@ -84,6 +85,7 @@ func (s *auditLogService) RecordActivityWithResponse(userID uint64, method strin
 		UserID:       userID,
 		Method:       method,
 		Endpoint:     endpoint,
+		Description:  description,
 		RequestBody:  requestJSON,
 		ResponseCode: responseCode,
 		ResponseBody: responseJSON,
@@ -95,7 +97,7 @@ func (s *auditLogService) RecordActivityWithResponse(userID uint64, method strin
 }
 
 // RecordActivityWithError records user activity with error information
-func (s *auditLogService) RecordActivityWithError(userID uint64, method string, endpoint string, requestBody interface{}, responseCode int, errorMessage string, ipAddress string, userAgent string) error {
+func (s *auditLogService) RecordActivityWithError(userID uint64, method string, endpoint string, description string, requestBody interface{}, responseCode int, errorMessage string, ipAddress string, userAgent string) error {
 	var requestJSON json.RawMessage
 	if requestBody != nil {
 		data, err := json.Marshal(requestBody)
@@ -112,6 +114,7 @@ func (s *auditLogService) RecordActivityWithError(userID uint64, method string, 
 		UserID:       userID,
 		Method:       method,
 		Endpoint:     endpoint,
+		Description:  description,
 		RequestBody:  requestJSON,
 		ResponseCode: responseCode,
 		ErrorMessage: &errorMessage,

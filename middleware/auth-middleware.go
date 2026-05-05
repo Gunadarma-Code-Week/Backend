@@ -66,6 +66,23 @@ func (m *authMiddleware) JwtAuthMiddleware(c *gin.Context) {
 		return
 	}
 
+	// Check if user's team has been soft deleted
+	if user.IDTeam != nil {
+		isDeleted, teamEvent := m.authService.IsUserTeamDeleted(user)
+		if isDeleted {
+			logging.High("AuthMiddleware.JwtAuthMiddleware", "TEAM_DELETED",
+				"User team has been deleted, forcing logout")
+			c.JSON(401, gin.H{
+				"status":  "error",
+				"message": "Tim Anda telah dihapus oleh admin",
+				"code":    "TEAM_DELETED",
+				"event":   teamEvent,
+			})
+			c.Abort()
+			return
+		}
+	}
+
 	c.Set("user", user)
 	c.Next()
 }
