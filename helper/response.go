@@ -1,10 +1,10 @@
 package helper
 
 type Response struct {
-	Success bool
-	Message string
-	Errors  interface{}
-	Data    interface{}
+	Success bool        `json:"success"`
+	Message string      `json:"message"`
+	Errors  interface{} `json:"errors"`
+	Data    interface{} `json:"data"`
 }
 
 var NotFoundResponse Response = CreateErrorResponse("Data yang dicari tidak ditemukan", "not found")
