@@ -5,6 +5,7 @@ import (
 	"crypto/sha1"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -59,6 +60,12 @@ func ETagMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Only apply to GET requests
 		if c.Request.Method != http.MethodGet {
+			c.Next()
+			return
+		}
+
+		// Skip ETag for dashboard routes to troubleshoot empty response issue
+		if strings.Contains(c.Request.URL.Path, "/dashboard") {
 			c.Next()
 			return
 		}
