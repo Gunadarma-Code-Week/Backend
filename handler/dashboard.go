@@ -44,19 +44,11 @@ func (h *dashboardController) Statistics(c *gin.Context) {}
 // @Failure 400 {object} helper.Response{message=string}
 // @Router /dashboard/{acara}/{count}/{page} [get]
 func (h *dashboardController) GetAllDashboard(c *gin.Context) {
-	fmt.Println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-	fmt.Println("!!!!! REACHED DASHBOARD HANDLER !!!!!")
-	fmt.Println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-	fmt.Println("[dashboard.GetAllDashboard] START:", c.Request.URL.Path)
-	acara := c.Param("acara")
 	strCount := c.Param("count")
 	strPage := c.Param("page")
-	startDate := c.Param("start_date")
-	endDate := c.Param("end_date")
+	startDate := c.Query("startDate")
+	endDate := c.Query("endDate")
 	search := c.Query("search")
-
-	fmt.Printf("[dashboard.GetAllDashboard] Params: acara=%s, start=%s, end=%s, count=%s, page=%s\n", 
-		acara, startDate, endDate, strCount, strPage)
 
 	// Fallback logic if path params are missing
 	if strCount == "" {
@@ -84,64 +76,33 @@ func (h *dashboardController) GetAllDashboard(c *gin.Context) {
 	}
 
 
-	fmt.Println("[dashboard.GetAllDashboard] calling service for", acara)
 	var respondData interface{}
-
 	switch acara {
 	case "seminar":
-		fmt.Println("[dashboard.GetAllDashboard] entering seminar branch")
-		data, err := h.Service.GetAllSeminar(count, page, search)
-		if err != nil {
-			fmt.Println("[dashboard.GetAllDashboard] seminar service error:", err)
-			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "service error: "+err.Error()))
-			return
-		}
-
 		respondData = data
-
 	case "hackaton", "hackathon":
-		fmt.Println("[dashboard.GetAllDashboard] entering hackaton branch")
-		data, err := h.Service.GetAllHackaton(count, page)
-		if err != nil {
-			fmt.Println("[dashboard.GetAllDashboard] hackaton service error:", err)
-			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "service error: "+err.Error()))
-			return
-		}
-
 		respondData = data
-
 	case "cp":
-		fmt.Println("[dashboard.GetAllDashboard] entering cp branch")
 		data, err := h.Service.GetAllCp(count, page)
 		if err != nil {
-			fmt.Println("[dashboard.GetAllDashboard] cp service error:", err)
 			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "service error: "+err.Error()))
 			return
 		}
-
 		respondData = data
-
 	case "ctf":
-		fmt.Println("[dashboard.GetAllDashboard] entering ctf branch")
 		data, err := h.Service.GetAllCtf(count, page)
 		if err != nil {
-			fmt.Println("[dashboard.GetAllDashboard] ctf service error:", err)
 			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "service error: "+err.Error()))
 			return
 		}
-
 		respondData = data
-
 	default:
 		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "kegiatan not found"))
 		return
 	}
 
-	fmt.Println("[dashboard.GetAllDashboard] sending response for", acara, "with data:", respondData)
-	
 	// Final safety check: if respondData is still nil, return empty object instead of nothing
 	if respondData == nil {
-		fmt.Println("[dashboard.GetAllDashboard] respondData is NIL, falling back to empty object")
 		respondData = map[string]interface{}{}
 	}
 

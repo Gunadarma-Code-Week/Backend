@@ -112,7 +112,6 @@ func (s *DashboardServices) GetAllHackaton(count, page int) (dto.ResponseHackato
 		}
 		var Leader entity.User
 		if err := s.DB.Where("id = ?", data.Team.ID_LeadTeam).First(&Leader).Error; err != nil {
-			fmt.Printf("[dashboard.GetAllHackaton] leader lookup error for team: %d error: %v\n", data.Team.ID_Team, err)
 			continue
 		}
 
@@ -130,7 +129,6 @@ func (s *DashboardServices) GetAllHackaton(count, page int) (dto.ResponseHackato
 
 		var anggota []entity.User
 		if err := s.DB.Where("id_team = ?", data.Team.ID_Team).Find(&anggota).Error; err != nil {
-			fmt.Printf("[dashboard.GetAllHackaton] anggota lookup error for team: %d error: %v\n", data.Team.ID_Team, err)
 			continue
 		}
 
@@ -179,17 +177,14 @@ func (s *DashboardServices) GetAllCp(count, page int) (dto.ResponseCp, error) {
 	var dataSeminars []entity.CPTeam
 
 	offset := page * count
-	fmt.Println("[dashboard.GetAllCp] starting main query with count:", count, "page:", page, "offset:", offset)
 	if err := s.DB.Preload("Team").
 		Where("is_deleted = ? OR is_deleted IS NULL", false).
 		Order("id_cp_team ASC").
 		Limit(count + 1).
 		Offset(offset).
 		Find(&dataSeminars).Error; err != nil {
-		fmt.Println("[dashboard.GetAllCp] main query error:", err)
 		return dto.ResponseCp{}, err
 	}
-	fmt.Println("[dashboard.GetAllCp] main query success, rows:", len(dataSeminars))
 
 	hasMore := false
 
@@ -200,15 +195,12 @@ func (s *DashboardServices) GetAllCp(count, page int) (dto.ResponseCp, error) {
 
 	var responseData []dto.Cp
 
-	for i, data := range dataSeminars {
-		fmt.Printf("[dashboard.GetAllCp] processing team index %d, teamID: %d\n", i, data.Team.ID_Team)
+	for _, data := range dataSeminars {
 		if data.Team.ID_Team == 0 {
-			fmt.Printf("[dashboard.GetAllCp] skipping team index %d because ID_Team is 0\n", i)
 			continue
 		}
 		var Leader entity.User
 		if err := s.DB.Where("id = ?", data.Team.ID_LeadTeam).First(&Leader).Error; err != nil {
-			fmt.Printf("[dashboard.GetAllCp] leader lookup error for team: %d error: %v\n", data.Team.ID_Team, err)
 			continue
 		}
 
@@ -225,10 +217,8 @@ func (s *DashboardServices) GetAllCp(count, page int) (dto.ResponseCp, error) {
 
 		var anggota []entity.User
 		if err := s.DB.Where("id_team = ?", data.Team.ID_Team).Find(&anggota).Error; err != nil {
-			fmt.Printf("[dashboard.GetAllCp] anggota lookup error for team: %d error: %v\n", data.Team.ID_Team, err)
 			continue
 		}
-		fmt.Println("[dashboard.GetAllCp] anggota rows:", len(anggota))
 
 		// Create members list including leader
 		var members []dto.Anggota
@@ -284,7 +274,6 @@ func (s *DashboardServices) GetAllCtf(count, page int) (dto.ResponseCtf, error) 
 		Find(&dataCtfTeams).Error; err != nil {
 		return dto.ResponseCtf{}, err
 	}
-	fmt.Println("[dashboard.GetAllCtf] rows found:", len(dataCtfTeams))
 
 	hasMore := false
 
@@ -301,7 +290,6 @@ func (s *DashboardServices) GetAllCtf(count, page int) (dto.ResponseCtf, error) 
 		}
 		var Leader entity.User
 		if err := s.DB.Where("id = ?", data.Team.ID_LeadTeam).First(&Leader).Error; err != nil {
-			fmt.Printf("[dashboard.GetAllCtf] leader lookup error for team: %d error: %v\n", data.Team.ID_Team, err)
 			continue
 		}
 
@@ -318,7 +306,6 @@ func (s *DashboardServices) GetAllCtf(count, page int) (dto.ResponseCtf, error) 
 
 		var anggota []entity.User
 		if err := s.DB.Where("id_team = ?", data.Team.ID_Team).Find(&anggota).Error; err != nil {
-			fmt.Printf("[dashboard.GetAllCtf] anggota lookup error for team: %d error: %v\n", data.Team.ID_Team, err)
 			continue
 		}
 
