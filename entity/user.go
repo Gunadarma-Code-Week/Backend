@@ -7,34 +7,33 @@ import (
 )
 
 type User struct {
-	ID       uint64 `gorm:"primaryKey;autoIncrement"`
-	Email    string `gorm:"varchar(255); not null"`
-	Password string `gorm:"type:varchar(255)"`
+	ID       uint64 `gorm:"primaryKey;autoIncrement" json:"id"`
+	Email    string `gorm:"varchar(255); not null" json:"email"`
+	Password string `gorm:"type:varchar(255)" json:"-"`
 
-	Name            string     `gorm:"varchar(55); not null"`
-	Gender          *string    `gorm:"varchar(55);"`
-	NIM             *string    `gorm:"varchar(55);"`
-	BirthPlace      *string    `gorm:"varchar(55);"`
-	BirthDate       *time.Time `gorm:"date"`
-	Institusi       string     `gorm:"varchar(55);"`
-	Phone           string     `gorm:"type:varchar(16)"`
-	DokumenFilename string     `gorm:"type:varchar(255)"`
-	SocMedDocument  string     `gorm:"type:varchar(255)"`
-	Jenjang         string     `gorm:"type:varchar(120)"`
-	Major           string     `gorm:"type:varchar(120)"`
-	ProfilePicture  string     `gorm:"type:varchar(255)"`
+	Name            string     `gorm:"varchar(55); not null" json:"name"`
+	Gender          *string    `gorm:"varchar(55);" json:"gender"`
+	NIM             *string    `gorm:"varchar(55);" json:"nim"`
+	BirthPlace      *string    `gorm:"varchar(55);" json:"birth_place"`
+	BirthDate       *time.Time `gorm:"date" json:"birth_date"`
+	Institusi       string     `gorm:"varchar(55);" json:"institusi"`
+	Phone           string     `gorm:"type:varchar(16)" json:"phone"`
+	DokumenFilename string     `gorm:"type:varchar(255)" json:"dokumen_filename"`
+	SocMedDocument  string     `gorm:"type:varchar(255)" json:"soc_med_document"`
+	Jenjang         string     `gorm:"type:varchar(120)" json:"jenjang"`
+	Major           string     `gorm:"type:varchar(120)" json:"major"`
+	ProfilePicture  string     `gorm:"type:varchar(255)" json:"profile_picture"`
 
-	ProfileHasUpdated bool `gorm:"bool; default:false"`
-	DataHasVerified   bool `gorm:"bool; default:false"`
+	ProfileHasUpdated bool `gorm:"bool; default:false" json:"profile_has_updated"`
+	DataHasVerified   bool `gorm:"bool; default:false" json:"data_has_verified"`
 
-	// RoleID uint64   `gorm:"not null"` // Kolom untuk join ke tabel User_Role
-	Role string `gorm:"varchar(255); not null; default:'user'"` // user, admin, superadmin
+	Role string `gorm:"varchar(255); not null; default:'user'" json:"role"` 
 
-	IDTeam *uint64
-	Team   Team `gorm:"foreignKey:IDTeam;references:ID_Team"`
+	IDTeam *uint64 `json:"id_team"`
+	Team   Team    `gorm:"foreignKey:IDTeam;references:ID_Team" json:"team"`
 
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt gorm.DeletedAt `gorm:"index"`
-	DeletionReason string         `gorm:"type:text"`
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at"`
+	DeletionReason string    `gorm:"type:text" json:"deletion_reason"`
 }

@@ -303,7 +303,35 @@ func generateDescription(method, path string, body interface{}, user *entity.Use
 		switch method {
 		case "POST":
 			if strings.Contains(path, "/join/") {
-				return userLabel + " bergabung ke tim"
+				if targetName != "" {
+					return userLabel + " bergabung ke tim: " + targetName
+				}
+				joinCode := segments[len(segments)-1]
+				return userLabel + " bergabung ke tim dengan join code: " + joinCode
+			}
+			
+			// For new registrations, try to get the team name from targetName or body
+			actualTeamName := targetName
+			if actualTeamName == "" {
+				if bodyMap, ok := body.(map[string]interface{}); ok {
+					if teamName, hasName := bodyMap["team_name"]; hasName {
+						if nameStr, ok := teamName.(string); ok && nameStr != "" {
+							actualTeamName = nameStr
+						}
+					}
+				}
+			}
+
+			if actualTeamName != "" {
+				eventLabel := "tim baru"
+				if strings.Contains(path, "/hackathon") {
+					eventLabel = "tim Hackathon baru"
+				} else if strings.Contains(path, "/cp") {
+					eventLabel = "tim Competitive Programming baru"
+				} else if strings.Contains(path, "/ctf") {
+					eventLabel = "tim CTF baru"
+				}
+				return userLabel + " mendaftarkan " + eventLabel + ": " + actualTeamName
 			}
 			return userLabel + " mendaftarkan tim baru"
 		}

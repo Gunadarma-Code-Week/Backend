@@ -59,17 +59,13 @@ func (h *auditLogHandler) GetAllAuditLogs(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"code":    "success",
-		"message": "Successfully retrieved audit logs",
-		"data": gin.H{
-			"logs":       logs,
-			"total":      total,
-			"page":       page,
-			"limit":      limit,
-			"totalPages": (total + int64(limit) - 1) / int64(limit),
-		},
-	})
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Successfully retrieved audit logs", gin.H{
+		"logs":       logs,
+		"total":      total,
+		"page":       page,
+		"limit":      limit,
+		"total_pages": (total + int64(limit) - 1) / int64(limit),
+	}))
 }
 
 // GetUserAuditLogs retrieves audit logs for a specific user
@@ -113,17 +109,13 @@ func (h *auditLogHandler) GetUserAuditLogs(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"code":    "success",
-		"message": "Successfully retrieved user audit logs",
-		"data": gin.H{
-			"logs":       logs,
-			"total":      total,
-			"page":       page,
-			"limit":      limit,
-			"totalPages": (total + int64(limit) - 1) / int64(limit),
-		},
-	})
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Successfully retrieved user audit logs", gin.H{
+		"logs":       logs,
+		"total":      total,
+		"page":       page,
+		"limit":      limit,
+		"total_pages": (total + int64(limit) - 1) / int64(limit),
+	}))
 }
 
 // GetAuditLogsByDateRange retrieves audit logs within a date range
@@ -203,15 +195,11 @@ func (h *auditLogHandler) GetAuditLogsByDateRange(c *gin.Context) {
 		}
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"code":    "success",
-		"message": "Successfully retrieved audit logs",
-		"data": gin.H{
-			"logs":       logs,
-			"total":      total,
-			"page":       page,
-			"limit":      limit,
-			"totalPages": (total + int64(limit) - 1) / int64(limit),
-		},
-	})
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Successfully retrieved audit logs", gin.H{
+		"logs":       logs,
+		"total":      total,
+		"page":       page,
+		"limit":      limit,
+		"total_pages": (total + int64(limit) - 1) / int64(limit),
+	}))
 }

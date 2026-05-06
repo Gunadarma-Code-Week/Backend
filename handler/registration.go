@@ -50,6 +50,7 @@ func (h *registrationHandler) RegistrationCPTeam(c *gin.Context) {
 		return
 	}
 
+	c.Set("target_name", registrationCPTeamResponse.Team.TeamName)
 	c.JSON(http.StatusCreated, helper.CreateSuccessResponse("Success register cp team", registrationCPTeamResponse))
 }
 
@@ -78,6 +79,7 @@ func (h *registrationHandler) RegistrationHackathonTeam(c *gin.Context) {
 		return
 	}
 
+	c.Set("target_name", registrationHackathonTeamResponse.Team.TeamName)
 	c.JSON(http.StatusCreated, helper.CreateSuccessResponse("Success register hackathon team", registrationHackathonTeamResponse))
 }
 
@@ -106,6 +108,7 @@ func (h *registrationHandler) RegistrationCTFTeam(c *gin.Context) {
 		return
 	}
 
+	c.Set("target_name", registrationCTFTeamResponse.Team.TeamName)
 	c.JSON(http.StatusCreated, helper.CreateSuccessResponse("Success register ctf team", registrationCTFTeamResponse))
 }
 
@@ -187,5 +190,6 @@ func (h *registrationHandler) UserJoinTeam(c *gin.Context) {
 		return
 	}
 
+	c.Set("target_name", team.TeamName)
 	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Success Join Team", registraionTeamResponse))
 }

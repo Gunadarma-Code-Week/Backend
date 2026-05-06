@@ -45,7 +45,7 @@ func (r *auditLogRepository) FindByUserID(userID uint64, limit int, offset int) 
 	var auditLogs []*entity.AuditLog
 	var total int64
 
-	res := r.DB.Where("user_id = ?", userID).
+	res := r.DB.Preload("User").Where("user_id = ?", userID).
 		Order("created_at DESC").
 		Limit(limit).
 		Offset(offset).
@@ -65,7 +65,7 @@ func (r *auditLogRepository) FindByEndpoint(endpoint string, limit int, offset i
 	var auditLogs []*entity.AuditLog
 	var total int64
 
-	res := r.DB.Where("endpoint = ?", endpoint).
+	res := r.DB.Preload("User").Where("endpoint = ?", endpoint).
 		Order("created_at DESC").
 		Limit(limit).
 		Offset(offset).
@@ -85,7 +85,7 @@ func (r *auditLogRepository) FindByDateRange(startDate time.Time, endDate time.T
 	var auditLogs []*entity.AuditLog
 	var total int64
 
-	res := r.DB.Where("created_at BETWEEN ? AND ?", startDate, endDate).
+	res := r.DB.Preload("User").Where("created_at BETWEEN ? AND ?", startDate, endDate).
 		Order("created_at DESC").
 		Limit(limit).
 		Offset(offset).
@@ -105,7 +105,7 @@ func (r *auditLogRepository) FindByUserIDAndDateRange(userID uint64, startDate t
 	var auditLogs []*entity.AuditLog
 	var total int64
 
-	res := r.DB.Where("user_id = ? AND created_at BETWEEN ? AND ?", userID, startDate, endDate).
+	res := r.DB.Preload("User").Where("user_id = ? AND created_at BETWEEN ? AND ?", userID, startDate, endDate).
 		Order("created_at DESC").
 		Limit(limit).
 		Offset(offset).
@@ -125,7 +125,7 @@ func (r *auditLogRepository) FindAll(limit int, offset int) ([]*entity.AuditLog,
 	var auditLogs []*entity.AuditLog
 	var total int64
 
-	res := r.DB.Order("created_at DESC").
+	res := r.DB.Preload("User").Order("created_at DESC").
 		Limit(limit).
 		Offset(offset).
 		Find(&auditLogs)
