@@ -130,7 +130,8 @@ func (s *DashboardServices) GetAllHackaton(count, page int) (dto.ResponseHackato
 
 		var anggota []entity.User
 		if err := s.DB.Where("id_team = ?", data.Team.ID_Team).Find(&anggota).Error; err != nil {
-			return dto.ResponseHackaton{}, err
+			fmt.Printf("[dashboard.GetAllHackaton] anggota lookup error for team: %d error: %v\n", data.Team.ID_Team, err)
+			continue
 		}
 
 		// Create members list including leader
@@ -227,8 +228,8 @@ func (s *DashboardServices) GetAllCp(count, page int) (dto.ResponseCp, error) {
 
 		var anggota []entity.User
 		if err := s.DB.Where("id_team = ?", data.Team.ID_Team).Find(&anggota).Error; err != nil {
-			fmt.Println("[dashboard.GetAllCp] anggota lookup error for team:", data.Team.ID_Team, "error:", err)
-			return dto.ResponseCp{}, err
+			fmt.Printf("[dashboard.GetAllCp] anggota lookup error for team: %d error: %v\n", data.Team.ID_Team, err)
+			continue
 		}
 		fmt.Println("[dashboard.GetAllCp] anggota rows:", len(anggota))
 
@@ -320,7 +321,8 @@ func (s *DashboardServices) GetAllCtf(count, page int) (dto.ResponseCtf, error) 
 
 		var anggota []entity.User
 		if err := s.DB.Where("id_team = ?", data.Team.ID_Team).Find(&anggota).Error; err != nil {
-			return dto.ResponseCtf{}, err
+			fmt.Printf("[dashboard.GetAllCtf] anggota lookup error for team: %d error: %v\n", data.Team.ID_Team, err)
+			continue
 		}
 
 		var members []dto.Anggota
