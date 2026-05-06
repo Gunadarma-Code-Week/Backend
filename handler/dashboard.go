@@ -44,6 +44,9 @@ func (h *dashboardController) Statistics(c *gin.Context) {}
 // @Failure 400 {object} helper.Response{message=string}
 // @Router /dashboard/{acara}/{count}/{page} [get]
 func (h *dashboardController) GetAllDashboard(c *gin.Context) {
+	fmt.Println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+	fmt.Println("!!!!! REACHED DASHBOARD HANDLER !!!!!")
+	fmt.Println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 	fmt.Println("[dashboard.GetAllDashboard] START:", c.Request.URL.Path)
 	acara := c.Param("acara")
 	strCount := c.Param("count")
