@@ -3,18 +3,18 @@ package entity
 import "time"
 
 type Team struct {
-	ID_Team        uint64 `gorm:"primary_key:auto_increment"`
-	TeamName       string `gorm:"varchar(255); not null"`
-	Supervisor     string `gorm:"varchar(255)"`
-	SupervisorNIDN string `gorm:"varchar(255)"`
-	JoinCode       string `gorm:"varchar(255); not null"`
-	KomitmenFee    string `gorm:"varchar(255)"`
+	ID_Team        uint64 `gorm:"primaryKey;autoIncrement"`
+	TeamName       string `gorm:"type:varchar(255); not null"`
+	Supervisor     string `gorm:"type:varchar(255)"`
+	SupervisorNIDN string `gorm:"type:varchar(255)"`
+	JoinCode       string `gorm:"type:varchar(255); not null"`
+	KomitmenFee    string `gorm:"type:varchar(255)"`
 
-	Event string `gorm:"varchar(255); not null"`
+	Event string `gorm:"type:varchar(255); not null"`
 
-	PaymentStatus string `gorm:"varchar(50); default:'pending'"`
-	OrderID       string `gorm:"varchar(255); unique"`
-	QRString      string `gorm:"text"`
+	PaymentStatus string `gorm:"type:varchar(50); default:'pending'"`
+	OrderID       string `gorm:"type:varchar(255);uniqueIndex"`
+	QRString      string `gorm:"type:text"`
 
 	ID_LeadTeam uint64 `gorm:"not null"`
 

@@ -3,7 +3,7 @@ package entity
 import "time"
 
 type HackathonTeam struct {
-	ID_HackathonTeam uint64 `gorm:"primary_key:auto_increment"`
+	ID_HackathonTeam uint64 `gorm:"primaryKey;autoIncrement"`
 	Stage            string `gorm:"varchar(255); not null"`
 	Status           string `gorm:"varchar(255); not null"`
 	ProposalUrl      string `gorm:"varchar(255); null"`

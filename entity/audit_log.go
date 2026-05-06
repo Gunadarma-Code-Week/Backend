@@ -7,7 +7,7 @@ import (
 )
 
 type AuditLog struct {
-	ID           uint64          `gorm:"primary_key:auto_increment"`
+	ID           uint64          `gorm:"primaryKey;autoIncrement"`
 	UserID       uint64          `gorm:"not null; index"`
 	Method       string          `gorm:"varchar(10); not null"` // POST, PUT, DELETE, PATCH (GET not logged)
 	Endpoint     string          `gorm:"varchar(255); not null; index"`
