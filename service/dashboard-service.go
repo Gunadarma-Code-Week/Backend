@@ -112,6 +112,7 @@ func (s *DashboardServices) GetAllHackaton(count, page int) (dto.ResponseHackato
 		}
 		var Leader entity.User
 		if err := s.DB.Where("id = ?", data.Team.ID_LeadTeam).First(&Leader).Error; err != nil {
+			fmt.Printf("[dashboard.GetAllHackaton] leader lookup error for team: %d error: %v\n", data.Team.ID_Team, err)
 			continue
 		}
 
@@ -209,6 +210,7 @@ func (s *DashboardServices) GetAllCp(count, page int) (dto.ResponseCp, error) {
 		}
 		var Leader entity.User
 		if err := s.DB.Where("id = ?", data.Team.ID_LeadTeam).First(&Leader).Error; err != nil {
+			fmt.Printf("[dashboard.GetAllCp] leader lookup error for team: %d error: %v\n", data.Team.ID_Team, err)
 			continue
 		}
 
@@ -301,6 +303,7 @@ func (s *DashboardServices) GetAllCtf(count, page int) (dto.ResponseCtf, error) 
 		}
 		var Leader entity.User
 		if err := s.DB.Where("id = ?", data.Team.ID_LeadTeam).First(&Leader).Error; err != nil {
+			fmt.Printf("[dashboard.GetAllCtf] leader lookup error for team: %d error: %v\n", data.Team.ID_Team, err)
 			continue
 		}
 
