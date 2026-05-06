@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"gcw/dto"
 	"gcw/helper"
 	"gcw/service"
@@ -44,11 +43,9 @@ func (h *dashboardController) Statistics(c *gin.Context) {}
 // @Failure 400 {object} helper.Response{message=string}
 // @Router /dashboard/{acara}/{count}/{page} [get]
 func (h *dashboardController) GetAllDashboard(c *gin.Context) {
+	acara := c.Param("acara")
 	strCount := c.Param("count")
 	strPage := c.Param("page")
-	startDate := c.Query("startDate")
-	endDate := c.Query("endDate")
-	search := c.Query("search")
 
 	// Fallback logic if path params are missing
 	if strCount == "" {
@@ -66,7 +63,6 @@ func (h *dashboardController) GetAllDashboard(c *gin.Context) {
 		strPage = "0"
 	}
 
-
 	count, errCount := strconv.Atoi(strCount)
 	page, errPage := strconv.Atoi(strPage)
 
@@ -75,12 +71,22 @@ func (h *dashboardController) GetAllDashboard(c *gin.Context) {
 		return
 	}
 
-
 	var respondData interface{}
 	switch acara {
 	case "seminar":
+		search := c.Query("search")
+		data, err := h.Service.GetAllSeminar(count, page, search)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "service error: "+err.Error()))
+			return
+		}
 		respondData = data
 	case "hackaton", "hackathon":
+		data, err := h.Service.GetAllHackaton(count, page)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "service error: "+err.Error()))
+			return
+		}
 		respondData = data
 	case "cp":
 		data, err := h.Service.GetAllCp(count, page)
