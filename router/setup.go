@@ -124,6 +124,7 @@ func SetupRouter(r *gin.Engine) {
 		dashboard := router.Group("/dashboard")
 		dashboard.Use(authMiddleware.JwtAuthMiddleware)
 		dashboard.Use(authMiddleware.MustAdmin)    // Add admin role check
+		dashboard.GET("/:acara/:start_date/:end_date/:count/:page", dashboards.GetAllDashboard)
 		dashboard.GET("/:acara/:count/:page", dashboards.GetAllDashboard)
 		dashboard.GET("/:acara", dashboards.GetAllDashboard) // Flexible route
 		dashboard.DELETE("/:acara/:id", auditMiddleware.AuditLogMiddleware, dashboards.Delete)
