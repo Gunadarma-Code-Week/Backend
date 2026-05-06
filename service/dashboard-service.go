@@ -179,11 +179,7 @@ func (s *DashboardServices) GetAllCp(count, page int) (dto.ResponseCp, error) {
 	var dataSeminars []entity.CPTeam
 
 	offset := page * count
-	fmt.Println("[dashboard.GetAllCp] query params:",
-		"count=", count,
-		"page=", page,
-		"offset=", offset)
-
+	fmt.Println("[dashboard.GetAllCp] starting main query with count:", count, "page:", page, "offset:", offset)
 	if err := s.DB.Preload("Team").
 		Where("is_deleted = ? OR is_deleted IS NULL", false).
 		Order("id_cp_team ASC").
@@ -193,8 +189,7 @@ func (s *DashboardServices) GetAllCp(count, page int) (dto.ResponseCp, error) {
 		fmt.Println("[dashboard.GetAllCp] main query error:", err)
 		return dto.ResponseCp{}, err
 	}
-
-	fmt.Println("[dashboard.GetAllCp] rows fetched:", len(dataSeminars))
+	fmt.Println("[dashboard.GetAllCp] main query success, rows:", len(dataSeminars))
 
 	hasMore := false
 
@@ -205,8 +200,10 @@ func (s *DashboardServices) GetAllCp(count, page int) (dto.ResponseCp, error) {
 
 	var responseData []dto.Cp
 
-	for _, data := range dataSeminars {
+	for i, data := range dataSeminars {
+		fmt.Printf("[dashboard.GetAllCp] processing team index %d, teamID: %d\n", i, data.Team.ID_Team)
 		if data.Team.ID_Team == 0 {
+			fmt.Printf("[dashboard.GetAllCp] skipping team index %d because ID_Team is 0\n", i)
 			continue
 		}
 		var Leader entity.User

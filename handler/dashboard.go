@@ -90,7 +90,7 @@ func (h *dashboardController) GetAllDashboard(c *gin.Context) {
 		data, err := h.Service.GetAllSeminar(count, page, search)
 		if err != nil {
 			fmt.Println("[dashboard.GetAllDashboard] seminar service error:", err)
-			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "error service"))
+			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "service error: "+err.Error()))
 			return
 		}
 
@@ -101,7 +101,7 @@ func (h *dashboardController) GetAllDashboard(c *gin.Context) {
 		data, err := h.Service.GetAllHackaton(count, page)
 		if err != nil {
 			fmt.Println("[dashboard.GetAllDashboard] hackaton service error:", err)
-			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "error service"))
+			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "service error: "+err.Error()))
 			return
 		}
 
@@ -112,7 +112,7 @@ func (h *dashboardController) GetAllDashboard(c *gin.Context) {
 		data, err := h.Service.GetAllCp(count, page)
 		if err != nil {
 			fmt.Println("[dashboard.GetAllDashboard] cp service error:", err)
-			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "error service"))
+			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "service error: "+err.Error()))
 			return
 		}
 
@@ -123,7 +123,7 @@ func (h *dashboardController) GetAllDashboard(c *gin.Context) {
 		data, err := h.Service.GetAllCtf(count, page)
 		if err != nil {
 			fmt.Println("[dashboard.GetAllDashboard] ctf service error:", err)
-			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "error service"))
+			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "service error: "+err.Error()))
 			return
 		}
 
