@@ -48,9 +48,14 @@ func (h *dashboardController) GetAllDashboard(c *gin.Context) {
 	acara := c.Param("acara")
 	strCount := c.Param("count")
 	strPage := c.Param("page")
+	startDate := c.Param("start_date")
+	endDate := c.Param("end_date")
 	search := c.Query("search")
 
-	// Fallback to query parameters if path parameters are missing
+	fmt.Printf("[dashboard.GetAllDashboard] Params: acara=%s, start=%s, end=%s, count=%s, page=%s\n", 
+		acara, startDate, endDate, strCount, strPage)
+
+	// Fallback logic if path params are missing
 	if strCount == "" {
 		strCount = c.Query("count")
 	}
