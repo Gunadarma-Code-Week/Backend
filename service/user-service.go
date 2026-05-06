@@ -9,6 +9,9 @@ import (
 
 	"gorm.io/gorm"
 	"os"
+	"sort"
+
+	"github.com/sahilm/fuzzy"
 )
 
 type UserService struct {
@@ -217,42 +220,72 @@ func (s *UserService) AdminGetAllUsers(query dto.AdminGetUsersQueryDTO) (dto.Adm
 
 	// Apply search filter if provided
 	if query.Q != "" {
-		searchTerm := "%" + query.Q + "%"
-		db = db.Where("users.name ILIKE ? OR users.email ILIKE ? OR users.institusi ILIKE ? OR \"Team\".team_name ILIKE ?", searchTerm, searchTerm, searchTerm, searchTerm)
-	}
-
-	// Count total users
-	if err := db.Count(&totalUsers).Error; err != nil {
-		return dto.AdminUsersListResponseDTO{}, err
-	}
-
-	// Apply sorting
-	sortBy := "users.id"
-	if query.SortBy != "" {
-		validSortFields := map[string]string{
-			"id":                  "users.id",
-			"institusi":           "users.institusi",
-			"id_team":             "users.id_team",
-			"team_name":           "\"Team\".team_name",
-			"nim":                 "users.nim",
-			"soc_med_document":    "users.soc_med_document",
-			"profile_has_updated": "users.profile_has_updated",
-			"data_has_verified":   "users.data_has_verified",
+		// Fetch all users matching the date filters for fuzzy matching
+		if err := db.Find(&users).Error; err != nil {
+			return dto.AdminUsersListResponseDTO{}, err
 		}
-		if field, ok := validSortFields[query.SortBy]; ok {
-			sortBy = field
+
+		// Perform fuzzy search
+		matches := fuzzy.FindFrom(query.Q, userSource(users))
+		
+		// Sort by score
+		sort.Slice(matches, func(i, j int) bool {
+			return matches[i].Score > matches[j].Score
+		})
+
+		totalUsers = int64(len(matches))
+
+		// Filter and Paginate
+		var filteredUsers []entity.User
+		for _, match := range matches {
+			filteredUsers = append(filteredUsers, users[match.Index])
 		}
-	}
 
-	sortOrder := "ASC"
-	if query.SortOrder == "DESC" {
-		sortOrder = "DESC"
-	}
+		// Manual pagination
+		start := (query.Page - 1) * query.Limit
+		if start > len(filteredUsers) {
+			users = []entity.User{}
+		} else {
+			end := start + query.Limit
+			if end > len(filteredUsers) {
+				end = len(filteredUsers)
+			}
+			users = filteredUsers[start:end]
+		}
+	} else {
+		// Count total users
+		if err := db.Count(&totalUsers).Error; err != nil {
+			return dto.AdminUsersListResponseDTO{}, err
+		}
 
-	// Apply pagination and sorting with Preload Team
-	offset := (query.Page - 1) * query.Limit
-	if err := db.Order(sortBy + " " + sortOrder).Limit(query.Limit).Offset(offset).Find(&users).Error; err != nil {
-		return dto.AdminUsersListResponseDTO{}, err
+		// Apply sorting
+		sortBy := "users.id"
+		if query.SortBy != "" {
+			validSortFields := map[string]string{
+				"id":                  "users.id",
+				"institusi":           "users.institusi",
+				"id_team":             "users.id_team",
+				"team_name":           "\"Team\".team_name",
+				"nim":                 "users.nim",
+				"soc_med_document":    "users.soc_med_document",
+				"profile_has_updated": "users.profile_has_updated",
+				"data_has_verified":   "users.data_has_verified",
+			}
+			if field, ok := validSortFields[query.SortBy]; ok {
+				sortBy = field
+			}
+		}
+
+		sortOrder := "ASC"
+		if query.SortOrder == "DESC" {
+			sortOrder = "DESC"
+		}
+
+		// Apply pagination and sorting with Preload Team
+		offset := (query.Page - 1) * query.Limit
+		if err := db.Order(sortBy + " " + sortOrder).Limit(query.Limit).Offset(offset).Find(&users).Error; err != nil {
+			return dto.AdminUsersListResponseDTO{}, err
+		}
 	}
 
 	// Convert to response DTOs
@@ -478,4 +511,16 @@ func (s *UserService) AdminGetUserGrowthAnalytics(query dto.UserGrowthAnalyticsD
 	}
 
 	return results, nil
+}
+
+// Fuzzy Search Sources
+
+type userSource []entity.User
+
+func (s userSource) String(i int) string {
+	return s[i].Name + " " + s[i].Email + " " + s[i].Institusi + " " + s[i].Team.TeamName
+}
+
+func (s userSource) Len() int {
+	return len(s)
 }

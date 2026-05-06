@@ -4,7 +4,9 @@ import (
 	"gcw/dto"
 	"gcw/entity"
 	"os"
+	"sort"
 
+	"github.com/sahilm/fuzzy"
 	"gorm.io/gorm"
 )
 
@@ -29,20 +31,38 @@ func (s *DashboardServices) GetAllSeminar(count, page int, search string) (dto.R
 
 	query := s.DB.Preload("User").Where("is_deleted = ? OR is_deleted IS NULL", false)
 
-	// Add search functionality
 	if search != "" {
-		query = query.Where(
-			"id_tiket LIKE ? OR EXISTS (SELECT 1 FROM users WHERE users.id = seminars.id_user AND (users.name LIKE ? OR users.email LIKE ?))",
-			"%"+search+"%", "%"+search+"%", "%"+search+"%",
-		)
-	}
+		if err := query.Order("id_seminar ASC").Find(&dataSeminars).Error; err != nil {
+			return dto.ResponseSeminar{}, err
+		}
 
-	if err := query.
-		Order("id_seminar ASC").
-		Limit(count + 1).
-		Offset(offset).
-		Find(&dataSeminars).Error; err != nil {
-		return dto.ResponseSeminar{}, err
+		matches := fuzzy.FindFrom(search, seminarSource(dataSeminars))
+		sort.Slice(matches, func(i, j int) bool {
+			return matches[i].Score > matches[j].Score
+		})
+
+		var filteredData []entity.Seminar
+		for _, match := range matches {
+			filteredData = append(filteredData, dataSeminars[match.Index])
+		}
+
+		start := offset
+		if start > len(filteredData) {
+			dataSeminars = []entity.Seminar{}
+		} else {
+			end := start + count + 1
+			if end > len(filteredData) {
+				end = len(filteredData)
+			}
+			dataSeminars = filteredData[start:end]
+		}
+	} else {
+		if err := query.Order("id_seminar ASC").
+			Limit(count + 1).
+			Offset(offset).
+			Find(&dataSeminars).Error; err != nil {
+			return dto.ResponseSeminar{}, err
+		}
 	}
 
 	hasMore := false
@@ -82,18 +102,51 @@ func (s *DashboardServices) GetAllSeminar(count, page int, search string) (dto.R
 	return response, nil
 }
 
-func (s *DashboardServices) GetAllHackaton(count, page int) (dto.ResponseHackaton, error) {
+func (s *DashboardServices) GetAllHackaton(count, page int, search string) (dto.ResponseHackaton, error) {
 	var dataSeminars []entity.HackathonTeam
 
 	offset := page * count
 
-	if err := s.DB.Preload("Team").
-		Where("is_deleted = ? OR is_deleted IS NULL", false).
-		Order("id_hackathon_team ASC").
-		Limit(count + 1).
-		Offset(offset).
-		Find(&dataSeminars).Error; err != nil {
-		return dto.ResponseHackaton{}, err
+	query := s.DB.Preload("Team").Where("is_deleted = ? OR is_deleted IS NULL", false)
+
+	if search != "" {
+		// Fetch all for fuzzy matching
+		if err := query.Order("id_hackathon_team ASC").Find(&dataSeminars).Error; err != nil {
+			return dto.ResponseHackaton{}, err
+		}
+
+		// Perform fuzzy search
+		matches := fuzzy.FindFrom(search, hackathonTeamSource(dataSeminars))
+		
+		// Sort by score (fuzzy.Find already returns them sorted by score by default, but we can be explicit)
+		sort.Slice(matches, func(i, j int) bool {
+			return matches[i].Score > matches[j].Score
+		})
+
+		// Filter and Paginate
+		var filteredData []entity.HackathonTeam
+		for _, match := range matches {
+			filteredData = append(filteredData, dataSeminars[match.Index])
+		}
+
+		// Manual pagination
+		start := offset
+		if start > len(filteredData) {
+			dataSeminars = []entity.HackathonTeam{}
+		} else {
+			end := start + count + 1
+			if end > len(filteredData) {
+				end = len(filteredData)
+			}
+			dataSeminars = filteredData[start:end]
+		}
+	} else {
+		if err := query.Order("id_hackathon_team ASC").
+			Limit(count + 1).
+			Offset(offset).
+			Find(&dataSeminars).Error; err != nil {
+			return dto.ResponseHackaton{}, err
+		}
 	}
 
 	hasMore := false
@@ -172,17 +225,45 @@ func (s *DashboardServices) GetAllHackaton(count, page int) (dto.ResponseHackato
 	return responseData, nil
 }
 
-func (s *DashboardServices) GetAllCp(count, page int) (dto.ResponseCp, error) {
+func (s *DashboardServices) GetAllCp(count, page int, search string) (dto.ResponseCp, error) {
 	var dataSeminars []entity.CPTeam
 
 	offset := page * count
-	if err := s.DB.Preload("Team").
-		Where("is_deleted = ? OR is_deleted IS NULL", false).
-		Order("id_cp_team ASC").
-		Limit(count + 1).
-		Offset(offset).
-		Find(&dataSeminars).Error; err != nil {
-		return dto.ResponseCp{}, err
+
+	query := s.DB.Preload("Team").Where("is_deleted = ? OR is_deleted IS NULL", false)
+
+	if search != "" {
+		if err := query.Order("id_cp_team ASC").Find(&dataSeminars).Error; err != nil {
+			return dto.ResponseCp{}, err
+		}
+
+		matches := fuzzy.FindFrom(search, cpTeamSource(dataSeminars))
+		sort.Slice(matches, func(i, j int) bool {
+			return matches[i].Score > matches[j].Score
+		})
+
+		var filteredData []entity.CPTeam
+		for _, match := range matches {
+			filteredData = append(filteredData, dataSeminars[match.Index])
+		}
+
+		start := offset
+		if start > len(filteredData) {
+			dataSeminars = []entity.CPTeam{}
+		} else {
+			end := start + count + 1
+			if end > len(filteredData) {
+				end = len(filteredData)
+			}
+			dataSeminars = filteredData[start:end]
+		}
+	} else {
+		if err := query.Order("id_cp_team ASC").
+			Limit(count + 1).
+			Offset(offset).
+			Find(&dataSeminars).Error; err != nil {
+			return dto.ResponseCp{}, err
+		}
 	}
 
 	hasMore := false
@@ -260,18 +341,45 @@ func (s *DashboardServices) GetAllCp(count, page int) (dto.ResponseCp, error) {
 	return response, nil
 }
 
-func (s *DashboardServices) GetAllCtf(count, page int) (dto.ResponseCtf, error) {
+func (s *DashboardServices) GetAllCtf(count, page int, search string) (dto.ResponseCtf, error) {
 	var dataCtfTeams []entity.CTFTeam
 
 	offset := page * count
 
-	if err := s.DB.Preload("Team").
-		Where("is_deleted = ? OR is_deleted IS NULL", false).
-		Order("id_ctf_team ASC").
-		Limit(count + 1).
-		Offset(offset).
-		Find(&dataCtfTeams).Error; err != nil {
-		return dto.ResponseCtf{}, err
+	query := s.DB.Preload("Team").Where("is_deleted = ? OR is_deleted IS NULL", false)
+
+	if search != "" {
+		if err := query.Order("id_ctf_team ASC").Find(&dataCtfTeams).Error; err != nil {
+			return dto.ResponseCtf{}, err
+		}
+
+		matches := fuzzy.FindFrom(search, ctfTeamSource(dataCtfTeams))
+		sort.Slice(matches, func(i, j int) bool {
+			return matches[i].Score > matches[j].Score
+		})
+
+		var filteredData []entity.CTFTeam
+		for _, match := range matches {
+			filteredData = append(filteredData, dataCtfTeams[match.Index])
+		}
+
+		start := offset
+		if start > len(filteredData) {
+			dataCtfTeams = []entity.CTFTeam{}
+		} else {
+			end := start + count + 1
+			if end > len(filteredData) {
+				end = len(filteredData)
+			}
+			dataCtfTeams = filteredData[start:end]
+		}
+	} else {
+		if err := query.Order("id_ctf_team ASC").
+			Limit(count + 1).
+			Offset(offset).
+			Find(&dataCtfTeams).Error; err != nil {
+			return dto.ResponseCtf{}, err
+		}
 	}
 
 	hasMore := false
@@ -694,4 +802,46 @@ func (s *DashboardServices) UpdateCtfService(id string, input dto.Ctf) (string, 
 	}
 
 	return teamName, nil
+}
+
+// Fuzzy Search Sources
+
+type hackathonTeamSource []entity.HackathonTeam
+
+func (s hackathonTeamSource) String(i int) string {
+	return s[i].Team.TeamName + " " + s[i].Team.JoinCode
+}
+
+func (s hackathonTeamSource) Len() int {
+	return len(s)
+}
+
+type cpTeamSource []entity.CPTeam
+
+func (s cpTeamSource) String(i int) string {
+	return s[i].Team.TeamName + " " + s[i].Team.JoinCode
+}
+
+func (s cpTeamSource) Len() int {
+	return len(s)
+}
+
+type ctfTeamSource []entity.CTFTeam
+
+func (s ctfTeamSource) String(i int) string {
+	return s[i].Team.TeamName + " " + s[i].Team.JoinCode
+}
+
+func (s ctfTeamSource) Len() int {
+	return len(s)
+}
+
+type seminarSource []entity.Seminar
+
+func (s seminarSource) String(i int) string {
+	return s[i].ID_Tiket + " " + s[i].User.Name + " " + s[i].User.Email
+}
+
+func (s seminarSource) Len() int {
+	return len(s)
 }

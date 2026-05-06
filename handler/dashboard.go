@@ -82,21 +82,24 @@ func (h *dashboardController) GetAllDashboard(c *gin.Context) {
 		}
 		respondData = data
 	case "hackaton", "hackathon":
-		data, err := h.Service.GetAllHackaton(count, page)
+		search := c.Query("search")
+		data, err := h.Service.GetAllHackaton(count, page, search)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "service error: "+err.Error()))
 			return
 		}
 		respondData = data
 	case "cp":
-		data, err := h.Service.GetAllCp(count, page)
+		search := c.Query("search")
+		data, err := h.Service.GetAllCp(count, page, search)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "service error: "+err.Error()))
 			return
 		}
 		respondData = data
 	case "ctf":
-		data, err := h.Service.GetAllCtf(count, page)
+		search := c.Query("search")
+		data, err := h.Service.GetAllCtf(count, page, search)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "service error: "+err.Error()))
 			return
