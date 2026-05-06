@@ -51,9 +51,32 @@ func (m *authMiddleware) JwtAuthMiddleware(c *gin.Context) {
 		return
 	}
 
-	idUser := uint64(claims["id"].(float64))
+	// Safely extract user ID from claims
+	idVal, ok := claims["id"]
+	if !ok || idVal == nil {
+		c.JSON(401, helper.CreateErrorResponse("error", "invalid token: missing id"))
+		c.Abort()
+		return
+	}
+
+	var idUser uint64
+	switch v := idVal.(type) {
+	case float64:
+		idUser = uint64(v)
+	case int:
+		idUser = uint64(v)
+	case int64:
+		idUser = uint64(v)
+	case uint64:
+		idUser = v
+	default:
+		c.JSON(401, helper.CreateErrorResponse("error", "invalid token: id is not a number"))
+		c.Abort()
+		return
+	}
+
 	if idUser == 0 {
-		c.JSON(401, helper.CreateErrorResponse("error", "invalid token"))
+		c.JSON(401, helper.CreateErrorResponse("error", "invalid token: id is zero"))
 		c.Abort()
 		return
 	}

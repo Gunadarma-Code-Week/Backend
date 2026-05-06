@@ -130,6 +130,13 @@ func (h *dashboardController) GetAllDashboard(c *gin.Context) {
 	}
 
 	fmt.Println("[dashboard.GetAllDashboard] sending response for", acara, "with data:", respondData)
+	
+	// Final safety check: if respondData is still nil, return empty object instead of nothing
+	if respondData == nil {
+		fmt.Println("[dashboard.GetAllDashboard] respondData is NIL, falling back to empty object")
+		respondData = map[string]interface{}{}
+	}
+
 	c.JSON(http.StatusOK, helper.CreateSuccessResponse("SUCCESS", respondData))
 }
 
