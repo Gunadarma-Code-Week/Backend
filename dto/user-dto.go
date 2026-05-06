@@ -66,6 +66,10 @@ type AdminUpdateUserDTO struct {
 	DataHasVerified   *bool  `json:"data_has_verified"`
 }
 
+type AdminDeleteUserDTO struct {
+	Alasan string `json:"alasan" binding:"required"`
+}
+
 type AdminUserResponseDTO struct {
 	ID                uint64 `json:"id"`
 	Email             string `json:"email"`

@@ -7,6 +7,7 @@ import (
 	"gcw/service"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/mashingan/smapping"
@@ -49,8 +50,17 @@ func (h *authHandler) ValidateGoogleIdToken(c *gin.Context) {
 
 	user, err := h.authService.GetUserByGoogleIdToken(login.GoogleIdToken)
 	if err != nil {
-		logging.High("AuthHandler.Login", "INTERNAL_SERVER_ERROR", err.Error())
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
+		logging.High("AuthHandler.Login", "AUTH_ERROR", err.Error())
+		
+		// If it's a deletion error, use 403 Forbidden
+		statusCode := http.StatusBadRequest
+		errorCode := "BAD_REQUEST"
+		if strings.Contains(err.Error(), "dinonaktifkan") {
+			statusCode = http.StatusForbidden
+			errorCode = "USER_DELETED"
+		}
+		
+		c.JSON(statusCode, helper.CreateErrorResponse(err.Error(), errorCode))
 		return
 	}
 
@@ -168,7 +178,15 @@ func (h *authHandler) Login(c *gin.Context) {
 
 	user, err := h.authService.LoginService(loginDTO)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", err.Error()))
+		// If it's a deletion error, use 403 Forbidden
+		statusCode := http.StatusBadRequest
+		errorCode := "BAD_REQUEST"
+		if strings.Contains(err.Error(), "dinonaktifkan") {
+			statusCode = http.StatusForbidden
+			errorCode = "USER_DELETED"
+		}
+		
+		c.JSON(statusCode, helper.CreateErrorResponse(err.Error(), errorCode))
 		return
 	}
 

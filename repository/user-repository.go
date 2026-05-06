@@ -34,7 +34,7 @@ func (r *userRepository) GetDB() *gorm.DB {
 }
 
 func (r *userRepository) FindByEmail(email string, u *entity.User) error {
-	res := r.DB.Where("email = ?", email).First(&u)
+	res := r.DB.Unscoped().Where("email = ?", email).First(&u)
 	if err := res.Error; err != nil {
 		return err
 	}

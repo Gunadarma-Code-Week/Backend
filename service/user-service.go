@@ -429,7 +429,11 @@ func (s *UserService) AdminUpdateUser(id uint64, updateData dto.AdminUpdateUserD
 }
 
 // AdminDeleteUser - Delete user by admin (soft delete)
-func (s *UserService) AdminDeleteUser(id uint64) error {
+func (s *UserService) AdminDeleteUser(id uint64, reason string) error {
+	// First update the deletion reason
+	if err := s.DB.Model(&entity.User{}).Where("id = ?", id).Update("deletion_reason", reason).Error; err != nil {
+		return err
+	}
 	return s.DB.Delete(&entity.User{}, id).Error
 }
 

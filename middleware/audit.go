@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"gcw/entity"
 	"gcw/service"
+	"fmt"
 	"io"
 	"net/url"
 	"strings"
@@ -207,7 +208,15 @@ func generateDescription(method, path string, body interface{}, user *entity.Use
 
 			switch method {
 			case "DELETE":
-				return userLabel + " menghapus tim " + acaraLabel + " " + targetLabel
+				description := userLabel + " menghapus tim " + acaraLabel + " " + targetLabel
+				if bodyMap, ok := body.(map[string]interface{}); ok {
+					if alasan, hasAlasan := bodyMap["alasan"]; hasAlasan {
+						if alasanStr, ok := alasan.(string); ok && alasanStr != "" {
+							description += " dengan alasan: " + alasanStr
+						}
+					}
+				}
+				return description
 			case "PUT", "PATCH":
 				// Detect specific field changes from request body
 				if bodyMap, ok := body.(map[string]interface{}); ok {
@@ -218,11 +227,19 @@ func generateDescription(method, path string, body interface{}, user *entity.Use
 					if _, hasUser := bodyMap["username"]; hasUser {
 						changes = append(changes, "username DomJudge")
 					}
-					if _, hasStage := bodyMap["stage"]; hasStage {
-						changes = append(changes, "stage")
+					if val, hasStage := bodyMap["stage"]; hasStage {
+						if stageStr, ok := val.(string); ok {
+							changes = append(changes, fmt.Sprintf("stage ke \"%s\"", stageStr))
+						} else {
+							changes = append(changes, "stage")
+						}
 					}
-					if _, hasNama := bodyMap["nama_tim"]; hasNama {
-						changes = append(changes, "nama tim")
+					if val, hasNama := bodyMap["nama_tim"]; hasNama {
+						if namaStr, ok := val.(string); ok {
+							changes = append(changes, fmt.Sprintf("nama tim ke \"%s\"", namaStr))
+						} else {
+							changes = append(changes, "nama tim")
+						}
 					}
 					if len(changes) > 0 {
 						return userLabel + " memperbarui " + strings.Join(changes, ", ") + " tim " + acaraLabel + " " + targetLabel
@@ -242,9 +259,42 @@ func generateDescription(method, path string, body interface{}, user *entity.Use
 		}
 		switch method {
 		case "PUT", "PATCH":
+			if bodyMap, ok := body.(map[string]interface{}); ok {
+				var changes []string
+				if val, hasVerified := bodyMap["data_has_verified"]; hasVerified {
+					if verified, ok := val.(bool); ok {
+						if verified {
+							changes = append(changes, "memverifikasi data")
+						} else {
+							changes = append(changes, "membatalkan verifikasi data")
+						}
+					}
+				}
+				if val, hasProfileUpdated := bodyMap["profile_has_updated"]; hasProfileUpdated {
+					if updated, ok := val.(bool); ok {
+						if updated {
+							changes = append(changes, "menandai profil lengkap")
+						} else {
+							changes = append(changes, "menandai profil belum lengkap")
+						}
+					}
+				}
+				
+				if len(changes) > 0 {
+					return userLabel + " " + strings.Join(changes, " dan ") + " user " + targetLabel
+				}
+			}
 			return userLabel + " memperbarui data user " + targetLabel
 		case "DELETE":
-			return userLabel + " menghapus user " + targetLabel
+			description := userLabel + " menghapus user " + targetLabel
+			if bodyMap, ok := body.(map[string]interface{}); ok {
+				if alasan, hasAlasan := bodyMap["alasan"]; hasAlasan {
+					if alasanStr, ok := alasan.(string); ok && alasanStr != "" {
+						description += " dengan alasan: " + alasanStr
+					}
+				}
+			}
+			return description
 		}
 	}
 

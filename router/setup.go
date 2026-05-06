@@ -121,8 +121,7 @@ func SetupRouter(r *gin.Engine) {
 	// }
 
 	{
-		dashboard := router.Group("/dashboard")
-		dashboard.Use(authMiddleware.JwtAuthMiddleware)
+		dashboard := mustAuth.Group("/dashboard")
 		dashboard.Use(authMiddleware.MustAdmin)
 		dashboard.GET("/:acara/:count/:page", dashboards.GetAllDashboard)
 		dashboard.DELETE("/:acara/:id", dashboards.Delete)
@@ -131,8 +130,7 @@ func SetupRouter(r *gin.Engine) {
 
 	// Admin User Management Routes
 	{
-		adminUsers := router.Group("/admin/users")
-		adminUsers.Use(authMiddleware.JwtAuthMiddleware)
+		adminUsers := mustAuth.Group("/admin/users")
 		adminUsers.Use(authMiddleware.MustAdmin)
 
 		adminUsers.GET("", userHandler.AdminGetAllUsers)
@@ -144,8 +142,7 @@ func SetupRouter(r *gin.Engine) {
 
 	// Audit Log Routes
 	{
-		auditLogs := router.Group("/admin/audit-logs")
-		auditLogs.Use(authMiddleware.JwtAuthMiddleware)
+		auditLogs := mustAuth.Group("/admin/audit-logs")
 		auditLogs.Use(authMiddleware.MustAdmin)
 
 		auditLogs.GET("", auditLogHandler.GetAllAuditLogs)
@@ -170,15 +167,13 @@ func SetupRouter(r *gin.Engine) {
 	}
 
 	{
-		seminar := router.Group("/seminar")
-		seminar.Use(authMiddleware.JwtAuthMiddleware)
+		seminar := mustAuth.Group("/seminar")
 		// seminar.Use(authMiddleware.MustUpdatedUserProfile)
 		seminar.POST("/join", seminarHandler.JoinSeminar)
 		seminar.GET("/my-ticket", seminarHandler.GetMyTicket)
 
 		// Admin route untuk melihat tiket berdasarkan ID dan menambahkan participant
-		seminarAdmin := router.Group("/seminar")
-		seminarAdmin.Use(authMiddleware.JwtAuthMiddleware)
+		seminarAdmin := seminar.Group("")
 		seminarAdmin.Use(authMiddleware.MustAdmin)
 		seminarAdmin.GET("/ticket/:ticket_id", seminarHandler.GetTicketByID)
 		seminarAdmin.POST("/admin/add-participant", seminarHandler.AdminAddParticipant)

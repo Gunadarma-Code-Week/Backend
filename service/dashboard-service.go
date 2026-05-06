@@ -426,7 +426,7 @@ func (s *DashboardServices) GetAllCtf(count, page int) (dto.ResponseCtf, error) 
 // 	}, nil
 // }
 
-func (s *DashboardServices) DeletePesertaService(acara, id_user string) (string, error) {
+func (s *DashboardServices) DeletePesertaService(acara, id_user, reason string) (string, error) {
 	var targetName string
 	switch acara {
 	case "seminar":
@@ -436,6 +436,7 @@ func (s *DashboardServices) DeletePesertaService(acara, id_user string) (string,
 		}
 		targetName = data.User.Name
 		data.IsDeleted = true
+		data.DeletionReason = reason
 		if err := s.DB.Save(&data).Error; err != nil {
 			return "", err
 		}
@@ -447,6 +448,7 @@ func (s *DashboardServices) DeletePesertaService(acara, id_user string) (string,
 		}
 		targetName = data.Team.TeamName
 		data.IsDeleted = true
+		data.DeletionReason = reason
 		if err := s.DB.Save(&data).Error; err != nil {
 			return "", err
 		}
@@ -458,6 +460,7 @@ func (s *DashboardServices) DeletePesertaService(acara, id_user string) (string,
 		}
 		targetName = data.Team.TeamName
 		data.IsDeleted = true
+		data.DeletionReason = reason
 		if err := s.DB.Save(&data).Error; err != nil {
 			return "", err
 		}
@@ -469,6 +472,7 @@ func (s *DashboardServices) DeletePesertaService(acara, id_user string) (string,
 		}
 		targetName = data.Team.TeamName
 		data.IsDeleted = true
+		data.DeletionReason = reason
 		if err := s.DB.Save(&data).Error; err != nil {
 			return "", err
 		}

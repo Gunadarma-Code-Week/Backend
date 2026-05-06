@@ -310,6 +310,7 @@ func (h *UserHandler) AdminUpdateUser(c *gin.Context) {
 		return
 	}
 
+	c.Set("target_name", response.Name)
 	c.JSON(http.StatusOK, helper.CreateSuccessResponse("User updated successfully", response))
 }
 
@@ -330,7 +331,19 @@ func (h *UserHandler) AdminDeleteUser(c *gin.Context) {
 		return
 	}
 
-	err = h.userService.AdminDeleteUser(id)
+	var deleteRequest dto.AdminDeleteUserDTO
+	if err := c.ShouldBindJSON(&deleteRequest); err != nil {
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", "Alasan penghapusan user wajib diisi"))
+		return
+	}
+
+	// Get user name for audit log before deletion
+	user, err := h.userService.AdminGetUserById(id)
+	if err == nil {
+		c.Set("target_name", user.Name)
+	}
+
+	err = h.userService.AdminDeleteUser(id, deleteRequest.Alasan)
 	if err != nil {
 		if err.Error() == "record not found" {
 			c.JSON(http.StatusNotFound, helper.CreateErrorResponse("error", "User not found"))

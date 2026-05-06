@@ -215,7 +215,13 @@ func (h *dashboardController) Delete(c *gin.Context) {
 		return
 	}
 
-	targetName, err := h.Service.DeletePesertaService(acara, id)
+	var deleteRequest dto.DeleteTeamRequest
+	if err := c.ShouldBindJSON(&deleteRequest); err != nil {
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "alasan penghapusan tim wajib diisi"))
+		return
+	}
+
+	targetName, err := h.Service.DeletePesertaService(acara, id, deleteRequest.Alasan)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "Error delete service"))
 		return

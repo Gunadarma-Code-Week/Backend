@@ -11,6 +11,7 @@ type Seminar struct {
 	PaymentStatus string `gorm:"type:varchar(60)"`
 	
 	IsDeleted     bool
+	DeletionReason string `gorm:"type:text"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }

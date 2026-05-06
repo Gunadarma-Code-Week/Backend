@@ -66,6 +66,18 @@ func (s *AuthService) IsUserTeamDeleted(user *entity.User) (bool, string) {
 	return false, ""
 }
 
+// IsUserSoftDeleted checks if the user exists in the database but has been soft-deleted.
+func (s *AuthService) IsUserSoftDeleted(id uint64) (bool, string) {
+	var user entity.User
+	if err := s.db.Unscoped().Where("id = ?", id).First(&user).Error; err != nil {
+		return false, ""
+	}
+	if user.DeletedAt.Valid {
+		return true, user.DeletionReason
+	}
+	return false, ""
+}
+
 func (s *AuthService) GetUserByGoogleIdToken(idToken string) (*entity.User, error) {
 	user := &entity.User{}
 	ctx := context.Background()
@@ -86,8 +98,18 @@ func (s *AuthService) GetUserByGoogleIdToken(idToken string) (*entity.User, erro
 	}
 
 	err = s.userRepository.FindByEmail(email, user)
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
+	if err == nil {
+		if user.DeletedAt.Valid {
+			reason := user.DeletionReason
+			if reason == "" {
+				reason = "Tidak ada alasan spesifik"
+			}
+			return nil, fmt.Errorf("Akun Anda telah dinonaktifkan oleh administrator. Alasan: %s", reason)
+		}
+		return user, nil
+	}
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 			user.Email = email
 			user.ProfilePicture = picture
 
@@ -105,7 +127,6 @@ func (s *AuthService) GetUserByGoogleIdToken(idToken string) (*entity.User, erro
 		} else {
 			return nil, err
 		}
-	}
 
 	return user, nil
 }
@@ -153,6 +174,14 @@ func (s *AuthService) LoginService(data *dto.LoginDTO) (*entity.User, error) {
 	err := s.userRepository.FindByEmail(data.Email, user)
 	if err != nil {
 		return nil, fmt.Errorf("email or password is wrong")
+	}
+
+	if user.DeletedAt.Valid {
+		reason := user.DeletionReason
+		if reason == "" {
+			reason = "Tidak ada alasan spesifik"
+		}
+		return nil, fmt.Errorf("Akun Anda telah dinonaktifkan oleh administrator. Alasan: %s", reason)
 	}
 
 	ok := helper.CheckPasswordHash(data.Password, user.Password)

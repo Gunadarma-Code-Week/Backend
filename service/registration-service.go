@@ -204,8 +204,8 @@ func (s *RegistrationService) HackathonTeamRegistration(
 		Event:          "hackathon",
 	}
 
-	// Hackathon Fee: Rp 100,000
-	const hackathonFee = 100000
+	// Hackathon Fee: Rp 120,000 (Normal Fee)
+	const hackathonFee = 120000
 
 	// generate join code
 	var joinCode string

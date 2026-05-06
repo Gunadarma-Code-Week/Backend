@@ -81,3 +81,7 @@ type ResponseCtf struct {
 	Ctf     []Ctf `json:"ctf"`
 	HasMore bool  `json:"has_more"`
 }
+
+type DeleteTeamRequest struct {
+	Alasan string `json:"alasan" binding:"required"`
+}

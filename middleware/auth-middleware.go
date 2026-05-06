@@ -83,6 +83,25 @@ func (m *authMiddleware) JwtAuthMiddleware(c *gin.Context) {
 
 	user, err := m.authService.GetUserById(idUser)
 	if err != nil {
+		// Check if user's account has been soft deleted
+		isDeleted, reason := m.authService.IsUserSoftDeleted(idUser)
+		if isDeleted {
+			msg := "Akun Anda telah dihapus oleh admin"
+			if reason != "" {
+				msg += " dengan alasan: " + reason
+			}
+
+			logging.High("AuthMiddleware.JwtAuthMiddleware", "USER_DELETED",
+				"User account has been soft-deleted, forcing logout")
+			c.JSON(401, gin.H{
+				"status":  "error",
+				"message": msg,
+				"code":    "USER_DELETED",
+			})
+			c.Abort()
+			return
+		}
+
 		logging.High("AuthMiddleware.JwtAuthMiddleware", "USER_NOT_FOUND", err.Error())
 		c.JSON(401, helper.CreateErrorResponse("error", "user not found"))
 		c.Abort()

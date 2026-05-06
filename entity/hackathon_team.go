@@ -14,6 +14,7 @@ type HackathonTeam struct {
 	Team   Team `gorm:"foreignKey:IDTeam"`
 
 	IsDeleted bool
+	DeletionReason string `gorm:"type:text"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
