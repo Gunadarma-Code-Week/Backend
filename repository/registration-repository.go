@@ -76,13 +76,39 @@ func (r *RegistrationRepository) FindActiveTeamByNameGlobal(name string) error {
 		LEFT JOIN hackathon_teams ON hackathon_teams.id_team = teams.id_team AND teams.event = 'hackathon'
 		LEFT JOIN cp_teams        ON cp_teams.id_team        = teams.id_team AND teams.event = 'cp'
 		LEFT JOIN ctf_teams       ON ctf_teams.id_team       = teams.id_team AND teams.event = 'ctf'
-		WHERE LOWER(teams.team_name) = LOWER(?)
+		WHERE LOWER(TRIM(teams.team_name)) = LOWER(TRIM(?))
 		AND (
 			(teams.event = 'hackathon' AND hackathon_teams.is_deleted = false)
 			OR (teams.event = 'cp'        AND cp_teams.is_deleted        = false)
 			OR (teams.event = 'ctf'       AND ctf_teams.is_deleted       = false)
 		)
 	`, name).Scan(&count).Error
+	if err != nil {
+		return err
+	}
+	if count > 0 {
+		return nil // nil = conflict found
+	}
+	return gorm.ErrRecordNotFound // error = name is available (no conflict)
+}
+
+// FindActiveTeamByNameGlobalExcludingTeam is the same as FindActiveTeamByNameGlobal but ignores a specific team ID.
+// Useful during updates to allow keeping the same name without colliding with self.
+func (r *RegistrationRepository) FindActiveTeamByNameGlobalExcludingTeam(name string, excludeID uint64) error {
+	var count int64
+	err := r.DB.Raw(`
+		SELECT COUNT(*) FROM teams
+		LEFT JOIN hackathon_teams ON hackathon_teams.id_team = teams.id_team AND teams.event = 'hackathon'
+		LEFT JOIN cp_teams        ON cp_teams.id_team        = teams.id_team AND teams.event = 'cp'
+		LEFT JOIN ctf_teams       ON ctf_teams.id_team       = teams.id_team AND teams.event = 'ctf'
+		WHERE LOWER(TRIM(teams.team_name)) = LOWER(TRIM(?))
+		AND teams.id_team != ?
+		AND (
+			(teams.event = 'hackathon' AND hackathon_teams.is_deleted = false)
+			OR (teams.event = 'cp'        AND cp_teams.is_deleted        = false)
+			OR (teams.event = 'ctf'       AND ctf_teams.is_deleted       = false)
+		)
+	`, name, excludeID).Scan(&count).Error
 	if err != nil {
 		return err
 	}
