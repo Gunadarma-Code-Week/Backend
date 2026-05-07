@@ -34,6 +34,7 @@ type RegistraionTeamResponse struct {
 	QRString string   `json:"qr_string,omitempty"`
 	OrderID  string   `json:"order_id,omitempty"`
 	PaymentStatus string `json:"payment_status,omitempty"`
+	KomitmenFee   string `json:"komitmen_fee"`
 	RegistraionTeamRequest
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`

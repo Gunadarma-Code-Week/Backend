@@ -18,6 +18,7 @@ type AuditLogHandler interface {
 	GetAllAuditLogs(c *gin.Context)
 	GetUserAuditLogs(c *gin.Context)
 	GetAuditLogsByDateRange(c *gin.Context)
+	GetAuditLogStats(c *gin.Context)
 }
 
 func NewAuditLogHandler(auditLogService service.AuditLogService) AuditLogHandler {
@@ -27,14 +28,6 @@ func NewAuditLogHandler(auditLogService service.AuditLogService) AuditLogHandler
 }
 
 // GetAllAuditLogs retrieves all audit logs with pagination
-// @Summary Get all audit logs
-// @Description Get all audit logs with pagination. Requires admin role.
-// @Tags AuditLog
-// @Security Bearer
-// @Param page query int false "Page number (default: 1)"
-// @Param limit query int false "Items per page (default: 10)"
-// @Success 200 {object} map[string]interface{}
-// @Router /admin/audit-logs [get]
 func (h *auditLogHandler) GetAllAuditLogs(c *gin.Context) {
 	page := 1
 	limit := 10
@@ -60,24 +53,15 @@ func (h *auditLogHandler) GetAllAuditLogs(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Successfully retrieved audit logs", gin.H{
-		"logs":       logs,
-		"total":      total,
-		"page":       page,
-		"limit":      limit,
+		"logs":        logs,
+		"total":       total,
+		"page":        page,
+		"limit":       limit,
 		"total_pages": (total + int64(limit) - 1) / int64(limit),
 	}))
 }
 
 // GetUserAuditLogs retrieves audit logs for a specific user
-// @Summary Get user audit logs
-// @Description Get audit logs for a specific user with pagination.
-// @Tags AuditLog
-// @Security Bearer
-// @Param user_id path int true "User ID"
-// @Param page query int false "Page number (default: 1)"
-// @Param limit query int false "Items per page (default: 10)"
-// @Success 200 {object} map[string]interface{}
-// @Router /admin/audit-logs/user/{user_id} [get]
 func (h *auditLogHandler) GetUserAuditLogs(c *gin.Context) {
 	userIDStr := c.Param("user_id")
 	userID, err := strconv.ParseUint(userIDStr, 10, 64)
@@ -110,26 +94,15 @@ func (h *auditLogHandler) GetUserAuditLogs(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Successfully retrieved user audit logs", gin.H{
-		"logs":       logs,
-		"total":      total,
-		"page":       page,
-		"limit":      limit,
+		"logs":        logs,
+		"total":       total,
+		"page":        page,
+		"limit":       limit,
 		"total_pages": (total + int64(limit) - 1) / int64(limit),
 	}))
 }
 
 // GetAuditLogsByDateRange retrieves audit logs within a date range
-// @Summary Get audit logs by date range
-// @Description Get audit logs within a specific date range with optional user filter.
-// @Tags AuditLog
-// @Security Bearer
-// @Param start_date query string true "Start date (YYYY-MM-DD format)"
-// @Param end_date query string true "End date (YYYY-MM-DD format)"
-// @Param user_id query int false "Filter by user ID"
-// @Param page query int false "Page number (default: 1)"
-// @Param limit query int false "Items per page (default: 10)"
-// @Success 200 {object} map[string]interface{}
-// @Router /admin/audit-logs/date-range [get]
 func (h *auditLogHandler) GetAuditLogsByDateRange(c *gin.Context) {
 	startDateStr := c.Query("start_date")
 	endDateStr := c.Query("end_date")
@@ -151,7 +124,6 @@ func (h *auditLogHandler) GetAuditLogsByDateRange(c *gin.Context) {
 		return
 	}
 
-	// Set end date to end of day
 	endDate = endDate.Add(time.Hour * 24)
 
 	page := 1
@@ -174,7 +146,6 @@ func (h *auditLogHandler) GetAuditLogsByDateRange(c *gin.Context) {
 	var logs interface{}
 	var total int64
 
-	// Check if user_id is provided
 	if userIDStr := c.Query("user_id"); userIDStr != "" {
 		userID, err := strconv.ParseUint(userIDStr, 10, 64)
 		if err != nil {
@@ -196,10 +167,20 @@ func (h *auditLogHandler) GetAuditLogsByDateRange(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Successfully retrieved audit logs", gin.H{
-		"logs":       logs,
-		"total":      total,
-		"page":       page,
-		"limit":      limit,
+		"logs":        logs,
+		"total":       total,
+		"page":        page,
+		"limit":       limit,
 		"total_pages": (total + int64(limit) - 1) / int64(limit),
 	}))
+}
+
+func (h *auditLogHandler) GetAuditLogStats(c *gin.Context) {
+	stats, err := h.auditLogService.GetAuditLogStats()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("error", "Failed to retrieve audit log stats"))
+		return
+	}
+
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Successfully retrieved audit log stats", stats))
 }

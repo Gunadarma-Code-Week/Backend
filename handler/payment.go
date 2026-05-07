@@ -112,3 +112,41 @@ func (h *paymentHandler) ManualCheckTransaction(c *gin.Context) {
 	}))
 }
 
+func (h *paymentHandler) UpdateTeamDetails(c *gin.Context) {
+	var payload struct {
+		OrderID        string `json:"order_id"`
+		TeamName       string `json:"team_name"`
+		Supervisor     string `json:"supervisor"`
+		SupervisorNIDN string `json:"supervisor_nidn"`
+		ReceiptLink    string `json:"receipt_link"`
+	}
+
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", "Invalid request payload"))
+		return
+	}
+
+	if payload.OrderID == "" {
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", "Order ID is required"))
+		return
+	}
+
+	// Update DB
+	changes, err := h.registrationService.UpdateTeamDetails(payload.OrderID, payload.TeamName, payload.Supervisor, payload.SupervisorNIDN, payload.ReceiptLink)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("error", "Failed to update team details in database: "+err.Error()))
+		return
+	}
+
+	// Set target name and changes for audit log
+	c.Set("target_name", payload.TeamName)
+	c.Set("audit_changes", changes)
+
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Team details updated successfully", gin.H{
+		"team_name":       payload.TeamName,
+		"supervisor":      payload.Supervisor,
+		"supervisor_nidn": payload.SupervisorNIDN,
+		"receipt_link":    payload.ReceiptLink,
+		"changes":         changes,
+	}))
+}
