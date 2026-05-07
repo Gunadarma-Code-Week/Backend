@@ -76,10 +76,11 @@ func main() {
 	for i, o := range origins {
 		origins[i] = strings.TrimSpace(o)
 	}
+	fmt.Printf("[DEBUG] Loaded CORS Origins: %v\n", origins)
 
 	corsConfig := cors.DefaultConfig()
 	corsConfig.AllowOrigins = origins
-	corsConfig.AllowHeaders = []string{"Origin", "Content-Type", "Accept", "x-token", "cache-control", "Authorization", "If-None-Match"}
+	corsConfig.AllowHeaders = []string{"Origin", "Content-Type", "Accept", "x-token", "cache-control", "Authorization", "If-None-Match", "X-Requested-With", "X-App-Version"}
 	corsConfig.AllowCredentials = true
 	corsConfig.AllowMethods = []string{"POST", "DELETE", "GET", "PUT", "PATCH", "OPTIONS"}
 	corsConfig.ExposeHeaders = []string{"ETag"}
