@@ -355,30 +355,6 @@ func generateDescription(method, path string, body interface{}, user *entity.Use
 		return userLabel + " mengirimkan submission"
 	}
 
-	// Payment details update
-	if strings.Contains(path, "/payment/update-team-details") && method == "POST" {
-		auditChanges := c.GetString("audit_changes")
-		actualTeamName := c.GetString("target_name")
-		if actualTeamName == "" {
-			if bodyMap, ok := body.(map[string]interface{}); ok {
-				if teamName, hasName := bodyMap["team_name"]; hasName {
-					if nameStr, ok := teamName.(string); ok && nameStr != "" {
-						actualTeamName = nameStr
-					}
-				}
-			}
-		}
-
-		desc := userLabel + " memperbarui detail data tim"
-		if actualTeamName != "" {
-			desc += ": " + actualTeamName
-		}
-		if auditChanges != "" {
-			desc += " (Perubahan: " + auditChanges + ")"
-		}
-		return desc
-	}
-
 	// Fallback: generic description
 	actionMap := map[string]string{
 		"POST":   "membuat",

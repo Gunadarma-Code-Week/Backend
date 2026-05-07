@@ -24,7 +24,6 @@ var (
 	emailService        = service.NewEmailService()
 	domJudgeService     = service.NewDomJudgeService()
 	midtransService     = service.NewMidtransService()
-	stellarService      = service.NewStellarService()
 	authService         = service.NewAuthService(userRepository, database)
 	userService         = service.NewUserService(userRepository)
 	registrationService = service.NewRegistrationService(
@@ -37,7 +36,7 @@ var (
 	cpService         = service.NewCpService(database)
 	ctfService        = service.NewCtfService(database)
 	seminarService    = service.NewSeminarService(database)
-	auditLogService   = service.NewAuditLogService(auditLogRepository, stellarService)
+	auditLogService   = service.NewAuditLogService(auditLogRepository)
 
 	authHandler         = handler.NewAuthHandler(authService, jwtService, emailService)
 	userHandler         = handler.NewUserHandler(userService)
@@ -97,15 +96,8 @@ func SetupRouter(r *gin.Engine) {
 
 	// Payment Notification
 	{
-		payment := router.Group("/payment")
-		payment.POST("/notification", paymentHandler.Notification)
-		payment.GET("/check/:order_id", paymentHandler.ManualCheckTransaction)
-	}
-
-	// Authenticated Payment Actions
-	{
-		authPayment := mustAuth.Group("/payment")
-		authPayment.POST("/update-team-details", paymentHandler.UpdateTeamDetails)
+		router.POST("payment/notification", paymentHandler.Notification)
+		router.GET("/payment/check/:order_id", paymentHandler.ManualCheckTransaction)
 	}
 
 	// Profile Route
@@ -154,7 +146,6 @@ func SetupRouter(r *gin.Engine) {
 		auditLogs.Use(authMiddleware.MustAdmin)
 
 		auditLogs.GET("", auditLogHandler.GetAllAuditLogs)
-		auditLogs.GET("/stats", auditLogHandler.GetAuditLogStats)
 		auditLogs.GET("/user/:user_id", auditLogHandler.GetUserAuditLogs)
 		auditLogs.GET("/date-range", auditLogHandler.GetAuditLogsByDateRange)
 	}

@@ -2,7 +2,6 @@ package helper
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
 	"path/filepath"
@@ -166,51 +165,4 @@ func DeleteFile(client *s3.Client, bucket, filePath string) error {
 		log.Printf("Gagal menghapus file dari S3: %v", err)
 	}
 	return err
-}
-func UploadImage(c *gin.Context, fileKey, destinationDir string) (string, error) {
-	allowedExtensions := map[string]bool{
-		"jpg":  true,
-		"jpeg": true,
-		"png":  true,
-		"gif":  true,
-	}
-
-	cfg, err := config.LoadDefaultConfig(context.TODO())
-	if err != nil {
-		return "", err
-	}
-
-	client := s3.NewFromConfig(cfg)
-
-	file, header, err := c.Request.FormFile(fileKey)
-	if err != nil {
-		return "", err
-	}
-	defer file.Close()
-
-	filename := filepath.Base(header.Filename)
-	ext := strings.ToLower(filepath.Ext(filename))[1:]
-
-	if !allowedExtensions[ext] {
-		return "", fmt.Errorf("file extension not allowed")
-	}
-
-	filename = GenerateUniqueFile(filename)
-	filePath := destinationDir + "/" + filename
-
-	uploader := manager.NewUploader(client)
-	_, err = uploader.Upload(context.TODO(), &s3.PutObjectInput{
-		Bucket: aws.String("notarius"), // Ensure this bucket exists or is configurable
-		Key:    aws.String(filePath),
-		Body:   file,
-		ACL:    "public-read",
-	})
-
-	if err != nil {
-		return "", err
-	}
-
-	// You might want to return the full URL depending on your S3 config
-	// For now returning the filePath for consistency
-	return filePath, nil
 }

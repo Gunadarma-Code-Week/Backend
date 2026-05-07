@@ -12,7 +12,6 @@ import (
 	"github.com/mashingan/smapping"
 	"gorm.io/gorm"
 	"os"
-	"strings"
 	"time"
 )
 
@@ -44,7 +43,6 @@ func (s *RegistrationService) CPTeamRegistration(
 	userLead *entity.User,
 ) (*dto.RegistrationCPTeamResponse, error) {
 	var err error
-	registrationDTO.TeamName = strings.TrimSpace(registrationDTO.TeamName)
 	teamRegistration := &entity.Team{
 		TeamName:       registrationDTO.TeamName,
 		Supervisor:     registrationDTO.Supervisor,
@@ -187,7 +185,6 @@ func (s *RegistrationService) HackathonTeamRegistration(
 	userLead *entity.User,
 ) (*dto.RegistrationHackathonTeamResponse, error) {
 	var err error
-	registrationDTO.TeamName = strings.TrimSpace(registrationDTO.TeamName)
 	if userLead.IDTeam != nil {
 		logging.Low("RegistrationService.HackathonTeamRegistration", "BAD_REQUEST", "User already have team")
 		return nil, fmt.Errorf("USER ALREADY HAVE TEAM")
@@ -317,7 +314,6 @@ func (s *RegistrationService) CTFTeamRegistration(
 	userLead *entity.User,
 ) (*dto.RegistrationCTFTeamResponse, error) {
 	var err error
-	registrationDTO.TeamName = strings.TrimSpace(registrationDTO.TeamName)
 	teamRegistration := &entity.Team{
 		TeamName:       registrationDTO.TeamName,
 		Supervisor:     registrationDTO.Supervisor,
@@ -555,57 +551,3 @@ func (s *RegistrationService) UpdatePaymentStatus(orderID string, status string)
 	return tx.Commit().Error
 }
 
-func (s *RegistrationService) UpdateReceipt(orderID string, receiptURL string) error {
-	team := &entity.Team{}
-	err := s.registrationRepository.DB.Where("order_id = ?", orderID).First(team).Error
-	if err != nil {
-		return err
-	}
-
-	team.KomitmenFee = receiptURL
-	return s.registrationRepository.DB.Save(team).Error
-}
-
-func (s *RegistrationService) UpdateTeamDetails(orderID string, teamName string, supervisor string, supervisorNIDN string, receiptURL string) (string, error) {
-	teamName = strings.TrimSpace(teamName)
-	team := &entity.Team{}
-	err := s.registrationRepository.DB.Where("order_id = ?", orderID).First(team).Error
-	if err != nil {
-		return "", err
-	}
-
-	var changes []string
-
-	// Validation: Check if the new team name is already taken by ANOTHER team
-	if !strings.EqualFold(team.TeamName, teamName) {
-		err = s.registrationRepository.FindActiveTeamByNameGlobalExcludingTeam(teamName, team.ID_Team)
-		fmt.Printf("[DEBUG] Checking team name uniqueness for '%s' (excluding ID %d). Result error: %v\n", teamName, team.ID_Team, err)
-		if err == nil {
-			logging.Low("RegistrationService.UpdateTeamDetails", "BAD_REQUEST", "Nama Tim Sudah Digunakan")
-			return "", fmt.Errorf("Nama Tim Sudah Digunakan")
-		}
-		changes = append(changes, fmt.Sprintf("Nama Tim ('%s' -> '%s')", team.TeamName, teamName))
-	}
-
-	if team.Supervisor != supervisor {
-		changes = append(changes, fmt.Sprintf("Pembimbing ('%s' -> '%s')", team.Supervisor, supervisor))
-	}
-	if team.SupervisorNIDN != supervisorNIDN {
-		changes = append(changes, fmt.Sprintf("NIDN ('%s' -> '%s')", team.SupervisorNIDN, supervisorNIDN))
-	}
-	if team.KomitmenFee != receiptURL {
-		changes = append(changes, fmt.Sprintf("Bukti Pembayaran ('%s' -> '%s')", team.KomitmenFee, receiptURL))
-	}
-
-	team.TeamName = teamName
-	team.Supervisor = supervisor
-	team.SupervisorNIDN = supervisorNIDN
-	team.KomitmenFee = receiptURL
-
-	err = s.registrationRepository.DB.Save(team).Error
-	if err != nil {
-		return "", err
-	}
-
-	return strings.Join(changes, ", "), nil
-}

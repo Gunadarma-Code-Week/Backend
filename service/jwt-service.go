@@ -1,11 +1,9 @@
 package service
 
 import (
-	"crypto/rsa"
 	"fmt"
 	"gcw/dto"
 	"gcw/entity"
-	"io/ioutil"
 	"os"
 	"time"
 
@@ -18,54 +16,30 @@ type jwtCustomClaim struct {
 	jwt.StandardClaims
 }
 type JwtService struct {
-	privateKey *rsa.PrivateKey
-	publicKey  *rsa.PublicKey
+	secretKey  string
+	refreshKey string
 	issuer     string
 }
 
 func NewJwtService() *JwtService {
+	secretKey := os.Getenv("JWT_SECRET")
+	if secretKey == "" {
+		secretKey = "12345"
+	}
+
+	refreshSecretKey := os.Getenv("JWT_REFRESH_SECRET")
+	if refreshSecretKey == "" {
+		refreshSecretKey = "12345refresh"
+	}
+
 	issuer := os.Getenv("JWT_ISSUER")
 	if issuer == "" {
 		issuer = "gcw"
 	}
 
-	privateKeyPath := os.Getenv("JWT_PRIVATE_KEY_PATH")
-	if privateKeyPath == "" {
-		privateKeyPath = "keys/private.pem"
-	}
-
-	publicKeyPath := os.Getenv("JWT_PUBLIC_KEY_PATH")
-	if publicKeyPath == "" {
-		publicKeyPath = "keys/public.pem"
-	}
-
-	// Load Private Key
-	privateKeyBytes, err := ioutil.ReadFile(privateKeyPath)
-	if err != nil {
-		fmt.Printf("Warning: Failed to load JWT private key from %s: %v\n", privateKeyPath, err)
-		return nil
-	}
-	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(privateKeyBytes)
-	if err != nil {
-		fmt.Printf("Warning: Failed to parse JWT private key: %v\n", err)
-		return nil
-	}
-
-	// Load Public Key
-	publicKeyBytes, err := ioutil.ReadFile(publicKeyPath)
-	if err != nil {
-		fmt.Printf("Warning: Failed to load JWT public key from %s: %v\n", publicKeyPath, err)
-		return nil
-	}
-	publicKey, err := jwt.ParseRSAPublicKeyFromPEM(publicKeyBytes)
-	if err != nil {
-		fmt.Printf("Warning: Failed to parse JWT public key: %v\n", err)
-		return nil
-	}
-
 	return &JwtService{
-		privateKey: privateKey,
-		publicKey:  publicKey,
+		secretKey:  secretKey,
+		refreshKey: refreshSecretKey,
 		issuer:     issuer,
 	}
 }
@@ -82,8 +56,8 @@ func (j *JwtService) GenerateToken(user *entity.User) string {
 			IssuedAt:  time.Now().Unix(),
 		},
 	}
-	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
-	signedToken, err := token.SignedString(j.privateKey)
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	signedToken, err := token.SignedString([]byte(j.secretKey))
 	if err != nil {
 		panic(err)
 	}
@@ -103,8 +77,8 @@ func (j *JwtService) GenerateRefreshToken(user *entity.User) string {
 		},
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodRS256, refreshClaims)
-	signedToken, err := token.SignedString(j.privateKey)
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshClaims)
+	signedToken, err := token.SignedString([]byte(j.refreshKey))
 	if err != nil {
 		panic(err)
 	}
@@ -113,10 +87,16 @@ func (j *JwtService) GenerateRefreshToken(user *entity.User) string {
 
 func (j *JwtService) validateToken(token string, isRefresh bool) (*jwt.Token, error) {
 	return jwt.Parse(token, func(t_ *jwt.Token) (interface{}, error) {
-		if _, ok := t_.Method.(*jwt.SigningMethodRSA); !ok {
+		if _, ok := t_.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method %v", t_.Header["alg"])
 		}
-		return j.publicKey, nil
+		var secretKey string
+		if isRefresh {
+			secretKey = j.refreshKey
+		} else {
+			secretKey = j.secretKey
+		}
+		return []byte(secretKey), nil
 	})
 }
 

@@ -8,12 +8,13 @@ type Team struct {
 	Supervisor     string `gorm:"type:varchar(255)"`
 	SupervisorNIDN string `gorm:"type:varchar(255)"`
 	JoinCode       string `gorm:"type:varchar(255); not null"`
-	KomitmenFee    string `gorm:"type:varchar(255)" json:"komitmen_fee"`
-	Event          string `gorm:"type:varchar(255); not null" json:"event"`
+	KomitmenFee    string `gorm:"type:varchar(255)"`
 
-	PaymentStatus string `gorm:"type:varchar(50); default:'pending'" json:"payment_status"`
-	OrderID       string `gorm:"type:varchar(255);uniqueIndex" json:"order_id"`
-	QRString      string `gorm:"type:text" json:"qr_string"`
+	Event string `gorm:"type:varchar(255); not null"`
+
+	PaymentStatus string `gorm:"type:varchar(50); default:'pending'"`
+	OrderID       string `gorm:"type:varchar(255);uniqueIndex"`
+	QRString      string `gorm:"type:text"`
 
 	ID_LeadTeam uint64 `gorm:"not null"`
 

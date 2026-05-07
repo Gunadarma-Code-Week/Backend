@@ -18,8 +18,6 @@ type AuditLogRepository interface {
 	FindByDateRange(startDate time.Time, endDate time.Time, limit int, offset int) ([]*entity.AuditLog, int64, error)
 	FindByUserIDAndDateRange(userID uint64, startDate time.Time, endDate time.Time, limit int, offset int) ([]*entity.AuditLog, int64, error)
 	FindAll(limit int, offset int) ([]*entity.AuditLog, int64, error)
-	CountAllAuditLogs() (int64, error)
-	GetLastAuditLog() (*entity.AuditLog, error)
 	GetDB() *gorm.DB
 }
 
@@ -139,25 +137,4 @@ func (r *auditLogRepository) FindAll(limit int, offset int) ([]*entity.AuditLog,
 	r.DB.Model(&entity.AuditLog{}).Count(&total)
 
 	return auditLogs, total, nil
-}
-
-func (r *auditLogRepository) CountAllAuditLogs() (int64, error) {
-	var total int64
-	if err := r.DB.Model(&entity.AuditLog{}).Count(&total).Error; err != nil {
-		return 0, err
-	}
-	return total, nil
-}
-
-// GetLastAuditLog retrieves the most recent audit log
-func (r *auditLogRepository) GetLastAuditLog() (*entity.AuditLog, error) {
-	var auditLog entity.AuditLog
-	res := r.DB.Order("id DESC").First(&auditLog)
-	if res.Error != nil {
-		if res.Error == gorm.ErrRecordNotFound {
-			return nil, nil
-		}
-		return nil, res.Error
-	}
-	return &auditLog, nil
 }
