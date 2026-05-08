@@ -8,6 +8,7 @@ import (
 	"gcw/service"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -77,6 +78,31 @@ func (h *UserHandler) UpdateMyProfile(c *gin.Context) {
 	userUpdate.BirthDate = &birthDate
 	userUpdate.Phone = userUpdateDTO.Phone
 	userUpdate.Major = userUpdateDTO.Major
+
+	oldUser, err := h.userService.FindById(userAuth.ID)
+	if err == nil {
+		var changes []string
+		if userUpdateDTO.Name != "" && userUpdateDTO.Name != oldUser.Name { changes = append(changes, "nama") }
+		if userUpdateDTO.Gender != "" && (oldUser.Gender == nil || userUpdateDTO.Gender != *oldUser.Gender) { changes = append(changes, "gender") }
+		if userUpdateDTO.NIM != "" && (oldUser.NIM == nil || userUpdateDTO.NIM != *oldUser.NIM) { changes = append(changes, "NIM") }
+		if userUpdateDTO.Phone != "" && userUpdateDTO.Phone != oldUser.Phone { changes = append(changes, "nomor telepon") }
+		if userUpdateDTO.Major != "" && userUpdateDTO.Major != oldUser.Major { changes = append(changes, "jurusan") }
+		if userUpdateDTO.BirthPlace != "" && (oldUser.BirthPlace == nil || userUpdateDTO.BirthPlace != *oldUser.BirthPlace) { changes = append(changes, "tempat lahir") }
+		if userUpdateDTO.Institusi != "" && userUpdateDTO.Institusi != oldUser.Institusi { changes = append(changes, "institusi") }
+		if userUpdateDTO.SocMedDocument != "" && userUpdateDTO.SocMedDocument != oldUser.SocMedDocument { changes = append(changes, "dokumen sosial media") }
+		
+		if userUpdateDTO.BirthDate != "" {
+			if oldUser.BirthDate == nil {
+				changes = append(changes, "tanggal lahir")
+			} else if userUpdateDTO.BirthDate != oldUser.BirthDate.Format("2006-01-02") {
+				changes = append(changes, "tanggal lahir")
+			}
+		}
+
+		if len(changes) > 0 {
+			c.Set("audit_changes", strings.Join(changes, ", "))
+		}
+	}
 
 	err = h.userService.Update(userUpdate, userAuth.ID)
 	if err != nil {

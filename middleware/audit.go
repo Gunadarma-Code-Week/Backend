@@ -342,7 +342,12 @@ func generateDescription(method, path string, body interface{}, user *entity.Use
 
 	// Profile update
 	if strings.Contains(path, "/profile/my") && method == "POST" {
-		return userLabel + " memperbarui profil"
+		description := userLabel + " memperbarui profil"
+		auditChanges := c.GetString("audit_changes")
+		if auditChanges != "" {
+			description += " (" + auditChanges + ")"
+		}
+		return description
 	}
 
 	// Seminar
