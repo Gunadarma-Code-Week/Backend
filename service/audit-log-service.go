@@ -52,6 +52,7 @@ func (s *auditLogService) createAuditLogWithBlockchain(auditLog *entity.AuditLog
 		"timestamp":      auditLog.CreatedAt.Format(time.RFC3339),
 		"deskripsi":      auditLog.Description,
 		"ip":             auditLog.IPAddress,
+		"method":         auditLog.Method,
 		"endpoint":       auditLog.Endpoint,
 		"status_code":    fmt.Sprintf("%d", auditLog.ResponseCode),
 		"wallet_address": s.stellarService.GetPublicKey(),
