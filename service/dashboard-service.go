@@ -31,6 +31,7 @@ func (s *DashboardServices) GetAllSeminar(count, page int, search string) (dto.R
 
 	query := s.DB.Preload("User").Where("is_deleted = ? OR is_deleted IS NULL", false)
 
+	var filteredData []entity.Seminar
 	if search != "" {
 		if err := query.Order("id_seminar ASC").Find(&dataSeminars).Error; err != nil {
 			return dto.ResponseSeminar{}, err
@@ -41,7 +42,6 @@ func (s *DashboardServices) GetAllSeminar(count, page int, search string) (dto.R
 			return matches[i].Score > matches[j].Score
 		})
 
-		var filteredData []entity.Seminar
 		for _, match := range matches {
 			filteredData = append(filteredData, dataSeminars[match.Index])
 		}
@@ -94,9 +94,20 @@ func (s *DashboardServices) GetAllSeminar(count, page int, search string) (dto.R
 		responseData = append(responseData, dataSeminar)
 	}
 
+	var total int64
+	if search != "" {
+		total = int64(len(filteredData))
+	} else {
+		// Use a clone of the query to count without pagination
+		countQuery := s.DB.Model(&entity.Seminar{}).Where("is_deleted = ? OR is_deleted IS NULL", false)
+		countQuery.Count(&total)
+	}
+	totalPages := int((total + int64(count) - 1) / int64(count))
+
 	response := dto.ResponseSeminar{
-		Seminar: responseData,
-		HasMore: hasMore,
+		Seminar:    responseData,
+		HasMore:    hasMore,
+		TotalPages: totalPages,
 	}
 
 	return response, nil
@@ -109,6 +120,7 @@ func (s *DashboardServices) GetAllHackaton(count, page int, search string) (dto.
 
 	query := s.DB.Preload("Team").Where("is_deleted = ? OR is_deleted IS NULL", false)
 
+	var filteredData []entity.HackathonTeam
 	if search != "" {
 		// Fetch all for fuzzy matching
 		if err := query.Order("id_hackathon_team ASC").Find(&dataSeminars).Error; err != nil {
@@ -118,13 +130,11 @@ func (s *DashboardServices) GetAllHackaton(count, page int, search string) (dto.
 		// Perform fuzzy search
 		matches := fuzzy.FindFrom(search, hackathonTeamSource(dataSeminars))
 		
-		// Sort by score (fuzzy.Find already returns them sorted by score by default, but we can be explicit)
+		// Sort by score
 		sort.Slice(matches, func(i, j int) bool {
 			return matches[i].Score > matches[j].Score
 		})
 
-		// Filter and Paginate
-		var filteredData []entity.HackathonTeam
 		for _, match := range matches {
 			filteredData = append(filteredData, dataSeminars[match.Index])
 		}
@@ -217,9 +227,19 @@ func (s *DashboardServices) GetAllHackaton(count, page int, search string) (dto.
 		responseHackatons = append(responseHackatons, dataHackaton)
 	}
 
+	var total int64
+	if search != "" {
+		total = int64(len(filteredData))
+	} else {
+		countQuery := s.DB.Model(&entity.HackathonTeam{}).Where("is_deleted = ? OR is_deleted IS NULL", false)
+		countQuery.Count(&total)
+	}
+	totalPages := int((total + int64(count) - 1) / int64(count))
+
 	responseData := dto.ResponseHackaton{
-		Hackaton: responseHackatons,
-		HasMore:  hasMore,
+		Hackaton:   responseHackatons,
+		HasMore:    hasMore,
+		TotalPages: totalPages,
 	}
 
 	return responseData, nil
@@ -232,6 +252,7 @@ func (s *DashboardServices) GetAllCp(count, page int, search string) (dto.Respon
 
 	query := s.DB.Preload("Team").Where("is_deleted = ? OR is_deleted IS NULL", false)
 
+	var filteredData []entity.CPTeam
 	if search != "" {
 		if err := query.Order("id_cp_team ASC").Find(&dataSeminars).Error; err != nil {
 			return dto.ResponseCp{}, err
@@ -242,7 +263,6 @@ func (s *DashboardServices) GetAllCp(count, page int, search string) (dto.Respon
 			return matches[i].Score > matches[j].Score
 		})
 
-		var filteredData []entity.CPTeam
 		for _, match := range matches {
 			filteredData = append(filteredData, dataSeminars[match.Index])
 		}
@@ -333,9 +353,19 @@ func (s *DashboardServices) GetAllCp(count, page int, search string) (dto.Respon
 		responseData = append(responseData, dataCp)
 	}
 
+	var total int64
+	if search != "" {
+		total = int64(len(filteredData))
+	} else {
+		countQuery := s.DB.Model(&entity.CPTeam{}).Where("is_deleted = ? OR is_deleted IS NULL", false)
+		countQuery.Count(&total)
+	}
+	totalPages := int((total + int64(count) - 1) / int64(count))
+
 	response := dto.ResponseCp{
-		Cp:      responseData,
-		HasMore: hasMore,
+		Cp:         responseData,
+		HasMore:    hasMore,
+		TotalPages: totalPages,
 	}
 
 	return response, nil
@@ -348,6 +378,7 @@ func (s *DashboardServices) GetAllCtf(count, page int, search string) (dto.Respo
 
 	query := s.DB.Preload("Team").Where("is_deleted = ? OR is_deleted IS NULL", false)
 
+	var filteredData []entity.CTFTeam
 	if search != "" {
 		if err := query.Order("id_ctf_team ASC").Find(&dataCtfTeams).Error; err != nil {
 			return dto.ResponseCtf{}, err
@@ -358,7 +389,6 @@ func (s *DashboardServices) GetAllCtf(count, page int, search string) (dto.Respo
 			return matches[i].Score > matches[j].Score
 		})
 
-		var filteredData []entity.CTFTeam
 		for _, match := range matches {
 			filteredData = append(filteredData, dataCtfTeams[match.Index])
 		}
@@ -446,9 +476,19 @@ func (s *DashboardServices) GetAllCtf(count, page int, search string) (dto.Respo
 		responseData = append(responseData, dataCtf)
 	}
 
+	var total int64
+	if search != "" {
+		total = int64(len(filteredData))
+	} else {
+		countQuery := s.DB.Model(&entity.CTFTeam{}).Where("is_deleted = ? OR is_deleted IS NULL", false)
+		countQuery.Count(&total)
+	}
+	totalPages := int((total + int64(count) - 1) / int64(count))
+
 	response := dto.ResponseCtf{
-		Ctf:     responseData,
-		HasMore: hasMore,
+		Ctf:        responseData,
+		HasMore:    hasMore,
+		TotalPages: totalPages,
 	}
 
 	return response, nil

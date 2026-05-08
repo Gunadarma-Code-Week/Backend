@@ -26,8 +26,9 @@ type Anggota struct {
 }
 
 type ResponseSeminar struct {
-	Seminar []Seminar `json:"seminar"`
-	HasMore bool      `json:"has_more"`
+	Seminar    []Seminar `json:"seminar"`
+	HasMore    bool      `json:"has_more"`
+	TotalPages int       `json:"total_pages"`
 }
 
 type Hackaton struct {
@@ -44,8 +45,9 @@ type Hackaton struct {
 }
 
 type ResponseHackaton struct {
-	Hackaton []Hackaton `json:"hackaton"`
-	HasMore  bool       `json:"has_more"`
+	Hackaton   []Hackaton `json:"hackaton"`
+	HasMore    bool       `json:"has_more"`
+	TotalPages int        `json:"total_pages"`
 }
 
 type Cp struct {
@@ -61,8 +63,9 @@ type Cp struct {
 }
 
 type ResponseCp struct {
-	Cp      []Cp `json:"cp"`
-	HasMore bool `json:"has_more"`
+	Cp         []Cp `json:"cp"`
+	HasMore    bool `json:"has_more"`
+	TotalPages int  `json:"total_pages"`
 }
 
 type Ctf struct {
@@ -78,8 +81,9 @@ type Ctf struct {
 }
 
 type ResponseCtf struct {
-	Ctf     []Ctf `json:"ctf"`
-	HasMore bool  `json:"has_more"`
+	Ctf        []Ctf `json:"ctf"`
+	HasMore    bool  `json:"has_more"`
+	TotalPages int   `json:"total_pages"`
 }
 
 type DeleteTeamRequest struct {
