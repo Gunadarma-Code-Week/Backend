@@ -42,8 +42,24 @@ func (s *auditLogService) calculateHash(data string) string {
 
 // createAuditLogWithBlockchain adds blockchain hashes and saves the audit log
 func (s *auditLogService) createAuditLogWithBlockchain(auditLog *entity.AuditLog) error {
-	// 1. Calculate hash of description
-	descriptionHash := s.calculateHash(auditLog.Description)
+	// Ensure CreatedAt is set before hashing for consistency
+	if auditLog.CreatedAt.IsZero() {
+		auditLog.CreatedAt = time.Now()
+	}
+
+	// Create a dictionary for hashing that includes metadata
+	metadata := map[string]string{
+		"timestamp":      auditLog.CreatedAt.Format(time.RFC3339),
+		"deskripsi":      auditLog.Description,
+		"ip":             auditLog.IPAddress,
+		"endpoint":       auditLog.Endpoint,
+		"status_code":    fmt.Sprintf("%d", auditLog.ResponseCode),
+		"wallet_address": s.stellarService.GetPublicKey(),
+	}
+	metadataJSON, _ := json.Marshal(metadata)
+
+	// 1. Calculate hash of metadata dictionary (using JSON)
+	descriptionHash := s.calculateHash(string(metadataJSON))
 	auditLog.DescriptionHash = descriptionHash
 
 	// 2. Get last audit log to link to

@@ -310,7 +310,7 @@ func (h *UserHandler) AdminUpdateUser(c *gin.Context) {
 		return
 	}
 
-	c.Set("target_name", response.Name)
+	c.Set("target_email", response.Email)
 	c.JSON(http.StatusOK, helper.CreateSuccessResponse("User updated successfully", response))
 }
 
@@ -340,7 +340,7 @@ func (h *UserHandler) AdminDeleteUser(c *gin.Context) {
 	// Get user name for audit log before deletion
 	user, err := h.userService.AdminGetUserById(id)
 	if err == nil {
-		c.Set("target_name", user.Name)
+		c.Set("target_email", user.Email)
 	}
 
 	err = h.userService.AdminDeleteUser(id, deleteRequest.Alasan)

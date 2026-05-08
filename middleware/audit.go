@@ -182,8 +182,9 @@ func generateDescription(method, path string, body interface{}, user *entity.Use
 		userLabel = user.Email
 	}
 
-	// Target name from context if set by handler
+	// Target name/email from context if set by handler
 	targetName := c.GetString("target_name")
+	targetEmail := c.GetString("target_email")
 
 	// Normalize path segments
 	segments := strings.Split(strings.Trim(path, "/"), "/")
@@ -254,7 +255,9 @@ func generateDescription(method, path string, body interface{}, user *entity.Use
 	if strings.Contains(path, "/admin/users/") {
 		id := segments[len(segments)-1]
 		targetLabel := "dengan ID " + id
-		if targetName != "" {
+		if targetEmail != "" {
+			targetLabel = "dengan email " + targetEmail
+		} else if targetName != "" {
 			targetLabel = "dengan nama " + targetName
 		}
 		switch method {

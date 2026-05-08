@@ -21,6 +21,7 @@ import (
 type StellarService interface {
 	SendAuditHash(hash string) (string, string, error)
 	GetAccountBalance() (string, error)
+	GetPublicKey() string
 }
 
 type stellarService struct {
@@ -30,6 +31,7 @@ type stellarService struct {
 	network         string
 	contractID      string
 	functionName    string
+	publicKey       string
 }
 
 // Structs for JSON-RPC
@@ -96,14 +98,28 @@ func NewStellarService() StellarService {
 	fmt.Printf("Stellar Service initialized: network=%s, rpc=%s, horizon=%s, contract=%s\n", 
 		net, rpcURL, horizonURL, os.Getenv("STELLAR_CONTRACT_ADDRESS"))
 
+	secret := os.Getenv("STELLAR_SECRET_KEY")
+	publicKey := ""
+	if secret != "" {
+		kp, err := keypair.ParseFull(secret)
+		if err == nil {
+			publicKey = kp.Address()
+		}
+	}
+
 	return &stellarService{
 		horizonClient: &horizonclient.Client{HorizonURL: horizonURL},
 		rpcURL:        rpcURL,
-		secret:        os.Getenv("STELLAR_SECRET_KEY"),
+		secret:        secret,
 		network:       net,
 		contractID:    os.Getenv("STELLAR_CONTRACT_ADDRESS"),
 		functionName:  "record_hash",
+		publicKey:     publicKey,
 	}
+}
+
+func (s *stellarService) GetPublicKey() string {
+	return s.publicKey
 }
 
 func (s *stellarService) SendAuditHash(auditHash string) (string, string, error) {
