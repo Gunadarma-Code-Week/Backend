@@ -17,7 +17,7 @@ type AuditLogRepository interface {
 	FindByEndpoint(endpoint string, limit int, offset int) ([]*entity.AuditLog, int64, error)
 	FindByDateRange(startDate time.Time, endDate time.Time, limit int, offset int) ([]*entity.AuditLog, int64, error)
 	FindByUserIDAndDateRange(userID uint64, startDate time.Time, endDate time.Time, limit int, offset int) ([]*entity.AuditLog, int64, error)
-	FindAll(limit int, offset int) ([]*entity.AuditLog, int64, error)
+	FindAll(limit int, offset int, role string, query string) ([]*entity.AuditLog, int64, error)
 	CountAllAuditLogs() (int64, error)
 	GetLastAuditLog() (*entity.AuditLog, error)
 	GetDB() *gorm.DB
@@ -122,12 +122,24 @@ func (r *auditLogRepository) FindByUserIDAndDateRange(userID uint64, startDate t
 	return auditLogs, total, nil
 }
 
-// FindAll retrieves all audit logs with pagination
-func (r *auditLogRepository) FindAll(limit int, offset int) ([]*entity.AuditLog, int64, error) {
+// FindAll retrieves all audit logs with pagination, role filter, and search query
+func (r *auditLogRepository) FindAll(limit int, offset int, role string, searchQuery string) ([]*entity.AuditLog, int64, error) {
 	var auditLogs []*entity.AuditLog
 	var total int64
 
-	res := r.DB.Preload("User").Order("created_at DESC").
+	dbQuery := r.DB.Model(&entity.AuditLog{}).Preload("User").
+		Joins("LEFT JOIN users ON users.id = audit_logs.user_id")
+	
+	if role != "" {
+		dbQuery = dbQuery.Where("users.role = ?", role)
+	}
+
+	if searchQuery != "" {
+		searchPattern := "%" + searchQuery + "%"
+		dbQuery = dbQuery.Where("(audit_logs.description ILIKE ? OR users.email ILIKE ?)", searchPattern, searchPattern)
+	}
+
+	res := dbQuery.Order("audit_logs.created_at DESC").
 		Limit(limit).
 		Offset(offset).
 		Find(&auditLogs)
@@ -136,7 +148,19 @@ func (r *auditLogRepository) FindAll(limit int, offset int) ([]*entity.AuditLog,
 		return nil, 0, res.Error
 	}
 
-	r.DB.Model(&entity.AuditLog{}).Count(&total)
+	countQuery := r.DB.Model(&entity.AuditLog{}).
+		Joins("LEFT JOIN users ON users.id = audit_logs.user_id")
+	
+	if role != "" {
+		countQuery = countQuery.Where("users.role = ?", role)
+	}
+
+	if searchQuery != "" {
+		searchPattern := "%" + searchQuery + "%"
+		countQuery = countQuery.Where("(audit_logs.description ILIKE ? OR users.email ILIKE ?)", searchPattern, searchPattern)
+	}
+	
+	countQuery.Count(&total)
 
 	return auditLogs, total, nil
 }

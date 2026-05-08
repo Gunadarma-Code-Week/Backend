@@ -7,7 +7,10 @@ import (
 	"gcw/entity"
 	"gcw/repository"
 	"os"
+	"sort"
 	"time"
+
+	"github.com/sahilm/fuzzy"
 )
 
 type auditLogService struct {
@@ -23,7 +26,7 @@ type AuditLogService interface {
 	GetEndpointActivityLogs(endpoint string, limit int, offset int) ([]*entity.AuditLog, int64, error)
 	GetActivityLogsByDateRange(startDate time.Time, endDate time.Time, limit int, offset int) ([]*entity.AuditLog, int64, error)
 	GetUserActivityLogsByDateRange(userID uint64, startDate time.Time, endDate time.Time, limit int, offset int) ([]*entity.AuditLog, int64, error)
-	GetAllActivityLogs(limit int, offset int) ([]*entity.AuditLog, int64, error)
+	GetAllActivityLogs(limit int, offset int, role string, query string) ([]*entity.AuditLog, int64, error)
 	GetAuditLogStats() (map[string]interface{}, error)
 }
 
@@ -227,9 +230,58 @@ func (s *auditLogService) GetUserActivityLogsByDateRange(userID uint64, startDat
 	return s.auditLogRepository.FindByUserIDAndDateRange(userID, startDate, endDate, limit, offset)
 }
 
-// GetAllActivityLogs retrieves all activity logs
-func (s *auditLogService) GetAllActivityLogs(limit int, offset int) ([]*entity.AuditLog, int64, error) {
-	return s.auditLogRepository.FindAll(limit, offset)
+// GetAllActivityLogs retrieves all activity logs with pagination, optional role filter, and smart fuzzy search
+func (s *auditLogService) GetAllActivityLogs(limit int, offset int, role string, query string) ([]*entity.AuditLog, int64, error) {
+	if query != "" {
+		// Fetch ALL logs filtered by role for fuzzy matching
+		// We use a high limit to get all relevant records for in-memory fuzzy search
+		allLogs, _, err := s.auditLogRepository.FindAll(100000, 0, role, "")
+		if err != nil {
+			return nil, 0, err
+		}
+
+		// Perform fuzzy search
+		matches := fuzzy.FindFrom(query, auditLogSource(allLogs))
+		
+		// Sort by relevance score
+		sort.Slice(matches, func(i, j int) bool {
+			return matches[i].Score > matches[j].Score
+		})
+
+		var filteredData []*entity.AuditLog
+		for _, match := range matches {
+			filteredData = append(filteredData, allLogs[match.Index])
+		}
+
+		total := int64(len(filteredData))
+		
+		// Manual pagination
+		start := offset
+		if start > len(filteredData) {
+			return []*entity.AuditLog{}, total, nil
+		}
+		
+		end := start + limit
+		if end > len(filteredData) {
+			end = len(filteredData)
+		}
+		
+		return filteredData[start:end], total, nil
+	}
+
+	return s.auditLogRepository.FindAll(limit, offset, role, "")
+}
+
+// Fuzzy Search Sources for Audit Logs
+type auditLogSource []*entity.AuditLog
+
+func (s auditLogSource) String(i int) string {
+	// Search against description and user email
+	return s[i].Description + " " + s[i].User.Email
+}
+
+func (s auditLogSource) Len() int {
+	return len(s)
 }
 
 // GetAuditLogStats retrieves statistics for audit logs

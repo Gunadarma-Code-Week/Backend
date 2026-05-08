@@ -44,9 +44,11 @@ func (h *auditLogHandler) GetAllAuditLogs(c *gin.Context) {
 		}
 	}
 
+	role := c.Query("role")
+	query := c.Query("q")
 	offset := (page - 1) * limit
 
-	logs, total, err := h.auditLogService.GetAllActivityLogs(limit, offset)
+	logs, total, err := h.auditLogService.GetAllActivityLogs(limit, offset, role, query)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("error", "Failed to retrieve audit logs"))
 		return
