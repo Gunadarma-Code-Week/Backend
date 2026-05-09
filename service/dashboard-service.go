@@ -113,12 +113,15 @@ func (s *DashboardServices) GetAllSeminar(count, page int, search string) (dto.R
 	return response, nil
 }
 
-func (s *DashboardServices) GetAllHackaton(count, page int, search string) (dto.ResponseHackaton, error) {
+func (s *DashboardServices) GetAllHackaton(count, page int, search, stage string) (dto.ResponseHackaton, error) {
 	var dataSeminars []entity.HackathonTeam
 
 	offset := page * count
 
 	query := s.DB.Preload("Team").Where("is_deleted = ? OR is_deleted IS NULL", false)
+	if stage != "" {
+		query = query.Where("stage = ?", stage)
+	}
 
 	var filteredData []entity.HackathonTeam
 	if search != "" {
@@ -232,6 +235,9 @@ func (s *DashboardServices) GetAllHackaton(count, page int, search string) (dto.
 		total = int64(len(filteredData))
 	} else {
 		countQuery := s.DB.Model(&entity.HackathonTeam{}).Where("is_deleted = ? OR is_deleted IS NULL", false)
+		if stage != "" {
+			countQuery = countQuery.Where("stage = ?", stage)
+		}
 		countQuery.Count(&total)
 	}
 	totalPages := int((total + int64(count) - 1) / int64(count))
@@ -245,12 +251,15 @@ func (s *DashboardServices) GetAllHackaton(count, page int, search string) (dto.
 	return responseData, nil
 }
 
-func (s *DashboardServices) GetAllCp(count, page int, search string) (dto.ResponseCp, error) {
+func (s *DashboardServices) GetAllCp(count, page int, search, stage string) (dto.ResponseCp, error) {
 	var dataSeminars []entity.CPTeam
 
 	offset := page * count
 
 	query := s.DB.Preload("Team").Where("is_deleted = ? OR is_deleted IS NULL", false)
+	if stage != "" {
+		query = query.Where("stage = ?", stage)
+	}
 
 	var filteredData []entity.CPTeam
 	if search != "" {
@@ -358,6 +367,9 @@ func (s *DashboardServices) GetAllCp(count, page int, search string) (dto.Respon
 		total = int64(len(filteredData))
 	} else {
 		countQuery := s.DB.Model(&entity.CPTeam{}).Where("is_deleted = ? OR is_deleted IS NULL", false)
+		if stage != "" {
+			countQuery = countQuery.Where("stage = ?", stage)
+		}
 		countQuery.Count(&total)
 	}
 	totalPages := int((total + int64(count) - 1) / int64(count))
@@ -371,12 +383,15 @@ func (s *DashboardServices) GetAllCp(count, page int, search string) (dto.Respon
 	return response, nil
 }
 
-func (s *DashboardServices) GetAllCtf(count, page int, search string) (dto.ResponseCtf, error) {
+func (s *DashboardServices) GetAllCtf(count, page int, search, stage string) (dto.ResponseCtf, error) {
 	var dataCtfTeams []entity.CTFTeam
 
 	offset := page * count
 
 	query := s.DB.Preload("Team").Where("is_deleted = ? OR is_deleted IS NULL", false)
+	if stage != "" {
+		query = query.Where("stage = ?", stage)
+	}
 
 	var filteredData []entity.CTFTeam
 	if search != "" {
@@ -481,6 +496,9 @@ func (s *DashboardServices) GetAllCtf(count, page int, search string) (dto.Respo
 		total = int64(len(filteredData))
 	} else {
 		countQuery := s.DB.Model(&entity.CTFTeam{}).Where("is_deleted = ? OR is_deleted IS NULL", false)
+		if stage != "" {
+			countQuery = countQuery.Where("stage = ?", stage)
+		}
 		countQuery.Count(&total)
 	}
 	totalPages := int((total + int64(count) - 1) / int64(count))

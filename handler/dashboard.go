@@ -83,7 +83,8 @@ func (h *dashboardController) GetAllDashboard(c *gin.Context) {
 		respondData = data
 	case "hackaton", "hackathon":
 		search := c.Query("search")
-		data, err := h.Service.GetAllHackaton(count, page, search)
+		stage := c.Query("stage")
+		data, err := h.Service.GetAllHackaton(count, page, search, stage)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "service error: "+err.Error()))
 			return
@@ -91,7 +92,8 @@ func (h *dashboardController) GetAllDashboard(c *gin.Context) {
 		respondData = data
 	case "cp":
 		search := c.Query("search")
-		data, err := h.Service.GetAllCp(count, page, search)
+		stage := c.Query("stage")
+		data, err := h.Service.GetAllCp(count, page, search, stage)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "service error: "+err.Error()))
 			return
@@ -99,7 +101,8 @@ func (h *dashboardController) GetAllDashboard(c *gin.Context) {
 		respondData = data
 	case "ctf":
 		search := c.Query("search")
-		data, err := h.Service.GetAllCtf(count, page, search)
+		stage := c.Query("stage")
+		data, err := h.Service.GetAllCtf(count, page, search, stage)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "service error: "+err.Error()))
 			return
