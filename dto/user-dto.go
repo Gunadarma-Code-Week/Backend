@@ -25,12 +25,12 @@ type UserResponseDTO struct {
 
 type UpdateUserProfileDTO struct {
 	Name       string `json:"name" binding:"required"`
-	Gender     string `json:"gender" binding:"required"`
+	Gender     string `json:"gender"`
 	NIM        string `json:"nim" binding:"required"`
 	Phone      string `json:"phone"`
 	Major      string `json:"major"`
-	BirthPlace string `json:"birth_place" binding:"required"`
-	BirthDate  string `json:"birth_date" binding:"required"`
+	BirthPlace string `json:"birth_place"`
+	BirthDate  string `json:"birth_date"`
 	Institusi  string `json:"institusi" binding:"required"`
 
 	SocMedDocument string `json:"socmed_document"`
