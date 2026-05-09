@@ -1,6 +1,9 @@
 package service
 
 import (
+	"crypto/aes"
+	"crypto/cipher"
+	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
@@ -8,6 +11,7 @@ import (
 	"gcw/repository"
 	"os"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/sahilm/fuzzy"
@@ -16,12 +20,13 @@ import (
 type auditLogService struct {
 	auditLogRepository repository.AuditLogRepository
 	stellarService     StellarService
+	secretKey          []byte
 }
 
 type AuditLogService interface {
-	RecordActivity(userID uint64, method string, endpoint string, description string, requestBody interface{}, ipAddress string, userAgent string) error
-	RecordActivityWithResponse(userID uint64, method string, endpoint string, description string, requestBody interface{}, responseCode int, responseBody interface{}, ipAddress string, userAgent string) error
-	RecordActivityWithError(userID uint64, method string, endpoint string, description string, requestBody interface{}, responseCode int, errorMessage string, ipAddress string, userAgent string) error
+	RecordActivity(userID uint64, userEmail string, method string, endpoint string, description string, requestBody interface{}, ipAddress string, userAgent string) error
+	RecordActivityWithResponse(userID uint64, userEmail string, method string, endpoint string, description string, requestBody interface{}, responseCode int, responseBody interface{}, ipAddress string, userAgent string) error
+	RecordActivityWithError(userID uint64, userEmail string, method string, endpoint string, description string, requestBody interface{}, responseCode int, errorMessage string, ipAddress string, userAgent string) error
 	GetUserActivityLogs(userID uint64, limit int, offset int) ([]*entity.AuditLog, int64, error)
 	GetEndpointActivityLogs(endpoint string, limit int, offset int) ([]*entity.AuditLog, int64, error)
 	GetActivityLogsByDateRange(startDate time.Time, endDate time.Time, limit int, offset int) ([]*entity.AuditLog, int64, error)
@@ -31,9 +36,22 @@ type AuditLogService interface {
 }
 
 func NewAuditLogService(repo repository.AuditLogRepository, stellar StellarService) AuditLogService {
+	// Load audit_private.pem as secret key for HMAC
+	auditKeyPath := os.Getenv("AUDIT_PRIVATE_KEY_PATH")
+	if auditKeyPath == "" {
+		auditKeyPath = "keys/audit_private.pem"
+	}
+
+	secretKey, err := os.ReadFile(auditKeyPath)
+	if err != nil {
+		fmt.Printf("Warning: Failed to load %s for audit log HMAC: %v. Using empty key.\n", auditKeyPath, err)
+		secretKey = []byte("")
+	}
+
 	return &auditLogService{
 		auditLogRepository: repo,
 		stellarService:     stellar,
+		secretKey:          secretKey,
 	}
 }
 
@@ -43,17 +61,60 @@ func (s *auditLogService) calculateHash(data string) string {
 	return fmt.Sprintf("%x", hash)
 }
 
+// calculateHMAC returns HMAC-SHA256 hash of a string using the secret key
+func (s *auditLogService) calculateHMAC(data string) string {
+	h := hmac.New(sha256.New, s.secretKey)
+	h.Write([]byte(data))
+	return fmt.Sprintf("%x", h.Sum(nil))
+}
+
+// calculateAESGCMHash encrypts data with AES-256-GCM then hashes the result with SHA-256
+func (s *auditLogService) calculateAESGCMHash(data string) string {
+	// 1. Derive 32-byte key for AES-256 from secretKey
+	key := sha256.Sum256(s.secretKey)
+	
+	block, err := aes.NewCipher(key[:])
+	if err != nil {
+		// Fallback to HMAC if AES fails (should not happen with valid key)
+		return s.calculateHMAC(data)
+	}
+
+	gcm, err := cipher.NewGCM(block)
+	if err != nil {
+		return s.calculateHMAC(data)
+	}
+
+	// 2. Create a deterministic nonce from the data itself (so hash is reproducible)
+	// We take first 12 bytes of SHA256(data) as nonce
+	nonceHash := sha256.Sum256([]byte(data))
+	nonce := nonceHash[:gcm.NonceSize()]
+
+	// 3. Encrypt data
+	ciphertext := gcm.Seal(nil, nonce, []byte(data), nil)
+	
+	// 4. Hash the combined result (nonce + ciphertext) with SHA-256 to get 64 chars
+	finalHash := sha256.Sum256(append(nonce, ciphertext...))
+	
+	return fmt.Sprintf("%x", finalHash)
+}
+
 // createAuditLogWithBlockchain adds blockchain hashes and saves the audit log
-func (s *auditLogService) createAuditLogWithBlockchain(auditLog *entity.AuditLog) error {
+func (s *auditLogService) createAuditLogWithBlockchain(auditLog *entity.AuditLog, userEmail string) error {
 	// Ensure CreatedAt is set before hashing for consistency
 	if auditLog.CreatedAt.IsZero() {
 		auditLog.CreatedAt = time.Now()
 	}
 
+	// Create a description for hashing that replaces email with User ID for privacy
+	blockchainDescription := auditLog.Description
+	if userEmail != "" {
+		blockchainDescription = strings.ReplaceAll(blockchainDescription, userEmail, fmt.Sprintf("User (ID: %d)", auditLog.UserID))
+	}
+
 	// Create a dictionary for hashing that includes metadata
 	metadata := map[string]string{
 		"timestamp":      auditLog.CreatedAt.Format(time.RFC3339),
-		"deskripsi":      auditLog.Description,
+		"deskripsi":      blockchainDescription,
 		"ip":             auditLog.IPAddress,
 		"method":         auditLog.Method,
 		"endpoint":       auditLog.Endpoint,
@@ -62,8 +123,8 @@ func (s *auditLogService) createAuditLogWithBlockchain(auditLog *entity.AuditLog
 	}
 	metadataJSON, _ := json.Marshal(metadata)
 
-	// 1. Calculate hash of metadata dictionary (using JSON)
-	descriptionHash := s.calculateHash(string(metadataJSON))
+	// 1. Calculate AES-GCM-SHA256 hash of metadata dictionary
+	descriptionHash := s.calculateAESGCMHash(string(metadataJSON))
 	auditLog.DescriptionHash = descriptionHash
 
 	// 2. Get last audit log to link to
@@ -77,9 +138,9 @@ func (s *auditLogService) createAuditLogWithBlockchain(auditLog *entity.AuditLog
 		lastBlockchainHash = lastLog.BlockchainHash
 	}
 
-	// 3. Calculate current blockchain hash: hash(descriptionHash + lastBlockchainHash)
-	// This creates a chain of integrity
-	currentBlockchainHash := s.calculateHash(descriptionHash + lastBlockchainHash)
+	// 3. Calculate current blockchain hash using AES-GCM-SHA256: 
+	// Process (metadataJSON + lastBlockchainHash) through AES-GCM then hash with SHA256
+	currentBlockchainHash := s.calculateAESGCMHash(string(metadataJSON) + lastBlockchainHash)
 	auditLog.BlockchainHash = currentBlockchainHash
 
 	err = s.auditLogRepository.Create(auditLog)
@@ -114,7 +175,7 @@ func (s *auditLogService) createAuditLogWithBlockchain(auditLog *entity.AuditLog
 }
 
 // RecordActivity records user activity without response data
-func (s *auditLogService) RecordActivity(userID uint64, method string, endpoint string, description string, requestBody interface{}, ipAddress string, userAgent string) error {
+func (s *auditLogService) RecordActivity(userID uint64, userEmail string, method string, endpoint string, description string, requestBody interface{}, ipAddress string, userAgent string) error {
 	var requestJSON json.RawMessage
 	if requestBody != nil {
 		data, err := json.Marshal(requestBody)
@@ -137,11 +198,11 @@ func (s *auditLogService) RecordActivity(userID uint64, method string, endpoint 
 		UserAgent:   userAgent,
 	}
 
-	return s.createAuditLogWithBlockchain(auditLog)
+	return s.createAuditLogWithBlockchain(auditLog, userEmail)
 }
 
 // RecordActivityWithResponse records user activity with response data
-func (s *auditLogService) RecordActivityWithResponse(userID uint64, method string, endpoint string, description string, requestBody interface{}, responseCode int, responseBody interface{}, ipAddress string, userAgent string) error {
+func (s *auditLogService) RecordActivityWithResponse(userID uint64, userEmail string, method string, endpoint string, description string, requestBody interface{}, responseCode int, responseBody interface{}, ipAddress string, userAgent string) error {
 	var requestJSON json.RawMessage
 	if requestBody != nil {
 		data, err := json.Marshal(requestBody)
@@ -178,11 +239,11 @@ func (s *auditLogService) RecordActivityWithResponse(userID uint64, method strin
 		UserAgent:    userAgent,
 	}
 
-	return s.createAuditLogWithBlockchain(auditLog)
+	return s.createAuditLogWithBlockchain(auditLog, userEmail)
 }
 
 // RecordActivityWithError records user activity with error information
-func (s *auditLogService) RecordActivityWithError(userID uint64, method string, endpoint string, description string, requestBody interface{}, responseCode int, errorMessage string, ipAddress string, userAgent string) error {
+func (s *auditLogService) RecordActivityWithError(userID uint64, userEmail string, method string, endpoint string, description string, requestBody interface{}, responseCode int, errorMessage string, ipAddress string, userAgent string) error {
 	var requestJSON json.RawMessage
 	if requestBody != nil {
 		data, err := json.Marshal(requestBody)
@@ -207,7 +268,7 @@ func (s *auditLogService) RecordActivityWithError(userID uint64, method string, 
 		UserAgent:    userAgent,
 	}
 
-	return s.createAuditLogWithBlockchain(auditLog)
+	return s.createAuditLogWithBlockchain(auditLog, userEmail)
 }
 
 // GetUserActivityLogs retrieves activity logs for a specific user

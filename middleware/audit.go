@@ -106,6 +106,7 @@ func (m *auditMiddleware) AuditLogMiddleware(c *gin.Context) {
 	description := generateDescription(c.Request.Method, c.Request.URL.Path, requestBody, user, c)
 	err := m.auditLogService.RecordActivityWithResponse(
 		user.ID,
+		user.Email,
 		c.Request.Method,
 		c.Request.URL.Path,
 		description,

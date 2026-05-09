@@ -31,12 +31,12 @@ func NewJwtService() *JwtService {
 
 	privateKeyPath := os.Getenv("JWT_PRIVATE_KEY_PATH")
 	if privateKeyPath == "" {
-		privateKeyPath = "keys/private.pem"
+		privateKeyPath = "keys/auth_private.pem"
 	}
 
 	publicKeyPath := os.Getenv("JWT_PUBLIC_KEY_PATH")
 	if publicKeyPath == "" {
-		publicKeyPath = "keys/public.pem"
+		publicKeyPath = "keys/auth_public.pem"
 	}
 
 	// Load Private Key
