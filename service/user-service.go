@@ -311,15 +311,6 @@ func (s *UserService) AdminGetAllUsers(query dto.AdminGetUsersQueryDTO) (dto.Adm
 		if user.NIM != nil {
 			userResponse.NIM = *user.NIM
 		}
-		if user.Gender != nil {
-			userResponse.Gender = *user.Gender
-		}
-		if user.BirthPlace != nil {
-			userResponse.BirthPlace = *user.BirthPlace
-		}
-		if user.BirthDate != nil {
-			userResponse.BirthDate = user.BirthDate.Format("2006-01-02")
-		}
 		if user.IDTeam != nil {
 			userResponse.IDTeam = *user.IDTeam
 		}
@@ -373,15 +364,6 @@ func (s *UserService) AdminGetUserById(id uint64) (*dto.AdminUserResponseDTO, er
 	if user.NIM != nil {
 		userResponse.NIM = *user.NIM
 	}
-	if user.Gender != nil {
-		userResponse.Gender = *user.Gender
-	}
-	if user.BirthPlace != nil {
-		userResponse.BirthPlace = *user.BirthPlace
-	}
-	if user.BirthDate != nil {
-		userResponse.BirthDate = user.BirthDate.Format("2006-01-02")
-	}
 	if user.IDTeam != nil {
 		userResponse.IDTeam = *user.IDTeam
 	}
@@ -423,18 +405,6 @@ func (s *UserService) AdminUpdateUser(id uint64, updateData dto.AdminUpdateUserD
 	}
 	if updateData.NIM != "" {
 		user.NIM = &updateData.NIM
-	}
-	if updateData.Gender != "" {
-		user.Gender = &updateData.Gender
-	}
-	if updateData.BirthPlace != "" {
-		user.BirthPlace = &updateData.BirthPlace
-	}
-	if updateData.BirthDate != "" {
-		birthDate, err := time.Parse("2006-01-02", updateData.BirthDate)
-		if err == nil {
-			user.BirthDate = &birthDate
-		}
 	}
 	if updateData.SocMedDocument != "" {
 		user.SocMedDocument = updateData.SocMedDocument
