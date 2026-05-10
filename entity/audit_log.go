@@ -23,6 +23,8 @@ type AuditLog struct {
 	IPAddress    string          `gorm:"varchar(45)" json:"ip_address"`
 	UserAgent    string          `gorm:"type:text" json:"user_agent"`
 	ErrorMessage *string         `gorm:"type:text" json:"error_message"`
+	Salt         string          `gorm:"type:varchar(32)" json:"salt"`
+	BlockchainSalt string        `gorm:"type:varchar(32)" json:"blockchain_salt"`
 	CreatedAt    time.Time       `gorm:"autoCreateTime" json:"created_at"`
 	UpdatedAt    time.Time       `gorm:"autoUpdateTime" json:"updated_at"`
 }

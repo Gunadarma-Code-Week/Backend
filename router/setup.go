@@ -37,7 +37,7 @@ var (
 	cpService         = service.NewCpService(database)
 	ctfService        = service.NewCtfService(database)
 	seminarService    = service.NewSeminarService(database)
-	auditLogService   = service.NewAuditLogService(auditLogRepository, stellarService)
+	auditLogService   = service.NewAuditLogService(auditLogRepository, userRepository, stellarService)
 
 	authHandler         = handler.NewAuthHandler(authService, jwtService, emailService)
 	userHandler         = handler.NewUserHandler(userService)

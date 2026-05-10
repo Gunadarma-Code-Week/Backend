@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -103,10 +104,16 @@ func (m *auditMiddleware) AuditLogMiddleware(c *gin.Context) {
 	c.Next()
 
 	// Record audit log with response code
-	description := generateDescription(c.Request.Method, c.Request.URL.Path, requestBody, user, c)
+	description, targetResourceID := m.generateDescription(c.Request.Method, c.Request.URL.Path, requestBody, user, c)
+	targetEmail := c.GetString("target_email")
+	targetName := c.GetString("target_name")
+
 	err := m.auditLogService.RecordActivityWithResponse(
 		user.ID,
 		user.Email,
+		targetEmail,
+		targetName,
+		targetResourceID,
 		c.Request.Method,
 		c.Request.URL.Path,
 		description,
@@ -175,8 +182,20 @@ func sanitizeSensitiveFields(body map[string]interface{}) {
 	}
 }
 
-// generateDescription generates a human-readable Indonesian description based on HTTP method, path, request body, user, and context
-func generateDescription(method, path string, body interface{}, user *entity.User, c *gin.Context) string {
+// generateDescription generates a human-readable Indonesian description and extracts target resource ID
+func (m *auditMiddleware) generateDescription(method, path string, body interface{}, user *entity.User, c *gin.Context) (string, uint64) {
+	var targetResourceID uint64
+	
+	// Check context for target_id set by handler (common for registration/post actions)
+	if cid, exists := c.Get("target_id"); exists {
+		if id, ok := cid.(uint64); ok {
+			targetResourceID = id
+		} else if id, ok := cid.(int64); ok {
+			targetResourceID = uint64(id)
+		} else if id, ok := cid.(int); ok {
+			targetResourceID = uint64(id)
+		}
+	}
 	// User identifier: use email if available, otherwise "User"
 	userLabel := "User"
 	if user != nil && user.Email != "" {
@@ -204,6 +223,7 @@ func generateDescription(method, path string, body interface{}, user *entity.Use
 				"seminar":   "Seminar",
 			}[acara]
 			targetLabel := "dengan ID " + id
+			targetResourceID, _ = strconv.ParseUint(id, 10, 64)
 			if targetName != "" {
 				targetLabel = "dengan nama " + targetName
 			}
@@ -218,7 +238,7 @@ func generateDescription(method, path string, body interface{}, user *entity.Use
 						}
 					}
 				}
-				return description
+				return description, targetResourceID
 			case "PUT", "PATCH":
 				// Detect specific field changes from request body
 				if bodyMap, ok := body.(map[string]interface{}); ok {
@@ -244,10 +264,10 @@ func generateDescription(method, path string, body interface{}, user *entity.Use
 						}
 					}
 					if len(changes) > 0 {
-						return userLabel + " memperbarui " + strings.Join(changes, ", ") + " tim " + acaraLabel + " " + targetLabel
+						return userLabel + " memperbarui " + strings.Join(changes, ", ") + " tim " + acaraLabel + " " + targetLabel, targetResourceID
 					}
 				}
-				return userLabel + " memperbarui data tim " + acaraLabel + " " + targetLabel
+				return userLabel + " memperbarui data tim " + acaraLabel + " " + targetLabel, targetResourceID
 			}
 		}
 	}
@@ -256,6 +276,7 @@ func generateDescription(method, path string, body interface{}, user *entity.Use
 	if strings.Contains(path, "/admin/users/") {
 		id := segments[len(segments)-1]
 		targetLabel := "dengan ID " + id
+		targetResourceID, _ = strconv.ParseUint(id, 10, 64)
 		if targetEmail != "" {
 			targetLabel = "dengan email " + targetEmail
 		} else if targetName != "" {
@@ -285,10 +306,10 @@ func generateDescription(method, path string, body interface{}, user *entity.Use
 				}
 				
 				if len(changes) > 0 {
-					return userLabel + " " + strings.Join(changes, " dan ") + " user " + targetLabel
+					return userLabel + " " + strings.Join(changes, " dan ") + " user " + targetLabel, targetResourceID
 				}
 			}
-			return userLabel + " memperbarui data user " + targetLabel
+			return userLabel + " memperbarui data user " + targetLabel, targetResourceID
 		case "DELETE":
 			description := userLabel + " menghapus user " + targetLabel
 			if bodyMap, ok := body.(map[string]interface{}); ok {
@@ -298,7 +319,7 @@ func generateDescription(method, path string, body interface{}, user *entity.Use
 					}
 				}
 			}
-			return description
+			return description, targetResourceID
 		}
 	}
 
@@ -308,10 +329,10 @@ func generateDescription(method, path string, body interface{}, user *entity.Use
 		case "POST":
 			if strings.Contains(path, "/join/") {
 				if targetName != "" {
-					return userLabel + " bergabung ke tim: " + targetName
+					return userLabel + " bergabung ke tim: " + targetName, targetResourceID
 				}
 				joinCode := segments[len(segments)-1]
-				return userLabel + " bergabung ke tim dengan join code: " + joinCode
+				return userLabel + " bergabung ke tim dengan join code: " + joinCode, targetResourceID
 			}
 			
 			// For new registrations, try to get the team name from targetName or body
@@ -335,9 +356,9 @@ func generateDescription(method, path string, body interface{}, user *entity.Use
 				} else if strings.Contains(path, "/ctf") {
 					eventLabel = "tim CTF baru"
 				}
-				return userLabel + " mendaftarkan " + eventLabel + ": " + actualTeamName
+				return userLabel + " mendaftarkan " + eventLabel + ": " + actualTeamName, targetResourceID
 			}
-			return userLabel + " mendaftarkan tim baru"
+			return userLabel + " mendaftarkan tim baru", targetResourceID
 		}
 	}
 
@@ -348,20 +369,20 @@ func generateDescription(method, path string, body interface{}, user *entity.Use
 		if auditChanges != "" {
 			description += " (" + auditChanges + ")"
 		}
-		return description
+		return description, targetResourceID
 	}
 
 	// Seminar
 	if strings.Contains(path, "/seminar/join") && method == "POST" {
-		return userLabel + " mendaftar seminar"
+		return userLabel + " mendaftar seminar", targetResourceID
 	}
 	if strings.Contains(path, "/seminar/admin/add-participant") && method == "POST" {
-		return userLabel + " menambahkan peserta seminar"
+		return userLabel + " menambahkan peserta seminar", targetResourceID
 	}
 
 	// Submission
 	if strings.Contains(path, "/submission/") && method == "POST" {
-		return userLabel + " mengirimkan submission"
+		return userLabel + " mengirimkan submission", targetResourceID
 	}
 
 	// Payment details update
@@ -385,7 +406,7 @@ func generateDescription(method, path string, body interface{}, user *entity.Use
 		if auditChanges != "" {
 			desc += " (Perubahan: " + auditChanges + ")"
 		}
-		return desc
+		return desc, targetResourceID
 	}
 
 	// Fallback: generic description
@@ -399,5 +420,9 @@ func generateDescription(method, path string, body interface{}, user *entity.Use
 	if !ok {
 		action = "mengakses"
 	}
-	return userLabel + " " + action + " resource pada " + path
+	desc := userLabel + " " + action + " resource pada " + path
+	if targetEmail != "" {
+		desc += " dengan email " + targetEmail
+	}
+	return desc, targetResourceID
 }
