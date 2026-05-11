@@ -85,9 +85,12 @@ func SetupRouter(r *gin.Engine) {
 	mustUpdatedProfile.Use(authMiddleware.MustUpdatedUserProfile)
 	mustUpdatedProfile.GET("mustauth/authupdate/ping", authHandler.Ping)
 
+	mustVerified := mustUpdatedProfile.Group("")
+	mustVerified.Use(authMiddleware.MustVerifiedUser)
+
 	// Team Registrasion
 	{
-		teamRegistration := mustUpdatedProfile.Group("team/registration")
+		teamRegistration := mustVerified.Group("team/registration")
 		teamRegistration.POST("hackathon", registrationHandler.RegistrationHackathonTeam)
 		teamRegistration.POST("cp", registrationHandler.RegistrationCPTeam)
 		teamRegistration.POST("ctf", registrationHandler.RegistrationCTFTeam)

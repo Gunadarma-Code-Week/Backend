@@ -17,6 +17,7 @@ type authMiddleware struct {
 type AuthMiddleware interface {
 	JwtAuthMiddleware(*gin.Context)
 	MustUpdatedUserProfile(*gin.Context)
+	MustVerifiedUser(*gin.Context)
 	MustAdmin(*gin.Context)
 }
 
@@ -134,6 +135,18 @@ func (m *authMiddleware) MustUpdatedUserProfile(c *gin.Context) {
 
 	if !ok || !userAuth.ProfileHasUpdated {
 		c.JSON(400, helper.CreateErrorResponse("error", "profile has not been updated"))
+		c.Abort()
+		return
+	}
+
+	c.Next()
+}
+
+func (m *authMiddleware) MustVerifiedUser(c *gin.Context) {
+	userAuth, ok := c.MustGet("user").(*entity.User)
+
+	if !ok || !userAuth.DataHasVerified {
+		c.JSON(403, helper.CreateErrorResponse("error", "Data Anda belum diverifikasi oleh admin"))
 		c.Abort()
 		return
 	}
