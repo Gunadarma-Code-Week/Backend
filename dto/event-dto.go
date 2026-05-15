@@ -12,9 +12,10 @@ type User struct {
 }
 
 type Member struct {
-	Name  string `json:"name"`
-	Role  string `json:"role"`
-	Email string `json:"email"`
+	Name       string `json:"name"`
+	Role       string `json:"role"`
+	Email      string `json:"email"`
+	University string `json:"university"`
 }
 
 type Team struct {

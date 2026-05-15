@@ -154,9 +154,10 @@ func (h *registrationHandler) FindTeam(c *gin.Context) {
 	}
 
 	leaderData := dto.Member{
-		Name:  leader.Name,
-		Email: leader.Email,
-		Role:  "Leader",
+		Name:       leader.Name,
+		Email:      leader.Email,
+		University: leader.Institusi,
+		Role:       "Leader",
 	}
 
 	fmt.Println(leaderData)

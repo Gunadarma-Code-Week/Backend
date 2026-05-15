@@ -62,6 +62,7 @@ func (s *UserService) FindByIdTeam(id, id_leader uint64) ([]dto.Member, error) {
 		member.Name = data.Name
 		member.Email = data.Email
 		member.Role = data.Role
+		member.University = data.Institusi
 
 		members = append(members, member)
 	}
@@ -130,9 +131,10 @@ func (s *UserService) GetEvents(userId uint64) (dto.ResponseEvents, error) {
 			role = "Leader"
 		}
 		responseMembers = append(responseMembers, dto.Member{
-			Name:  m.Name,
-			Role:  role,
-			Email: m.Email,
+			Name:       m.Name,
+			Role:       role,
+			Email:      m.Email,
+			University: m.Institusi,
 		})
 	}
 
