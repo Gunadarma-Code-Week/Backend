@@ -160,7 +160,7 @@ func shouldSkipAuditLog(path string) bool {
 
 // shouldSkipAuthAuditLog returns true for auth and registration routes that should not be audited
 func shouldSkipAuthAuditLog(path string) bool {
-	return strings.Contains(path, "/auth/") || strings.HasSuffix(path, "/auth")
+	return strings.Contains(path, "/auth/") || strings.HasSuffix(path, "/auth") || strings.Contains(path, "/profile/change-password")
 }
 
 // sensitiveFields is the list of JSON keys whose values will be redacted in audit logs

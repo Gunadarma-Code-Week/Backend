@@ -137,8 +137,6 @@ func (h *UserHandler) ChangePassword(c *gin.Context) {
 		return
 	}
 
-	c.Set("audit_changes", "password")
-
 	c.JSON(http.StatusOK, helper.CreateSuccessResponse("success", "Password successfully changed"))
 }
 
