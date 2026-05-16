@@ -1,8 +1,10 @@
 package service
 
 import (
+	"errors"
 	"gcw/dto"
 	"gcw/entity"
+	"gcw/helper"
 	"gcw/repository"
 	"strconv"
 	"time"
@@ -33,6 +35,25 @@ func NewUserService(repo repository.UserRepository) *UserService {
 func (s *UserService) Update(user *entity.User, id uint64) error {
 	user.ProfileHasUpdated = true
 	return s.userRepository.Update(user, id)
+}
+
+func (s *UserService) ChangePassword(userId uint64, oldPassword, newPassword string) error {
+	var user entity.User
+	if err := s.DB.Where("id = ?", userId).First(&user).Error; err != nil {
+		return err
+	}
+
+	if !helper.CheckPasswordHash(oldPassword, user.Password) {
+		return errors.New("old password is wrong")
+	}
+
+	hashedPassword, err := helper.HashPassword(newPassword)
+	if err != nil {
+		return err
+	}
+
+	user.Password = hashedPassword
+	return s.DB.Save(&user).Error
 }
 
 func (s *UserService) FindById(id uint64) (*entity.User, error) {

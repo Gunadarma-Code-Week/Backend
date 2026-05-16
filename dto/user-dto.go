@@ -1,21 +1,20 @@
 package dto
 
 type UserResponseDTO struct {
-	ID             uint64     `json:"id"`
-	Email          string     `json:"email"`
-	Role           string     `json:"role"`
-	Name           string     `json:"name"`
-	Major          string     `json:"major"`
-	ProfilePicture string     `json:"profile_picture"`
-	NIM            string     `json:"nim"`
-	Institusi      string     `json:"institusi"`
-	Phone          string     `json:"phone"`
-
-	SocMedDocument  string `json:"socmed_document"`
-	DokumenFilename string `json:"dokumen_filename"`
-
-	ProfileHasUpdated bool `json:"profile_has_updated"`
-	DataHasVerified   bool `json:"data_has_verified"`
+	ID                uint64 `json:"id"`
+	Email             string `json:"email"`
+	Role              string `json:"role"`
+	Name              string `json:"name"`
+	Major             string `json:"major"`
+	ProfilePicture    string `json:"profile_picture"`
+	NIM               string `json:"nim"`
+	Institusi         string `json:"institusi"`
+	Phone             string `json:"phone"`
+	SocMedDocument    string `json:"socmed_document"`
+	DokumenFilename   string `json:"dokumen_filename"`
+	ProfileHasUpdated bool   `json:"profile_has_updated"`
+	DataHasVerified   bool   `json:"data_has_verified"`
+	HasPassword       bool   `json:"has_password"`
 }
 
 type UpdateUserProfileDTO struct {
@@ -107,3 +106,8 @@ type UserGrowthResponseDTO struct {
 // type RegisterDTO struct {
 // 	GoogleIdToken string `json:"google_id_token"`
 // }
+
+type ChangePasswordDTO struct {
+	OldPassword string `json:"old_password" binding:"required"`
+	NewPassword string `json:"new_password" binding:"required,min=6"`
+}

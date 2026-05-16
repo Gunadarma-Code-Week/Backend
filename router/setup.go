@@ -76,6 +76,7 @@ func SetupRouter(r *gin.Engine) {
 		profile := mustAuth.Group("profile")
 		profile.GET("my", userHandler.GetMyProfile)
 		profile.POST("my", userHandler.UpdateMyProfile)
+		profile.POST("change-password", userHandler.ChangePassword)
 		profile.GET("events", userHandler.GetEvents)
 
 		router.GET("profile/all/:start_date/:end_date/:count/:page", userHandler.GetAllUser)

@@ -40,6 +40,7 @@ func (h *UserHandler) GetMyProfile(c *gin.Context) {
 
 	user := &dto.UserResponseDTO{}
 	smapping.FillStruct(user, smapping.MapFields(userAuth))
+	user.HasPassword = userAuth.Password != ""
 
 	c.JSON(http.StatusOK, helper.CreateSuccessResponse("success", user))
 }
@@ -102,8 +103,43 @@ func (h *UserHandler) UpdateMyProfile(c *gin.Context) {
 
 	userResponse := &dto.UserResponseDTO{}
 	smapping.FillStruct(userResponse, smapping.MapFields(user))
+	userResponse.HasPassword = user.Password != ""
 
 	c.JSON(http.StatusOK, helper.CreateSuccessResponse("success", userResponse))
+}
+
+// @Summary Change Password
+// @Tags Profile
+// @Accept json
+// @Produce  json
+// @Param request body dto.ChangePasswordDTO true "Change Password"
+// @Success 200 {object} helper.Response
+// @Router /profile/change-password [post]
+func (h *UserHandler) ChangePassword(c *gin.Context) {
+	changePasswordDTO := &dto.ChangePasswordDTO{}
+	if err := c.Bind(changePasswordDTO); err != nil {
+		logging.Low("UserHandler.ChangePassword", "BAD_REQUEST", err.Error())
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
+		return
+	}
+
+	userAuth, ok := c.MustGet("user").(*entity.User)
+	if !ok {
+		logging.Low("UserHandler.ChangePassword", "BAD_REQUEST", "user not found in context")
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", "user not found in context"))
+		return
+	}
+
+	err := h.userService.ChangePassword(userAuth.ID, changePasswordDTO.OldPassword, changePasswordDTO.NewPassword)
+	if err != nil {
+		logging.Low("UserHandler.ChangePassword", "BAD_REQUEST", err.Error())
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
+		return
+	}
+
+	c.Set("audit_changes", "password")
+
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("success", "Password successfully changed"))
 }
 
 func (h *UserHandler) GetAllUser(c *gin.Context) {
