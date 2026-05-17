@@ -787,7 +787,7 @@ func (s *DashboardServices) UpdateCpService(id string, input dto.Cp) (string, er
 			}
 			if len(emails) > 0 && os.Getenv("AUTO_EMAIL") == "true" {
 				if input.Stage == "Stage-1" {
-					go s.EmailService.SendEmailHTML("Registration Confirmation - GCW 2.0 Competitive Programming", emails, "template/email/cp_stage1.html", map[string]interface{}{"TeamName": cp.Team.TeamName})
+					go s.EmailService.SendEmailHTML("Registration Confirmation: GCW 2.0 Competitive Programming", emails, "template/email/cp_stage1.html", map[string]interface{}{"TeamName": cp.Team.TeamName})
 				} else if input.Stage != "Registered" {
 					go s.EmailService.SendEmailHTML("Congratulations! You are selected - GCW 2.0 Competitive Programming", emails, "template/email/cp_announcement.html", map[string]interface{}{"TeamName": cp.Team.TeamName})
 				}
