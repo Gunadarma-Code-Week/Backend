@@ -164,7 +164,7 @@ func SetupRouter(r *gin.Engine) {
 	}
 
 	{
-		submissionHandler := router.Group("/submission")
+		submissionHandler := mustAuth.Group("/submission")
 		submissionHandler.POST("/hackaton/:stage/:join_code", hackathonHandler.SubmissionHackaton)
 		submissionHandler.GET("/hackaton/:join_code", hackathonHandler.HackathonStageStatus)
 	}

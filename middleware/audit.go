@@ -382,7 +382,30 @@ func (m *auditMiddleware) generateDescription(method, path string, body interfac
 
 	// Submission
 	if strings.Contains(path, "/submission/") && method == "POST" {
-		return userLabel + " mengirimkan submission", targetResourceID
+		stage := "submission"
+		// Path format: /api/v1/gcw/resources/submission/hackaton/:stage/:join_code
+		for i, segment := range segments {
+			if segment == "submission" && i+2 < len(segments) {
+				stage = segments[i+2]
+				break
+			}
+		}
+
+		stageLabel := "submission"
+		switch stage {
+		case "stage1":
+			stageLabel = "proposal (Stage 1)"
+		case "stage2":
+			stageLabel = "pitch deck (Stage 2)"
+		case "final":
+			stageLabel = "video / presentasi final"
+		}
+
+		desc := userLabel + " mengirimkan " + stageLabel
+		if targetName != "" {
+			desc += " untuk tim: " + targetName
+		}
+		return desc, targetResourceID
 	}
 
 	// Payment details update

@@ -49,6 +49,11 @@ func (s *submissionService) Create(join_code, stage string, submissionDTO dto.Re
 		return entity.HackathonTeam{}, err
 	}
 
+	// Preload the Team relation to ensure team details are populated for auditing
+	if err := s.db.Preload("Team").First(&submission, submission.ID_HackathonTeam).Error; err != nil {
+		return entity.HackathonTeam{}, err
+	}
+
 	return submission, nil
 }
 

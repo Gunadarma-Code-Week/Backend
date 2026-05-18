@@ -52,6 +52,10 @@ func (h *hackathonHandler) SubmissionHackaton(c *gin.Context) {
 		return
 	}
 
+	// Set target information for audit logging
+	c.Set("target_name", result.Team.TeamName)
+	c.Set("target_id", result.ID_HackathonTeam)
+
 	c.JSON(http.StatusCreated, helper.CreateSuccessResponse("CREATED", result))
 }
 
