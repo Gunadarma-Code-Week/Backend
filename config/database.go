@@ -35,8 +35,32 @@ func SetupDatabaseConnection() *gorm.DB {
 			&entity.CTFTeam{},
 			&entity.NewsLetter{},
 			&entity.AuditLog{},
+			&entity.SystemSetting{},
 		); err != nil {
 			fmt.Println("AutoMigrate error (ignored):", err)
+		}
+
+		// Seed initial global settings row (ID: 1) if settings table is empty
+		var count int64
+		db.Model(&entity.SystemSetting{}).Count(&count)
+		if count == 0 {
+			initialSettings := entity.SystemSetting{
+				ID:                            1,
+				HackathonRegistrationDisabled: false,
+				CPRegistrationDisabled:        false,
+				CTFRegistrationDisabled:       false,
+				HackathonProposalDisabled:     false,
+				HackathonVideoDisabled:        false,
+				HackathonFinalDisabled:        false,
+				HackathonProposalDeadline:     "2026-05-24T23:59:59",
+				HackathonVideoDeadline:        "2026-06-06T23:59:59",
+				HackathonFinalDeadline:        "2026-06-20T23:59:59",
+			}
+			if err := db.Create(&initialSettings).Error; err != nil {
+				fmt.Println("Failed to seed initial system settings:", err)
+			} else {
+				fmt.Println("Successfully seeded initial global system settings record")
+			}
 		}
 
 		// Temporary sequence synchronization fix
