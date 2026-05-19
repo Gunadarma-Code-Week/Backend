@@ -48,7 +48,7 @@ func (h *hackathonHandler) SubmissionHackaton(c *gin.Context) {
 
 	result, err := h.service.Create(join_code, stage, request)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("CREATE_FAILED", err.Error()))
+		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("pengumpulan sudah di tutup", err.Error()))
 		return
 	}
 
