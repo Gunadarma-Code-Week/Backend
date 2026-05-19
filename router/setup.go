@@ -50,8 +50,6 @@ var (
 	hackathonHandler  = handler.GateHackathonHandler(SubmissionService)
 	seminarHandler    = handler.NewSeminarHandler(seminarService)
 	auditLogHandler   = handler.NewAuditLogHandler(auditLogService)
-	settingService    = service.NewSystemSettingService(database)
-	settingHandler    = handler.NewSystemSettingHandler(settingService)
 
 	authMiddleware  = middleware.NewAuthMiddleware(authService, jwtService)
 	auditMiddleware = middleware.NewAuditMiddleware(auditLogService)
@@ -169,14 +167,6 @@ func SetupRouter(r *gin.Engine) {
 		submissionHandler := mustAuth.Group("/submission")
 		submissionHandler.POST("/hackaton/:stage/:join_code", hackathonHandler.SubmissionHackaton)
 		submissionHandler.GET("/hackaton/:join_code", hackathonHandler.HackathonStageStatus)
-	}
-
-	{
-		mustAuth.GET("/settings", settingHandler.GetSettings)
-
-		adminSettings := mustAuth.Group("/admin/settings")
-		adminSettings.Use(authMiddleware.MustAdmin)
-		adminSettings.PUT("", settingHandler.UpdateSettings)
 	}
 
 	{
