@@ -61,6 +61,15 @@ func (s *RegistrationService) CPTeamRegistration(
 		return nil, fmt.Errorf("USER ALREADY HAVE TEAM")
 	}
 
+	// Check if CP registration is disabled by admin
+	var setting entity.SystemSetting
+	if err = s.registrationRepository.DB.First(&setting, 1).Error; err == nil {
+		if setting.CPRegistrationDisabled {
+			logging.Low("RegistrationService.CPTeamRegistration", "BAD_REQUEST", "Pendaftaran Competitive Programming telah ditutup oleh administrator")
+			return nil, fmt.Errorf("Pendaftaran Competitive Programming telah ditutup")
+		}
+	}
+
 	// Check duplicate team name secara global (hackathon, cp, ctf)
 	if err = s.registrationRepository.FindActiveTeamByNameGlobal(registrationDTO.TeamName); err == nil {
 		logging.Low("RegistrationService.CPTeamRegistration", "BAD_REQUEST", "Nama Tim Sudah Digunakan")
@@ -191,6 +200,15 @@ func (s *RegistrationService) HackathonTeamRegistration(
 	if userLead.IDTeam != nil {
 		logging.Low("RegistrationService.HackathonTeamRegistration", "BAD_REQUEST", "User already have team")
 		return nil, fmt.Errorf("USER ALREADY HAVE TEAM")
+	}
+
+	// Check if Hackathon registration is disabled by admin
+	var setting entity.SystemSetting
+	if err = s.registrationRepository.DB.First(&setting, 1).Error; err == nil {
+		if setting.HackathonRegistrationDisabled {
+			logging.Low("RegistrationService.HackathonTeamRegistration", "BAD_REQUEST", "Pendaftaran Hackathon telah ditutup oleh administrator")
+			return nil, fmt.Errorf("Pendaftaran Hackathon telah ditutup")
+		}
 	}
 
 	// Check duplicate team name secara global (hackathon, cp, ctf)
@@ -332,6 +350,15 @@ func (s *RegistrationService) CTFTeamRegistration(
 	if userLead.IDTeam != nil {
 		logging.Low("RegistrationService.CTFTeamRegistration", "BAD_REQUEST", "User already have team")
 		return nil, fmt.Errorf("USER ALREADY HAVE TEAM")
+	}
+
+	// Check if CTF registration is disabled by admin
+	var setting entity.SystemSetting
+	if err = s.registrationRepository.DB.First(&setting, 1).Error; err == nil {
+		if setting.CTFRegistrationDisabled {
+			logging.Low("RegistrationService.CTFTeamRegistration", "BAD_REQUEST", "Pendaftaran Capture The Flag telah ditutup oleh administrator")
+			return nil, fmt.Errorf("Pendaftaran Capture The Flag telah ditutup")
+		}
 	}
 
 	// Check duplicate team name secara global (hackathon, cp, ctf)
@@ -481,6 +508,23 @@ func (s *RegistrationService) JoinTeam(
 		}
 		logging.Low("RegistrationService.JoinTeam", "INTERNAL_SERVER_ERROR", err.Error())
 		return nil, err
+	}
+
+	// Check if registration is disabled by admin for this team's event
+	var setting entity.SystemSetting
+	if err = s.registrationRepository.DB.First(&setting, 1).Error; err == nil {
+		if team.Event == "hackathon" && setting.HackathonRegistrationDisabled {
+			logging.Low("RegistrationService.JoinTeam", "BAD_REQUEST", "Pendaftaran Hackathon telah ditutup oleh administrator")
+			return nil, fmt.Errorf("Pendaftaran Hackathon telah ditutup")
+		}
+		if team.Event == "cp" && setting.CPRegistrationDisabled {
+			logging.Low("RegistrationService.JoinTeam", "BAD_REQUEST", "Pendaftaran Competitive Programming telah ditutup oleh administrator")
+			return nil, fmt.Errorf("Pendaftaran Competitive Programming telah ditutup")
+		}
+		if team.Event == "ctf" && setting.CTFRegistrationDisabled {
+			logging.Low("RegistrationService.JoinTeam", "BAD_REQUEST", "Pendaftaran Capture The Flag telah ditutup oleh administrator")
+			return nil, fmt.Errorf("Pendaftaran Capture The Flag telah ditutup")
+		}
 	}
 
 	userCount, err := s.registrationRepository.CountUserByTeamID(team.ID_Team)

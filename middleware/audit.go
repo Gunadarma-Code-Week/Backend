@@ -432,6 +432,16 @@ func (m *auditMiddleware) generateDescription(method, path string, body interfac
 		return desc, targetResourceID
 	}
 
+	// System Settings Update
+	if strings.Contains(path, "/settings") && method == "PUT" {
+		auditChanges := c.GetString("audit_changes")
+		desc := userLabel + " memperbarui konfigurasi pengumpulan berkas"
+		if auditChanges != "" {
+			desc += " (" + auditChanges + ")"
+		}
+		return desc, 0
+	}
+
 	// Fallback: generic description
 	actionMap := map[string]string{
 		"POST":   "membuat",
