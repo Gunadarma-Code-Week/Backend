@@ -696,6 +696,11 @@ func (s *DashboardServices) UpdateHackatonService(id string, input dto.Hackaton)
 	}
 	if input.Stage != "" {
 		hackaton.Stage = input.Stage
+		if input.Stage == "Stage-1" || input.Stage == "Stage-2" || input.Stage == "Final" {
+			if hackaton.Status == "Registration" {
+				hackaton.Status = "Verified"
+			}
+		}
 	}
 
 	if err := tx.Save(&hackaton).Error; err != nil {
@@ -760,6 +765,11 @@ func (s *DashboardServices) UpdateCpService(id string, input dto.Cp) (string, er
 	}
 	if input.Stage != "" {
 		cp.Stage = input.Stage
+		if input.Stage == "Stage-1" || input.Stage == "Stage-2" || input.Stage == "Final" {
+			if cp.Status == "Registration" {
+				cp.Status = "Verified"
+			}
+		}
 	}
 
 	if err := tx.Save(&cp).Error; err != nil {
@@ -824,6 +834,11 @@ func (s *DashboardServices) UpdateCtfService(id string, input dto.Ctf) (string, 
 	}
 	if input.Stage != "" {
 		ctf.Stage = input.Stage
+		if input.Stage == "Stage-1" || input.Stage == "Stage-2" || input.Stage == "Final" {
+			if ctf.Status == "Registration" {
+				ctf.Status = "Verified"
+			}
+		}
 	}
 
 	if err := tx.Save(&ctf).Error; err != nil {
