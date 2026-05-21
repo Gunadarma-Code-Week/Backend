@@ -154,6 +154,17 @@ func SetupRouter(r *gin.Engine) {
 		adminUsers.GET("/analytics/growth", userHandler.AdminGetUserGrowthAnalytics)
 	}
 
+	// Admin Bulk Email and Team Names Routes
+	{
+		adminBulk := mustAuth.Group("/admin")
+		adminBulk.Use(authMiddleware.MustAdmin)
+
+		adminBulk.GET("/teams/names", dashboards.GetTeamNames)
+		adminBulk.GET("/emails/templates", dashboards.GetEmailTemplates)
+		adminBulk.POST("/emails/bulk", dashboards.SendBulkEmail)
+	}
+
+
 	// Audit Log Routes
 	{
 		auditLogs := mustAuth.Group("/admin/audit-logs")

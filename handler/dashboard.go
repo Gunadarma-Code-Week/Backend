@@ -19,6 +19,9 @@ type DashboardControllerInterface interface {
 	GetAllDashboard(*gin.Context)
 	Update(*gin.Context)
 	Delete(*gin.Context)
+	GetTeamNames(*gin.Context)
+	SendBulkEmail(*gin.Context)
+	GetEmailTemplates(*gin.Context)
 	// GetEvent(*gin.Context)
 }
 
@@ -257,3 +260,56 @@ func (h *dashboardController) Delete(c *gin.Context) {
 
 // 	c.JSON(http.StatusOK, helper.CreateSuccessResponse("FOUND", dataEvent))
 // }
+
+func (h *dashboardController) GetTeamNames(c *gin.Context) {
+	event := c.Query("event")
+	if event == "" {
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "event parameter is required"))
+		return
+	}
+
+	names, err := h.Service.GetTeamNames(event)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("INTERNAL_SERVER_ERROR", err.Error()))
+		return
+	}
+
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("SUCCESS", names))
+}
+
+func (h *dashboardController) SendBulkEmail(c *gin.Context) {
+	var input struct {
+		Event      string `json:"event"`
+		Stage      string `json:"stage"`
+		TargetRole string `json:"target_role"`
+		Subject    string `json:"subject"`
+		Content    string `json:"content"`
+	}
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", err.Error()))
+		return
+	}
+
+	if input.Event == "" || input.Subject == "" || input.Content == "" {
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "event, subject, and content are required"))
+		return
+	}
+
+	err := h.Service.SendBulkEmail(input.Event, input.Stage, input.TargetRole, input.Subject, input.Content)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", err.Error()))
+		return
+	}
+
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("SUCCESS", "Emails are queued for sending"))
+}
+
+func (h *dashboardController) GetEmailTemplates(c *gin.Context) {
+	templates, err := h.Service.GetEmailTemplates()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("INTERNAL_SERVER_ERROR", err.Error()))
+		return
+	}
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("SUCCESS", templates))
+}
