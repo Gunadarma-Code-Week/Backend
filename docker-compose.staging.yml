@@ -11,7 +11,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    
+
   db:
     image: postgres:15
     restart: unless-stopped
@@ -26,7 +26,7 @@ services:
     networks:
       - gcw-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -90,8 +90,8 @@ services:
       AUDIT_DESCRIPTION_KEY_PATH: ${AUDIT_DESCRIPTION_KEY_PATH}
 
     command: /bin/sh -c "go mod download && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -p 1 -o /src/gcw main.go && /src/gcw"
-    # ports:
-    #   - "8000:8000"
+    ports:
+      - "8001:8000"
     networks:
       - gcw-network
     depends_on:
