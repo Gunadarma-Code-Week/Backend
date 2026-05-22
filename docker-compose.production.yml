@@ -86,8 +86,8 @@ services:
       JWT_PUBLIC_KEY_PATH: ${JWT_PUBLIC_KEY_PATH}
       AUDIT_PRIVATE_KEY_PATH: ${AUDIT_PRIVATE_KEY_PATH}
       AUDIT_DESCRIPTION_KEY_PATH: ${AUDIT_DESCRIPTION_KEY_PATH}
-    ports:
-      - "8000:8000"
+    # ports:
+    #   - "8000:8000"
     networks:
       - gcw-network
     depends_on:
