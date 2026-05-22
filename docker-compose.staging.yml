@@ -1,23 +1,21 @@
-version: "3.8"
-
 services:
   adminer:
     image: adminer
     environment:
       - ADMINER_DESIGN=pepa-linha
     ports:
-      - "8081:8080"
+      - "8082:8080"
     networks:
       - gcw-network
     depends_on:
       db:
         condition: service_healthy
-    
+
   db:
     image: postgres:15
     restart: unless-stopped
     env_file:
-      - ../.env
+      - .env
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASS}
@@ -29,7 +27,7 @@ services:
     networks:
       - gcw-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      test: [ "CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -40,7 +38,7 @@ services:
       dockerfile: Dockerfile.staging
     restart: unless-stopped
     env_file:
-      - ../.env
+      - .env
     ports:
       - "8000:8000"
     networks:
