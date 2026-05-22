@@ -866,7 +866,7 @@ func (s *DashboardServices) UpdateCtfService(id string, input dto.Ctf) (string, 
 			}
 			if len(emails) > 0 && os.Getenv("AUTO_EMAIL") == "true" {
 				if input.Stage == "Stage-1" {
-					go s.EmailService.SendEmailHTML("Registration Confirmation - GCW 2.0 Capture The Flag", emails, "template/email/ctf_stage1.html", map[string]interface{}{"TeamName": ctf.Team.TeamName})
+					go s.EmailService.SendEmailHTML("Registration Confirmation: GCW 2.0 Capture The Flag", emails, "template/email/ctf_stage1.html", map[string]interface{}{"TeamName": ctf.Team.TeamName})
 				} else if input.Stage != "Registered" {
 					go s.EmailService.SendEmailHTML("Congratulations! You are selected - GCW 2.0 Capture The Flag", emails, "template/email/ctf_announcement.html", map[string]interface{}{"TeamName": ctf.Team.TeamName})
 				}
