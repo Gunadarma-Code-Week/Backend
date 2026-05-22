@@ -270,7 +270,7 @@ RUN go mod download
 COPY . .
 
 # Build the application (Staging build)
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /src/gcw main.go
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -p 1 -o /src/gcw main.go
 
 # Final stage
 FROM alpine:latest
