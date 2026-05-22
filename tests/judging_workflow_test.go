@@ -54,7 +54,7 @@ func TestUTJDG002_UpdateCpStageWorkflow(t *testing.T) {
 		EmailService: &service.EmailService{},
 	}
 
-	err := svc.UpdateCpService(
+	_, err := svc.UpdateCpService(
 		strconv.FormatUint(cpTeam.ID_CPTeam, 10),
 		dto.Cp{NamaTim: "Tim CP Lolos", Stage: "Final"},
 	)
@@ -112,7 +112,7 @@ func TestUTUPL005_JudgingResultGenerated(t *testing.T) {
 		EmailService: &service.EmailService{},
 	}
 
-	if err := svc.UpdateCpService(strconv.FormatUint(cpTeam.ID_CPTeam, 10), dto.Cp{
+	if _, err := svc.UpdateCpService(strconv.FormatUint(cpTeam.ID_CPTeam, 10), dto.Cp{
 		NamaTim: "Tim CP Submit",
 		Stage:   "Qualified",
 	}); err != nil {

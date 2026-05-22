@@ -19,14 +19,14 @@ func ValidateDTO(dto interface{}) gin.HandlerFunc {
 
 		// Bind the request body to the DTO
 		if err := c.ShouldBindJSON(dtoValue); err != nil {
-			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", err.Error()))
+			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", helper.FormatValidationError(err)))
 			c.Abort()
 			return
 		}
 
 		// Validate the DTO
 		if errors := helper.ValidateStruct(dtoValue); errors != nil {
-			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("VALIDATION_ERROR", errors))
+			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan validasi", errors))
 			c.Abort()
 			return
 		}

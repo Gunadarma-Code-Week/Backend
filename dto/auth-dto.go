@@ -16,12 +16,12 @@ type RefreshTokenDTO struct {
 }
 
 type LoginDTO struct {
-	Email    string `json:"email" binding:"required" validate:"email"`
-	Password string `json:"password" binding:"required" validate:"min=8"`
+	Email    string `json:"email" binding:"required,max=100" validate:"email"`
+	Password string `json:"password" binding:"required,max=50" validate:"min=8"`
 }
 
 type RegisterDTO struct {
-	Email    string `json:"email" binding:"required" validate:"email"`
-	Password string `json:"password" binding:"required" validate:"min=8"`
-	Name     string `json:"name" binding:"required" validate:"min=3"`
+	Email    string `json:"email" binding:"required,max=100" validate:"email"`
+	Password string `json:"password" binding:"required,max=50" validate:"min=8"`
+	Name     string `json:"name" binding:"required,max=50" validate:"min=3"`
 }

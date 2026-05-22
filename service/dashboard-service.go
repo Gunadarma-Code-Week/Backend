@@ -1,8 +1,11 @@
 package service
 
 import (
+	"bytes"
+	"fmt"
 	"gcw/dto"
 	"gcw/entity"
+	"html/template"
 	"os"
 	"sort"
 
@@ -728,9 +731,9 @@ func (s *DashboardServices) UpdateHackatonService(id string, input dto.Hackaton)
 			}
 			if len(emails) > 0 && os.Getenv("AUTO_EMAIL") == "true" {
 				if input.Stage == "Stage-1" {
-					go s.EmailService.SendEmailHTML("Registration Confirmation - GCW 2.0 Hackathon", emails, "template/email/hackathon_stage1.html", map[string]interface{}{"TeamName": hackaton.Team.TeamName})
+					go s.EmailService.SendEmailHTML("Registration Confirmation: GCW 2.0 Hackathon", emails, "template/email/hackathon_stage1.html", map[string]interface{}{"TeamName": hackaton.Team.TeamName})
 				} else if input.Stage != "Registered" {
-					go s.EmailService.SendEmailHTML("Congratulations! You are selected - GCW 2.0 Hackathon", emails, "template/email/hackathon_announcement.html", map[string]interface{}{"TeamName": hackaton.Team.TeamName})
+					go s.EmailService.SendEmailHTML("Selection Announcement: GCW 2.0 Hackathon", emails, "template/email/hackathon_announcement.html", map[string]interface{}{"TeamName": hackaton.Team.TeamName})
 				}
 			}
 		}
@@ -917,4 +920,302 @@ func (s seminarSource) String(i int) string {
 
 func (s seminarSource) Len() int {
 	return len(s)
+}
+
+func (s *DashboardServices) GetTeamNames(event string) ([]string, error) {
+	var names []string
+	switch event {
+	case "hackaton", "hackathon":
+		var teams []entity.HackathonTeam
+		if err := s.DB.Preload("Team").Where("is_deleted = ? OR is_deleted IS NULL", false).Find(&teams).Error; err != nil {
+			return nil, err
+		}
+		for _, t := range teams {
+			if t.Team.TeamName != "" {
+				names = append(names, t.Team.TeamName)
+			}
+		}
+	case "cp":
+		var teams []entity.CPTeam
+		if err := s.DB.Preload("Team").Where("is_deleted = ? OR is_deleted IS NULL", false).Find(&teams).Error; err != nil {
+			return nil, err
+		}
+		for _, t := range teams {
+			if t.Team.TeamName != "" {
+				names = append(names, t.Team.TeamName)
+			}
+		}
+	case "ctf":
+		var teams []entity.CTFTeam
+		if err := s.DB.Preload("Team").Where("is_deleted = ? OR is_deleted IS NULL", false).Find(&teams).Error; err != nil {
+			return nil, err
+		}
+		for _, t := range teams {
+			if t.Team.TeamName != "" {
+				names = append(names, t.Team.TeamName)
+			}
+		}
+	case "seminar":
+		var participants []entity.Seminar
+		if err := s.DB.Preload("User").Where("is_deleted = ? OR is_deleted IS NULL", false).Find(&participants).Error; err != nil {
+			return nil, err
+		}
+		for _, p := range participants {
+			if p.User.Name != "" {
+				names = append(names, p.User.Name)
+			}
+		}
+	}
+	sort.Strings(names)
+	return names, nil
+}
+
+func (s *DashboardServices) SendBulkEmail(event, stage string, targetRole string, subject, content string) error {
+	// Parse base template
+	baseTmplBytes, err := os.ReadFile("template/email/bulk_announcement.html")
+	hasTemplate := false
+	var tmpl *template.Template
+	if err == nil {
+		tmpl, err = template.New("bulk-email").Parse(string(baseTmplBytes))
+		if err == nil {
+			hasTemplate = true
+		}
+	}
+
+	// We will collect a slice of jobs to process asynchronously
+	type EmailJob struct {
+		To      []string
+		Content string
+	}
+	var jobs []EmailJob
+
+	switch event {
+	case "hackaton", "hackathon":
+		var teams []entity.HackathonTeam
+		query := s.DB.Preload("Team").Where("is_deleted = ? OR is_deleted IS NULL", false)
+		if stage != "" && stage != "all" && stage != "All" {
+			query = query.Where("stage = ?", stage)
+		}
+		if err := query.Find(&teams).Error; err != nil {
+			return err
+		}
+		
+		for _, t := range teams {
+			var users []entity.User
+			if targetRole == "leader" {
+				if err := s.DB.Where("id = ?", t.Team.ID_LeadTeam).Find(&users).Error; err != nil {
+					return err
+				}
+			} else {
+				if err := s.DB.Where("id_team = ?", t.Team.ID_Team).Find(&users).Error; err != nil {
+					return err
+				}
+			}
+			
+			var teamEmails []string
+			for _, u := range users {
+				if u.Email != "" {
+					teamEmails = append(teamEmails, u.Email)
+				}
+			}
+			
+			if len(teamEmails) == 0 {
+				continue
+			}
+
+			// Render personalization
+			renderedContent := content
+			if hasTemplate {
+				buf := new(bytes.Buffer)
+				if err := tmpl.Execute(buf, map[string]interface{}{
+					"TeamName": t.Team.TeamName, 
+					"Name": t.Team.TeamName,
+					"Subject": subject,
+					"Content": content,
+				}); err == nil {
+					renderedContent = buf.String()
+				}
+			}
+			
+			jobs = append(jobs, EmailJob{To: teamEmails, Content: renderedContent})
+		}
+
+	case "cp":
+		var teams []entity.CPTeam
+		query := s.DB.Preload("Team").Where("is_deleted = ? OR is_deleted IS NULL", false)
+		if stage != "" && stage != "all" && stage != "All" {
+			query = query.Where("stage = ?", stage)
+		}
+		if err := query.Find(&teams).Error; err != nil {
+			return err
+		}
+		
+		for _, t := range teams {
+			var users []entity.User
+			if targetRole == "leader" {
+				if err := s.DB.Where("id = ?", t.Team.ID_LeadTeam).Find(&users).Error; err != nil {
+					return err
+				}
+			} else {
+				if err := s.DB.Where("id_team = ?", t.Team.ID_Team).Find(&users).Error; err != nil {
+					return err
+				}
+			}
+			
+			var teamEmails []string
+			for _, u := range users {
+				if u.Email != "" {
+					teamEmails = append(teamEmails, u.Email)
+				}
+			}
+			
+			if len(teamEmails) == 0 {
+				continue
+			}
+
+			// Render personalization
+			renderedContent := content
+			if hasTemplate {
+				buf := new(bytes.Buffer)
+				if err := tmpl.Execute(buf, map[string]interface{}{
+					"TeamName": t.Team.TeamName, 
+					"Name": t.Team.TeamName,
+					"Subject": subject,
+					"Content": content,
+				}); err == nil {
+					renderedContent = buf.String()
+				}
+			}
+			
+			jobs = append(jobs, EmailJob{To: teamEmails, Content: renderedContent})
+		}
+
+	case "ctf":
+		var teams []entity.CTFTeam
+		query := s.DB.Preload("Team").Where("is_deleted = ? OR is_deleted IS NULL", false)
+		if stage != "" && stage != "all" && stage != "All" {
+			query = query.Where("stage = ?", stage)
+		}
+		if err := query.Find(&teams).Error; err != nil {
+			return err
+		}
+		
+		for _, t := range teams {
+			var users []entity.User
+			if targetRole == "leader" {
+				if err := s.DB.Where("id = ?", t.Team.ID_LeadTeam).Find(&users).Error; err != nil {
+					return err
+				}
+			} else {
+				if err := s.DB.Where("id_team = ?", t.Team.ID_Team).Find(&users).Error; err != nil {
+					return err
+				}
+			}
+			
+			var teamEmails []string
+			for _, u := range users {
+				if u.Email != "" {
+					teamEmails = append(teamEmails, u.Email)
+				}
+			}
+			
+			if len(teamEmails) == 0 {
+				continue
+			}
+
+			// Render personalization
+			renderedContent := content
+			if hasTemplate {
+				buf := new(bytes.Buffer)
+				if err := tmpl.Execute(buf, map[string]interface{}{
+					"TeamName": t.Team.TeamName, 
+					"Name": t.Team.TeamName,
+					"Subject": subject,
+					"Content": content,
+				}); err == nil {
+					renderedContent = buf.String()
+				}
+			}
+			
+			jobs = append(jobs, EmailJob{To: teamEmails, Content: renderedContent})
+		}
+
+	case "seminar":
+		var participants []entity.Seminar
+		query := s.DB.Preload("User").Where("is_deleted = ? OR is_deleted IS NULL", false)
+		if err := query.Find(&participants).Error; err != nil {
+			return err
+		}
+		
+		for _, p := range participants {
+			if p.User.Email == "" {
+				continue
+			}
+
+			// Render personalization
+			renderedContent := content
+			if hasTemplate {
+				buf := new(bytes.Buffer)
+				if err := tmpl.Execute(buf, map[string]interface{}{
+					"TeamName": p.User.Name, 
+					"Name": p.User.Name,
+					"Subject": subject,
+					"Content": content,
+				}); err == nil {
+					renderedContent = buf.String()
+				}
+			}
+			
+			jobs = append(jobs, EmailJob{To: []string{p.User.Email}, Content: renderedContent})
+		}
+	}
+	
+	if len(jobs) == 0 {
+		return fmt.Errorf("no recipients found")
+	}
+	
+	// Process jobs in background
+	go func() {
+		for _, job := range jobs {
+			_ = s.EmailService.SendEmailHTMLDirect(subject, job.To, job.Content)
+		}
+	}()
+	
+	return nil
+}
+
+type EmailTemplate struct {
+	Name    string `json:"name"`
+	Subject string `json:"subject"`
+	Content string `json:"content"`
+}
+
+func (s *DashboardServices) GetEmailTemplates() ([]EmailTemplate, error) {
+	templateFiles := []struct {
+		Name    string
+		Path    string
+		Subject string
+	}{
+		{"hackathon_stage1.html", "template/email/hackathon_stage1.html", "Registration Confirmation: GCW 2.0 Hackathon"},
+		{"hackathon_announcement.html", "template/email/hackathon_announcement.html", "Selection Announcement: GCW 2.0 Hackathon"},
+		{"cp_stage1.html", "template/email/cp_stage1.html", "Registration Confirmation: GCW 2.0 Competitive Programming"},
+		{"cp_announcement.html", "template/email/cp_announcement.html", "Congratulations! You are selected - GCW 2.0 Competitive Programming"},
+		{"ctf_stage1.html", "template/email/ctf_stage1.html", "Registration Confirmation: GCW 2.0 Capture The Flag"},
+		{"ctf_announcement.html", "template/email/ctf_announcement.html", "Congratulations! You are selected - GCW 2.0 Capture The Flag"},
+	}
+
+	var templates []EmailTemplate
+	for _, f := range templateFiles {
+		contentBytes, err := os.ReadFile(f.Path)
+		if err != nil {
+			continue
+		}
+		templates = append(templates, EmailTemplate{
+			Name:    f.Name,
+			Subject: f.Subject,
+			Content: string(contentBytes),
+		})
+	}
+
+	return templates, nil
 }

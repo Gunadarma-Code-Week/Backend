@@ -38,7 +38,7 @@ func (h *SeminarHandler) JoinSeminar(c *gin.Context) {
 	userAuth, ok := c.MustGet("user").(*entity.User)
 	if !ok {
 		logging.Low("SeminarHandler.JoinSeminar", "BAD_REQUEST", "user not found in context")
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", "user not found in context"))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", "User tidak ditemukan di context"))
 		return
 	}
 
@@ -46,11 +46,19 @@ func (h *SeminarHandler) JoinSeminar(c *gin.Context) {
 	response, err := h.seminarService.JoinSeminar(userAuth.ID, request)
 	if err != nil {
 		logging.Low("SeminarHandler.JoinSeminar", "BAD_REQUEST", err.Error())
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
+		if err.Error() == "user sudah terdaftar di seminar" {
+			c.JSON(http.StatusConflict, helper.CreateConflictResponse("User sudah terdaftar di seminar"))
+			return
+		}
+		if err.Error() == "seminar sudah penuh, maksimal 100 participant" {
+			c.JSON(http.StatusConflict, helper.CreateConflictResponse("Seminar sudah penuh"))
+			return
+		}
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse(err.Error(), helper.FormatValidationError(err)))
 		return
 	}
 
-	c.JSON(http.StatusCreated, helper.CreateSuccessResponse("Berhasil bergabung ke seminar", response))
+	c.JSON(http.StatusCreated, helper.CreateMutationResponse("Berhasil bergabung ke seminar", response))
 }
 
 // @Summary Get My Seminar Ticket
@@ -66,7 +74,7 @@ func (h *SeminarHandler) GetMyTicket(c *gin.Context) {
 	userAuth, ok := c.MustGet("user").(*entity.User)
 	if !ok {
 		logging.Low("SeminarHandler.GetMyTicket", "BAD_REQUEST", "user not found in context")
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", "user not found in context"))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", "User tidak ditemukan di context"))
 		return
 	}
 
@@ -74,15 +82,15 @@ func (h *SeminarHandler) GetMyTicket(c *gin.Context) {
 	response, err := h.seminarService.GetTicketDetail(userAuth.ID)
 	if err != nil {
 		if err.Error() == "tiket seminar tidak ditemukan" {
-			c.JSON(http.StatusNotFound, helper.CreateErrorResponse("error", err.Error()))
+			c.JSON(http.StatusNotFound, helper.CreateNotFoundResponse("Tiket seminar tidak ditemukan"))
 			return
 		}
 		logging.Low("SeminarHandler.GetMyTicket", "INTERNAL_SERVER_ERROR", err.Error())
-		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("error", err.Error()))
+		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("Gagal mengambil tiket seminar", helper.FormatValidationError(err)))
 		return
 	}
 
-	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Detail tiket seminar", response))
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Detail tiket seminar berhasil ditemukan", response))
 }
 
 // @Summary Get Seminar Ticket by ID
@@ -97,7 +105,7 @@ func (h *SeminarHandler) GetMyTicket(c *gin.Context) {
 func (h *SeminarHandler) GetTicketByID(c *gin.Context) {
 	ticketID := c.Param("ticket_id")
 	if ticketID == "" {
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", "ticket_id is required"))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", map[string][]string{"ticket_id": {"IS_REQUIRED"}}))
 		return
 	}
 
@@ -105,15 +113,15 @@ func (h *SeminarHandler) GetTicketByID(c *gin.Context) {
 	response, err := h.seminarService.GetTicketByID(ticketID)
 	if err != nil {
 		if err.Error() == "tiket seminar tidak ditemukan" {
-			c.JSON(http.StatusNotFound, helper.CreateErrorResponse("error", err.Error()))
+			c.JSON(http.StatusNotFound, helper.CreateNotFoundResponse("Tiket seminar tidak ditemukan"))
 			return
 		}
 		logging.Low("SeminarHandler.GetTicketByID", "INTERNAL_SERVER_ERROR", err.Error())
-		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("error", err.Error()))
+		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("Gagal mengambil tiket seminar", helper.FormatValidationError(err)))
 		return
 	}
 
-	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Detail tiket seminar", response))
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Detail tiket seminar berhasil ditemukan", response))
 }
 
 // @Summary Admin Add Participant to Seminar
@@ -132,7 +140,7 @@ func (h *SeminarHandler) AdminAddParticipant(c *gin.Context) {
 	// Bind request
 	if err := c.ShouldBindJSON(&request); err != nil {
 		logging.Low("SeminarHandler.AdminAddParticipant", "BAD_REQUEST", err.Error())
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", helper.FormatValidationError(err)))
 		return
 	}
 
@@ -140,9 +148,21 @@ func (h *SeminarHandler) AdminAddParticipant(c *gin.Context) {
 	response, err := h.seminarService.AdminAddParticipant(request.UserID)
 	if err != nil {
 		logging.Low("SeminarHandler.AdminAddParticipant", "BAD_REQUEST", err.Error())
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
+		if err.Error() == "user tidak ditemukan" {
+			c.JSON(http.StatusNotFound, helper.CreateNotFoundResponse("User tidak ditemukan"))
+			return
+		}
+		if err.Error() == "user sudah terdaftar di seminar" {
+			c.JSON(http.StatusConflict, helper.CreateConflictResponse("User sudah terdaftar di seminar"))
+			return
+		}
+		if err.Error() == "seminar sudah penuh, maksimal 100 participant" {
+			c.JSON(http.StatusConflict, helper.CreateConflictResponse("Seminar sudah penuh"))
+			return
+		}
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse(err.Error(), helper.FormatValidationError(err)))
 		return
 	}
 
-	c.JSON(http.StatusCreated, helper.CreateSuccessResponse("Berhasil menambahkan participant ke seminar", response))
+	c.JSON(http.StatusCreated, helper.CreateMutationResponse("Berhasil menambahkan participant ke seminar", response))
 }

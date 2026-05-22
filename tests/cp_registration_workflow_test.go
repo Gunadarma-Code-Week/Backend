@@ -26,7 +26,7 @@ func TestUTSUB003_CPRegistrationProvisioning(t *testing.T) {
 	}
 
 	repo := repository.GateRegistrationRepository(db)
-	regSvc := service.NewRegistrationService(repo, &service.DomJudgeService{DomJudgeUrl: ""}, nil)
+	regSvc := service.NewRegistrationService(repo, &service.DomJudgeService{DomJudgeUrl: ""})
 
 	request := dto.RegistrationCPTeamRequest{
 		RegistraionTeamRequest: dto.RegistraionTeamRequest{

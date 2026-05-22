@@ -43,7 +43,6 @@ require (
 	github.com/klauspost/compress v1.17.6 // indirect
 	github.com/mailru/easyjson v0.9.0 // indirect
 	github.com/manucorporat/sse v0.0.0-20160126180136-ee05b128a739 // indirect
-	github.com/midtrans/midtrans-go v1.3.8 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/sahilm/fuzzy v0.1.1 // indirect

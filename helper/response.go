@@ -7,7 +7,38 @@ type Response struct {
 	Data    interface{} `json:"data"`
 }
 
-var NotFoundResponse Response = CreateErrorResponse("Data yang dicari tidak ditemukan", "not found")
+type MutationResponse struct {
+	Message string      `json:"message"`
+	Data    interface{} `json:"data"`
+}
+
+type ErrorResponse struct {
+	Message string      `json:"message"`
+	Data    interface{} `json:"data"`
+	Errors  interface{} `json:"errors"`
+}
+
+type ConflictResponse struct {
+	Message string      `json:"message"`
+	Data    interface{} `json:"data"`
+}
+
+func CreateConflictResponse(message string) ConflictResponse {
+	return ConflictResponse{
+		Message: message,
+		Data:    "nil",
+	}
+}
+
+func CreateNotFoundResponse(message string) ErrorResponse {
+	return ErrorResponse{
+		Message: message,
+		Data:    "nil",
+		Errors:  "nil",
+	}
+}
+
+var NotFoundResponse ErrorResponse = CreateNotFoundResponse("Data yang dicari tidak ditemukan")
 
 func CreateSuccessResponse(message string, data interface{}) Response {
 	return Response{
@@ -18,11 +49,17 @@ func CreateSuccessResponse(message string, data interface{}) Response {
 	}
 }
 
-func CreateErrorResponse(message string, errors interface{}) Response {
-	return Response{
-		Success: false,
+func CreateMutationResponse(message string, data interface{}) MutationResponse {
+	return MutationResponse{
 		Message: message,
+		Data:    data,
+	}
+}
+
+func CreateErrorResponse(message string, errors interface{}) ErrorResponse {
+	return ErrorResponse{
+		Message: message,
+		Data:    "nil",
 		Errors:  errors,
-		Data:    nil,
 	}
 }

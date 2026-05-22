@@ -116,7 +116,7 @@ curl -i -s -X POST http://localhost:8000/api/v1/gcw/resources/profile/my \
   -d '{"name":"Tes User","gender":"L","nim":"12345678","birth_place":"Jakarta","birth_date":"2000-01-01","institusi":"UG","phone":"0812","major":"Informatika"}'
 ```
 
-Ekspektasi: `HTTP/1.1 200 OK` dan `profile_has_updated: true`
+Ekspektasi: `HTTP/1.1 201 Created` dan `profile_has_updated: true`
 
 ### 4.4 Registrasi tim CP (trigger create team/user di DOMjudge)
 

@@ -55,13 +55,36 @@ func setupIsolatedPostgresDB(t *testing.T) (*gorm.DB, func()) {
 	}
 
 	if err := db.AutoMigrate(
-		&entity.Team{},
 		&entity.User{},
+		&entity.UserRole{},
+		&entity.Team{},
+		&entity.Seminar{},
 		&entity.HackathonTeam{},
 		&entity.CPTeam{},
+		&entity.CTFTeam{},
+		&entity.NewsLetter{},
+		&entity.AuditLog{},
+		&entity.SystemSetting{},
 	); err != nil {
 		_ = baseDB.Exec(fmt.Sprintf(`DROP SCHEMA IF EXISTS "%s" CASCADE`, schema)).Error
 		t.Fatalf("gagal migrate schema test: %v", err)
+	}
+
+	initialSettings := entity.SystemSetting{
+		ID:                            1,
+		HackathonRegistrationDisabled: false,
+		CPRegistrationDisabled:        false,
+		CTFRegistrationDisabled:       false,
+		HackathonProposalDisabled:     false,
+		HackathonVideoDisabled:        false,
+		HackathonFinalDisabled:        false,
+		HackathonProposalDeadline:     "2026-05-24T23:59:59",
+		HackathonVideoDeadline:        "2026-06-06T23:59:59",
+		HackathonFinalDeadline:        "2026-06-20T23:59:59",
+	}
+	if err := db.Create(&initialSettings).Error; err != nil {
+		_ = baseDB.Exec(fmt.Sprintf(`DROP SCHEMA IF EXISTS "%s" CASCADE`, schema)).Error
+		t.Fatalf("gagal seed system settings test: %v", err)
 	}
 
 	cleanup := func() {

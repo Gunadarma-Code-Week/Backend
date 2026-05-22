@@ -28,10 +28,10 @@ func NewSystemSettingHandler(ss *service.SystemSettingService) *SystemSettingHan
 func (h *SystemSettingHandler) GetSettings(c *gin.Context) {
 	settings, err := h.settingService.GetSettings()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("error", "Gagal mengambil konfigurasi sistem"))
+		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", "Gagal mengambil konfigurasi sistem"))
 		return
 	}
-	c.JSON(http.StatusOK, helper.CreateSuccessResponse("success", settings))
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Permintaan berhasil diproses", settings))
 }
 
 // @Summary Update System Settings (Admin)
@@ -44,7 +44,7 @@ func (h *SystemSettingHandler) GetSettings(c *gin.Context) {
 func (h *SystemSettingHandler) UpdateSettings(c *gin.Context) {
 	var input dto.UpdateSystemSettingDTO
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", helper.FormatValidationError(err)))
 		return
 	}
 
@@ -122,9 +122,9 @@ func (h *SystemSettingHandler) UpdateSettings(c *gin.Context) {
 
 	updatedSettings, err := h.settingService.UpdateSettings(newSettings)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("error", "Gagal memperbarui konfigurasi sistem"))
+		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", "Gagal memperbarui konfigurasi sistem"))
 		return
 	}
 
-	c.JSON(http.StatusOK, helper.CreateSuccessResponse("success", updatedSettings))
+	c.JSON(http.StatusCreated, helper.CreateMutationResponse("Data berhasil diperbarui", updatedSettings))
 }
