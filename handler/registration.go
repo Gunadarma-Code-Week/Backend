@@ -37,7 +37,7 @@ func (h *registrationHandler) RegistrationCPTeam(c *gin.Context) {
 
 	if err := c.ShouldBind(registrationDto); err != nil {
 		logging.Low("ProfileHandler.Create", "BAD_REQUEST", err.Error())
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", helper.FormatValidationError(err)))
 		return
 	}
 
@@ -46,13 +46,20 @@ func (h *registrationHandler) RegistrationCPTeam(c *gin.Context) {
 	registrationCPTeamResponse, err := h.registrationService.CPTeamRegistration(registrationDto, userAuth)
 	if err != nil {
 		logging.Low("ProfileHandler.Create", "BAD_REQUEST", err.Error())
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
+		if err.Error() == "Nama Tim Sudah Digunakan" {
+			c.JSON(http.StatusConflict, helper.CreateConflictResponse("Nama tim sudah digunakan"))
+			return
+		} else if err.Error() == "USER ALREADY HAVE TEAM" {
+			c.JSON(http.StatusConflict, helper.CreateConflictResponse("User sudah memiliki tim"))
+			return
+		}
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", helper.FormatValidationError(err)))
 		return
 	}
 
 	c.Set("target_name", registrationCPTeamResponse.Team.TeamName)
 	c.Set("target_id", uint64(registrationCPTeamResponse.Team.ID_Team))
-	c.JSON(http.StatusCreated, helper.CreateSuccessResponse("Success register cp team", registrationCPTeamResponse))
+	c.JSON(http.StatusCreated, helper.CreateMutationResponse("Success register cp team", registrationCPTeamResponse))
 }
 
 // @Summary Register Hackathon Team
@@ -67,7 +74,7 @@ func (h *registrationHandler) RegistrationHackathonTeam(c *gin.Context) {
 
 	if err := c.ShouldBind(registrationDto); err != nil {
 		logging.Low("ProfileHandler.Create", "BAD_REQUEST", err.Error())
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", helper.FormatValidationError(err)))
 		return
 	}
 
@@ -76,13 +83,20 @@ func (h *registrationHandler) RegistrationHackathonTeam(c *gin.Context) {
 	registrationHackathonTeamResponse, err := h.registrationService.HackathonTeamRegistration(registrationDto, userAuth)
 	if err != nil {
 		logging.Low("ProfileHandler.Create", "BAD_REQUEST", err.Error())
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
+		if err.Error() == "Nama Tim Sudah Digunakan" {
+			c.JSON(http.StatusConflict, helper.CreateConflictResponse("Nama tim sudah digunakan"))
+			return
+		} else if err.Error() == "USER ALREADY HAVE TEAM" {
+			c.JSON(http.StatusConflict, helper.CreateConflictResponse("User sudah memiliki tim"))
+			return
+		}
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", helper.FormatValidationError(err)))
 		return
 	}
 
 	c.Set("target_name", registrationHackathonTeamResponse.Team.TeamName)
 	c.Set("target_id", uint64(registrationHackathonTeamResponse.Team.ID_Team))
-	c.JSON(http.StatusCreated, helper.CreateSuccessResponse("Success register hackathon team", registrationHackathonTeamResponse))
+	c.JSON(http.StatusCreated, helper.CreateMutationResponse("Success register hackathon team", registrationHackathonTeamResponse))
 }
 
 // @Summary Register CTF Team
@@ -97,7 +111,7 @@ func (h *registrationHandler) RegistrationCTFTeam(c *gin.Context) {
 
 	if err := c.ShouldBind(registrationDto); err != nil {
 		logging.Low("ProfileHandler.Create", "BAD_REQUEST", err.Error())
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", helper.FormatValidationError(err)))
 		return
 	}
 
@@ -106,13 +120,20 @@ func (h *registrationHandler) RegistrationCTFTeam(c *gin.Context) {
 	registrationCTFTeamResponse, err := h.registrationService.CTFTeamRegistration(registrationDto, userAuth)
 	if err != nil {
 		logging.Low("ProfileHandler.Create", "BAD_REQUEST", err.Error())
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
+		if err.Error() == "Nama Tim Sudah Digunakan" {
+			c.JSON(http.StatusConflict, helper.CreateConflictResponse("Nama tim sudah digunakan"))
+			return
+		} else if err.Error() == "USER ALREADY HAVE TEAM" {
+			c.JSON(http.StatusConflict, helper.CreateConflictResponse("User sudah memiliki tim"))
+			return
+		}
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", helper.FormatValidationError(err)))
 		return
 	}
 
 	c.Set("target_name", registrationCTFTeamResponse.Team.TeamName)
 	c.Set("target_id", uint64(registrationCTFTeamResponse.Team.ID_Team))
-	c.JSON(http.StatusCreated, helper.CreateSuccessResponse("Success register ctf team", registrationCTFTeamResponse))
+	c.JSON(http.StatusCreated, helper.CreateMutationResponse("Success register ctf team", registrationCTFTeamResponse))
 }
 
 // @Summary Find Team
@@ -127,7 +148,7 @@ func (h *registrationHandler) FindTeam(c *gin.Context) {
 	team, err := h.registrationService.FindTeamByJoinCode(joinCode)
 	if err != nil {
 		logging.Low("RegistrationHandler.FindTeam", "BAD_REQUEST", err.Error())
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", helper.FormatValidationError(err)))
 		return
 	}
 
@@ -135,21 +156,21 @@ func (h *registrationHandler) FindTeam(c *gin.Context) {
 	err = smapping.FillStruct(registrationTeamResponse, smapping.MapFields(team))
 	if err != nil {
 		logging.Low("RegistrationHandler.FindTeam", "INTERNAL_SERVER_ERROR", err.Error())
-		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("error", err.Error()))
+		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", helper.FormatValidationError(err)))
 		return
 	}
 
 	leader, err := h.userService.FindById(team.ID_LeadTeam)
 	if err != nil {
 		logging.Low("RegistrationHandler.FindTeam", "BAD_REQUEST", err.Error())
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", helper.FormatValidationError(err)))
 		return
 	}
 
 	members, err := h.userService.FindByIdTeam(team.ID_Team, leader.ID)
 	if err != nil {
 		logging.Low("RegistrationHandler.FindTeam", "BAD_REQUEST", err.Error())
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", helper.FormatValidationError(err)))
 		return
 	}
 
@@ -182,7 +203,17 @@ func (h *registrationHandler) UserJoinTeam(c *gin.Context) {
 	team, err := h.registrationService.JoinTeam(joinCode, userAuth)
 	if err != nil {
 		logging.Low("ProfileHandler.Create", "BAD_REQUEST", err.Error())
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
+		if err.Error() == "USER ALREADY HAVE TEAM" {
+			c.JSON(http.StatusConflict, helper.CreateConflictResponse("User sudah memiliki tim"))
+			return
+		} else if err.Error() == "TEAM IS FULL" {
+			c.JSON(http.StatusConflict, helper.CreateConflictResponse("Tim sudah penuh"))
+			return
+		} else if err.Error() == "TEAM NOT FOUND" {
+			c.JSON(http.StatusNotFound, helper.CreateNotFoundResponse("Tim tidak ditemukan"))
+			return
+		}
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", helper.FormatValidationError(err)))
 		return
 	}
 
@@ -190,11 +221,11 @@ func (h *registrationHandler) UserJoinTeam(c *gin.Context) {
 	err = smapping.FillStruct(registraionTeamResponse, smapping.MapFields(team))
 	if err != nil {
 		logging.Low("RegistrationService.CPTeamRegistration", "INTERNAL_SERVER_ERROR", err.Error())
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", helper.FormatValidationError(err)))
 		return
 	}
 
 	c.Set("target_name", team.TeamName)
 	c.Set("target_id", uint64(team.ID_Team))
-	c.JSON(http.StatusCreated, helper.CreateSuccessResponse("Success Join Team", registraionTeamResponse))
+	c.JSON(http.StatusCreated, helper.CreateMutationResponse("Success Join Team", registraionTeamResponse))
 }

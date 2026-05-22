@@ -70,7 +70,7 @@ func (h *dashboardController) GetAllDashboard(c *gin.Context) {
 	page, errPage := strconv.Atoi(strPage)
 
 	if errCount != nil || errPage != nil {
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "count and page must be integers"))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", "Parameter count dan page harus berupa angka"))
 		return
 	}
 
@@ -80,7 +80,7 @@ func (h *dashboardController) GetAllDashboard(c *gin.Context) {
 		search := c.Query("search")
 		data, err := h.Service.GetAllSeminar(count, page, search)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "service error: "+err.Error()))
+			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", helper.FormatValidationError(err)))
 			return
 		}
 		respondData = data
@@ -89,7 +89,7 @@ func (h *dashboardController) GetAllDashboard(c *gin.Context) {
 		stage := c.Query("stage")
 		data, err := h.Service.GetAllHackaton(count, page, search, stage)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "service error: "+err.Error()))
+			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", helper.FormatValidationError(err)))
 			return
 		}
 		respondData = data
@@ -98,7 +98,7 @@ func (h *dashboardController) GetAllDashboard(c *gin.Context) {
 		stage := c.Query("stage")
 		data, err := h.Service.GetAllCp(count, page, search, stage)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "service error: "+err.Error()))
+			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", helper.FormatValidationError(err)))
 			return
 		}
 		respondData = data
@@ -107,12 +107,12 @@ func (h *dashboardController) GetAllDashboard(c *gin.Context) {
 		stage := c.Query("stage")
 		data, err := h.Service.GetAllCtf(count, page, search, stage)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "service error: "+err.Error()))
+			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", helper.FormatValidationError(err)))
 			return
 		}
 		respondData = data
 	default:
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "kegiatan not found"))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", "Acara tidak ditemukan"))
 		return
 	}
 
@@ -121,7 +121,7 @@ func (h *dashboardController) GetAllDashboard(c *gin.Context) {
 		respondData = map[string]interface{}{}
 	}
 
-	c.JSON(http.StatusOK, helper.CreateSuccessResponse("SUCCESS", respondData))
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Permintaan berhasil diproses", respondData))
 }
 
 // @Summary Update Dashboard Event
@@ -144,13 +144,13 @@ func (h *dashboardController) Update(c *gin.Context) {
 	case "seminar":
 		var input dto.Seminar
 		if err := c.ShouldBindJSON(&input); err != nil {
-			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "BAD_REQUEST"))
+			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", helper.FormatValidationError(err)))
 			return
 		}
 
 		targetName, err := h.Service.UpdateSeminarService(id, input)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("ERROR", "error service"))
+			c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("Gagal memperbarui seminar", helper.FormatValidationError(err)))
 			return
 		}
 		c.Set("target_name", targetName)
@@ -158,13 +158,13 @@ func (h *dashboardController) Update(c *gin.Context) {
 	case "hackathon":
 		var input dto.Hackaton
 		if err := c.ShouldBindJSON(&input); err != nil {
-			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "BAD_REQUEST"))
+			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", helper.FormatValidationError(err)))
 			return
 		}
 
 		targetName, err := h.Service.UpdateHackatonService(id, input)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("ERROR", "error service"))
+			c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("Gagal memperbarui hackathon", helper.FormatValidationError(err)))
 			return
 		}
 		c.Set("target_name", targetName)
@@ -172,13 +172,13 @@ func (h *dashboardController) Update(c *gin.Context) {
 	case "cp":
 		var input dto.Cp
 		if err := c.ShouldBindJSON(&input); err != nil {
-			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "BAD_REQUEST"))
+			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", helper.FormatValidationError(err)))
 			return
 		}
 
 		targetName, err := h.Service.UpdateCpService(id, input)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("ERROR", "error service"))
+			c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("Gagal memperbarui CP", helper.FormatValidationError(err)))
 			return
 		}
 		c.Set("target_name", targetName)
@@ -186,23 +186,23 @@ func (h *dashboardController) Update(c *gin.Context) {
 	case "ctf":
 		var input dto.Ctf
 		if err := c.ShouldBindJSON(&input); err != nil {
-			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "BAD_REQUEST"))
+			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", helper.FormatValidationError(err)))
 			return
 		}
 
 		targetName, err := h.Service.UpdateCtfService(id, input)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("ERROR", "error service"))
+			c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("Gagal memperbarui CTF", helper.FormatValidationError(err)))
 			return
 		}
 		c.Set("target_name", targetName)
 
 	default:
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "kegiatan not found"))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", "Acara tidak ditemukan"))
 		return
 	}
 
-	c.JSON(http.StatusOK, helper.CreateSuccessResponse("UPDATED", id))
+	c.JSON(http.StatusOK, helper.CreateMutationResponse("Data berhasil diperbarui", id))
 }
 
 // @Summary Delete Dashboard Event
@@ -220,24 +220,24 @@ func (h *dashboardController) Delete(c *gin.Context) {
 	id := c.Param("id")
 
 	if acara != "seminar" && acara != "hackaton" && acara != "hackathon" && acara != "cp" && acara != "ctf" {
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "kegiatan not found"))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", "Acara tidak ditemukan"))
 		return
 	}
 
 	var deleteRequest dto.DeleteTeamRequest
 	if err := c.ShouldBindJSON(&deleteRequest); err != nil {
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "alasan penghapusan tim wajib diisi"))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", helper.FormatValidationError(err)))
 		return
 	}
 
 	targetName, err := h.Service.DeletePesertaService(acara, id, deleteRequest.Alasan)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "Error delete service"))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Gagal menghapus peserta", helper.FormatValidationError(err)))
 		return
 	}
 	c.Set("target_name", targetName)
 
-	c.JSON(http.StatusOK, helper.CreateSuccessResponse("UPDATED", targetName))
+	c.JSON(http.StatusOK, helper.CreateMutationResponse("Peserta berhasil dihapus", targetName))
 }
 
 // @Summary Get User Events
@@ -254,62 +254,62 @@ func (h *dashboardController) Delete(c *gin.Context) {
 
 // 	dataEvent, err := h.Service.GetEventSevice(idUser)
 // 	if err != nil {
-// 		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "data not found"))
+// 		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", "data not found"))
 // 		return
 // 	}
 
-// 	c.JSON(http.StatusOK, helper.CreateSuccessResponse("FOUND", dataEvent))
+// 	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Data berhasil ditemukan", dataEvent))
 // }
 
 func (h *dashboardController) GetTeamNames(c *gin.Context) {
 	event := c.Query("event")
 	if event == "" {
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "event parameter is required"))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", "Parameter event wajib diisi"))
 		return
 	}
 
 	names, err := h.Service.GetTeamNames(event)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("INTERNAL_SERVER_ERROR", err.Error()))
+		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("Terjadi kesalahan pada server", helper.FormatValidationError(err)))
 		return
 	}
 
-	c.JSON(http.StatusOK, helper.CreateSuccessResponse("SUCCESS", names))
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Permintaan berhasil diproses", names))
 }
 
 func (h *dashboardController) SendBulkEmail(c *gin.Context) {
 	var input struct {
-		Event      string `json:"event"`
-		Stage      string `json:"stage"`
-		TargetRole string `json:"target_role"`
-		Subject    string `json:"subject"`
-		Content    string `json:"content"`
+		Event      string `json:"event" binding:"max=50"`
+		Stage      string `json:"stage" binding:"max=50"`
+		TargetRole string `json:"target_role" binding:"max=50"`
+		Subject    string `json:"subject" binding:"max=50"`
+		Content    string `json:"content" binding:"max=50"`
 	}
 
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", err.Error()))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", helper.FormatValidationError(err)))
 		return
 	}
 
 	if input.Event == "" || input.Subject == "" || input.Content == "" {
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "event, subject, and content are required"))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", "Parameter event, subject, dan content wajib diisi"))
 		return
 	}
 
 	err := h.Service.SendBulkEmail(input.Event, input.Stage, input.TargetRole, input.Subject, input.Content)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", err.Error()))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", helper.FormatValidationError(err)))
 		return
 	}
 
-	c.JSON(http.StatusOK, helper.CreateSuccessResponse("SUCCESS", "Emails are queued for sending"))
+	c.JSON(http.StatusOK, helper.CreateMutationResponse("Permintaan berhasil diproses", "Email berhasil dimasukkan ke dalam antrean pengiriman"))
 }
 
 func (h *dashboardController) GetEmailTemplates(c *gin.Context) {
 	templates, err := h.Service.GetEmailTemplates()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("INTERNAL_SERVER_ERROR", err.Error()))
+		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("Terjadi kesalahan pada server", helper.FormatValidationError(err)))
 		return
 	}
-	c.JSON(http.StatusOK, helper.CreateSuccessResponse("SUCCESS", templates))
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Permintaan berhasil diproses", templates))
 }

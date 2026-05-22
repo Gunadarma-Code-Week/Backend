@@ -9,6 +9,8 @@ import (
 	"github.com/ulule/limiter/v3"
 	mgin "github.com/ulule/limiter/v3/drivers/middleware/gin"
 	"github.com/ulule/limiter/v3/drivers/store/memory"
+
+	"gcw/helper"
 )
 
 // RateLimiter returns a gin.HandlerFunc for rate limiting.
@@ -28,9 +30,7 @@ func RateLimiter() gin.HandlerFunc {
 	// Create the middleware
 	middleware := mgin.NewMiddleware(instance, mgin.WithErrorHandler(func(c *gin.Context, err error) {
 		log.Printf("Rate limit error: %v", err)
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-			"error": "internal server error during rate limiting",
-		})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, helper.CreateErrorResponse("Terjadi kesalahan pada server", "internal server error during rate limiting"))
 	}))
 
 	return middleware

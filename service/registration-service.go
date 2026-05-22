@@ -11,7 +11,6 @@ import (
 
 	"github.com/mashingan/smapping"
 	"gorm.io/gorm"
-	"os"
 	"strings"
 	"time"
 )
@@ -20,18 +19,15 @@ type RegistrationService struct {
 	registrationRepository *repository.RegistrationRepository
 	userRepository         *repository.UserRepository
 	domJudgeService        *DomJudgeService
-	midtransService        *MidtransService
 }
 
 func NewRegistrationService(
 	rp *repository.RegistrationRepository,
 	ds *DomJudgeService,
-	ms *MidtransService,
 ) *RegistrationService {
 	return &RegistrationService{
 		registrationRepository: rp,
 		domJudgeService:        ds,
-		midtransService:        ms,
 	}
 }
 
@@ -88,25 +84,10 @@ func (s *RegistrationService) CPTeamRegistration(
 	}
 
 	teamRegistration.JoinCode = joinCode
-	// Generate Midtrans Order ID and QRIS
-	midtransActive := os.Getenv("MIDTRANS_ACTIVE") == "true"
-	orderID := ""
+	// Manual payment logic
+	orderID := fmt.Sprintf("CP-MANUAL-%d-%d", userLead.ID, time.Now().UnixNano())
+	teamRegistration.KomitmenFee = registrationDTO.BuktiPembayaran
 	qrString := "-"
-
-	if midtransActive {
-		orderID = fmt.Sprintf("CP-%d-%d", userLead.ID, time.Now().UnixNano())
-		if s.midtransService != nil {
-			qrString, err = s.midtransService.GenerateQRIS(orderID, 80000)
-			if err != nil {
-				logging.Low("RegistrationService.CPTeamRegistration", "INTERNAL_SERVER_ERROR", "Midtrans QR Generation failed: "+err.Error())
-				return nil, err
-			}
-		}
-	} else {
-		// Manual payment logic
-		orderID = fmt.Sprintf("CP-MANUAL-%d-%d", userLead.ID, time.Now().UnixNano())
-		teamRegistration.KomitmenFee = registrationDTO.BuktiPembayaran
-	}
 
 	teamRegistration.OrderID = orderID
 	teamRegistration.QRString = qrString
@@ -240,25 +221,10 @@ func (s *RegistrationService) HackathonTeamRegistration(
 	}
 	teamRegistration.JoinCode = joinCode
 
-	// Generate Midtrans Order ID and QRIS
-	midtransActive := os.Getenv("MIDTRANS_ACTIVE") == "true"
-	orderID := ""
+	// Manual payment logic
+	orderID := fmt.Sprintf("HACK-MANUAL-%d-%d", userLead.ID, time.Now().UnixNano())
+	teamRegistration.KomitmenFee = registrationDTO.BuktiPembayaran
 	qrString := "-"
-
-	if midtransActive {
-		orderID = fmt.Sprintf("HACK-%d-%d", userLead.ID, time.Now().UnixNano())
-		if s.midtransService != nil {
-			qrString, err = s.midtransService.GenerateQRIS(orderID, int64(hackathonFee))
-			if err != nil {
-				logging.Low("RegistrationService.HackathonTeamRegistration", "INTERNAL_SERVER_ERROR", "Midtrans QR Generation failed: "+err.Error())
-				return nil, err
-			}
-		}
-	} else {
-		// Manual payment logic
-		orderID = fmt.Sprintf("HACK-MANUAL-%d-%d", userLead.ID, time.Now().UnixNano())
-		teamRegistration.KomitmenFee = registrationDTO.BuktiPembayaran
-	}
 
 	teamRegistration.OrderID = orderID
 	teamRegistration.QRString = qrString
@@ -381,25 +347,10 @@ func (s *RegistrationService) CTFTeamRegistration(
 	teamRegistration.JoinCode = joinCode
 	teamRegistration.KomitmenFee = registrationDTO.BuktiPembayaran
 
-	// Generate Midtrans Order ID and QRIS
-	midtransActive := os.Getenv("MIDTRANS_ACTIVE") == "true"
-	orderID := ""
+	// Manual payment logic
+	orderID := fmt.Sprintf("CTF-MANUAL-%d-%d", userLead.ID, time.Now().UnixNano())
+	teamRegistration.KomitmenFee = registrationDTO.BuktiPembayaran
 	qrString := "-"
-
-	if midtransActive {
-		orderID = fmt.Sprintf("CTF-%d-%d", userLead.ID, time.Now().UnixNano())
-		if s.midtransService != nil {
-			qrString, err = s.midtransService.GenerateQRIS(orderID, 75000)
-			if err != nil {
-				logging.Low("RegistrationService.CTFTeamRegistration", "INTERNAL_SERVER_ERROR", "Midtrans QR Generation failed: "+err.Error())
-				return nil, err
-			}
-		}
-	} else {
-		// Manual payment logic
-		orderID = fmt.Sprintf("CTF-MANUAL-%d-%d", userLead.ID, time.Now().UnixNano())
-		teamRegistration.KomitmenFee = registrationDTO.BuktiPembayaran
-	}
 
 	teamRegistration.OrderID = orderID
 	teamRegistration.QRString = qrString

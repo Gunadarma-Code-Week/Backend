@@ -29,7 +29,7 @@ func NewAuthHandler(as *service.AuthService, js *service.JwtService, es *service
 
 func (h *authHandler) Ping(c *gin.Context) {
 	log.Printf("Berhasil Ping")
-	c.JSON(http.StatusOK, gin.H{"success": "ping"})
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("ping", "ping"))
 }
 
 // @Summary Validate Google ID Token
@@ -44,7 +44,7 @@ func (h *authHandler) ValidateGoogleIdToken(c *gin.Context) {
 	login := &dto.ValidateGoogleIdTokenDTO{}
 	if err := c.Bind(login); err != nil {
 		logging.Low("AuthHandler.Login", "BAD_REQUEST", err.Error())
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", helper.FormatValidationError(err)))
 		return
 	}
 
@@ -75,7 +75,7 @@ func (h *authHandler) ValidateGoogleIdToken(c *gin.Context) {
 	response.RefreshToken = refreshToken
 	response.User = *userResponse
 
-	c.JSON(http.StatusOK, helper.CreateSuccessResponse("success", response))
+	c.JSON(http.StatusOK, helper.CreateMutationResponse("Data berhasil diperbarui", response))
 }
 
 // @Summary Refresh Token
@@ -90,28 +90,28 @@ func (h *authHandler) RefreshToken(c *gin.Context) {
 	refreshToken := &dto.RefreshTokenDTO{}
 	if err := c.Bind(refreshToken); err != nil {
 		logging.Low("AuthHandler.RefreshToken", "BAD_REQUEST", err.Error())
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", helper.FormatValidationError(err)))
 		return
 	}
 
 	payload, err := h.jwtService.GetClaimsByRefreshToken(refreshToken.RefreshToken)
 	if err != nil {
 		logging.High("AuthHandler.RefreshToken", "INTERNAL_SERVER_ERROR", err.Error())
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", helper.FormatValidationError(err)))
 		return
 	}
 
 	userId := uint64(payload["id"].(float64))
 	if userId == 0 {
 		logging.High("AuthHandler.RefreshToken", "INTERNAL_SERVER_ERROR", "user_id not found in payload")
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", "user_id not found in payload"))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", "user_id not found in payload"))
 		return
 	}
 
 	user, err := h.authService.GetUserById(userId)
 	if err != nil {
 		logging.High("AuthHandler.RefreshToken", "INTERNAL_SERVER_ERROR", err.Error())
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", helper.FormatValidationError(err)))
 		return
 	}
 	newToken := h.jwtService.GenerateToken(user)
@@ -125,7 +125,7 @@ func (h *authHandler) RefreshToken(c *gin.Context) {
 	response.RefreshToken = newRefreshToken
 	response.User = *userResponse
 
-	c.JSON(http.StatusOK, helper.CreateSuccessResponse("success", response))
+	c.JSON(http.StatusOK, helper.CreateMutationResponse("Data berhasil diperbarui", response))
 }
 
 // @Summary Register new account
@@ -144,7 +144,11 @@ func (h *authHandler) Registration(c *gin.Context) {
 
 	user, err := h.authService.Registration(registerDTO)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", err.Error()))
+		if err.Error() == "user already registered" {
+			c.JSON(http.StatusConflict, helper.CreateConflictResponse("Email sudah terdaftar"))
+			return
+		}
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", helper.FormatValidationError(err)))
 		return
 	}
 
@@ -159,7 +163,7 @@ func (h *authHandler) Registration(c *gin.Context) {
 	response.RefreshToken = refreshToken
 	response.User = *userResponse
 
-	c.JSON(http.StatusOK, helper.CreateSuccessResponse("success", response))
+	c.JSON(http.StatusOK, helper.CreateMutationResponse("Data berhasil diperbarui", response))
 }
 
 // @Summary Login
@@ -186,7 +190,11 @@ func (h *authHandler) Login(c *gin.Context) {
 			errorCode = "USER_DELETED"
 		}
 		
-		c.JSON(statusCode, helper.CreateErrorResponse(err.Error(), errorCode))
+		msg := err.Error()
+		if msg == "email or password is wrong" {
+			msg = "Email atau password salah"
+		}
+		c.JSON(statusCode, helper.CreateErrorResponse(msg, errorCode))
 		return
 	}
 
@@ -201,7 +209,7 @@ func (h *authHandler) Login(c *gin.Context) {
 	response.RefreshToken = refreshToken
 	response.User = *userResponse
 
-	c.JSON(http.StatusOK, helper.CreateSuccessResponse("success", response))
+	c.JSON(http.StatusOK, helper.CreateMutationResponse("Data berhasil diperbarui", response))
 }
 
 // THIS JUST EXAMPLE, CAN USE THIS ON ANYWHERE
@@ -212,5 +220,5 @@ func (h *authHandler) SendEmailVerificationExample(c *gin.Context) {
 		"Code": "123456",
 	})
 
-	c.JSON(http.StatusOK, helper.CreateSuccessResponse("success", "Email verification has been sent, wait or try again"))
+	c.JSON(http.StatusOK, helper.CreateMutationResponse("Data berhasil diperbarui", "Email verification has been sent, wait or try again"))
 }

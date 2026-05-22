@@ -41,9 +41,19 @@ func TestUTSUB001_CreateAndGetSubmissionWorkflow(t *testing.T) {
 	if _, err := svc.Create(joinCode, "stage1", dto.RequestHackathon{LinkDrive: "https://drive.test/proposal"}); err != nil {
 		t.Fatalf("stage1 submission failed: %v", err)
 	}
+	
+	if err := db.Model(&entity.HackathonTeam{}).Where("id_team = ?", team.ID_Team).Update("stage", "Stage-2").Error; err != nil {
+		t.Fatalf("failed to update stage to Stage-2: %v", err)
+	}
+	
 	if _, err := svc.Create(joinCode, "stage2", dto.RequestHackathon{LinkDrive: "https://drive.test/pitch"}); err != nil {
 		t.Fatalf("stage2 submission failed: %v", err)
 	}
+	
+	if err := db.Model(&entity.HackathonTeam{}).Where("id_team = ?", team.ID_Team).Update("stage", "Final").Error; err != nil {
+		t.Fatalf("failed to update stage to Final: %v", err)
+	}
+	
 	if _, err := svc.Create(joinCode, "final", dto.RequestHackathon{LinkDrive: "https://github.com/example/project"}); err != nil {
 		t.Fatalf("final submission failed: %v", err)
 	}

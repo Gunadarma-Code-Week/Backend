@@ -17,7 +17,7 @@ func TestTeamNameUniqueness(t *testing.T) {
 	defer cleanup()
 
 	repo := repository.GateRegistrationRepository(db)
-	regSvc := service.NewRegistrationService(repo, &service.DomJudgeService{DomJudgeUrl: ""}, nil)
+	regSvc := service.NewRegistrationService(repo, &service.DomJudgeService{DomJudgeUrl: ""})
 
 	// --- 1. Test Duplicate CP Team Name ---
 	t.Run("Duplicate CP Team Name", func(t *testing.T) {
@@ -164,8 +164,6 @@ func createCTFRequest(name string) dto.RegistrationCTFTeamRequest {
 			Supervisor:     "Supervisor",
 			SupervisorNIDN: "1234567890",
 		},
-		RegistrationCTFRequest: dto.RegistrationCTFRequest{
-			BuktiPembayaran: "-",
-		},
+		BuktiPembayaran: "-",
 	}
 }
