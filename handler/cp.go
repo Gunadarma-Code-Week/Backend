@@ -1,9 +1,13 @@
 package handler
 
 import (
+	"errors"
+	"gcw/helper"
 	"gcw/service"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type CompetitiveHandler struct {
@@ -31,8 +35,13 @@ func (h *CompetitiveHandler) GetDetail(c *gin.Context) {
 	join_code := c.Param("join_code")
 	result, err := h.cpService.Get(join_code)
 	if err != nil {
-		c.JSON(500, gin.H{"error": err.Error()})
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, helper.CreateNotFoundResponse("Detail tim kompetitif tidak ditemukan"))
+			return
+		}
+		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("Gagal mengambil detail tim kompetitif", helper.FormatValidationError(err)))
 		return
 	}
-	c.JSON(200, gin.H{"data": result})
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Permintaan berhasil diproses", result))
 }
+

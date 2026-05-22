@@ -72,3 +72,21 @@ func (mh *EmailService) SendEmailHTML(
 	}
 	return nil
 }
+
+func (mh *EmailService) SendEmailHTMLDirect(
+	subject string,
+	to []string,
+	htmlBody string,
+) error {
+	body := "Subject: " + subject + "\n"
+	body += "From: " + mh.from + "\n"
+	body += "To: " + strings.Join(to, ",") + "\n"
+	body += "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n"
+	body += htmlBody
+
+	if err := smtp.SendMail(mh.addr, mh.auth, mh.from, to, []byte(body)); err != nil {
+		return err
+	}
+	return nil
+}
+

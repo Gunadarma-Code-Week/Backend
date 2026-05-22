@@ -23,14 +23,12 @@ var (
 	jwtService          = service.NewJwtService()
 	emailService        = service.NewEmailService()
 	domJudgeService     = service.NewDomJudgeService()
-	midtransService     = service.NewMidtransService()
 	stellarService      = service.NewStellarService()
 	authService         = service.NewAuthService(userRepository, database)
 	userService         = service.NewUserService(userRepository)
 	registrationService = service.NewRegistrationService(
 		registrationRepository,
 		domJudgeService,
-		midtransService,
 	)
 	newsletterService = service.NewNewsletterService(newsletterRepository)
 	SubmissionService = service.NewSubmissionService(database)
@@ -42,7 +40,7 @@ var (
 	authHandler         = handler.NewAuthHandler(authService, jwtService, emailService)
 	userHandler         = handler.NewUserHandler(userService)
 	registrationHandler = handler.GateRegistrationHandler(registrationService, userService)
-	paymentHandler      = handler.NewPaymentHandler(midtransService, registrationService)
+	paymentHandler      = handler.NewPaymentHandler(registrationService)
 	// newsletterHandler   = handler.NewNewsletterHandler(newsletterService)
 	submissionHandler = handler.GateHackathonHandler(SubmissionService)
 	cpHandler         = handler.GateCompetitiveHandler(cpService)
@@ -101,12 +99,7 @@ func SetupRouter(r *gin.Engine) {
 		teamRegistration.POST("join/:join_code", registrationHandler.UserJoinTeam)
 	}
 
-	// Payment Notification
-	{
-		payment := router.Group("/payment")
-		payment.POST("/notification", paymentHandler.Notification)
-		payment.GET("/check/:order_id", paymentHandler.ManualCheckTransaction)
-	}
+
 
 	// Authenticated Payment Actions
 	{
@@ -153,6 +146,17 @@ func SetupRouter(r *gin.Engine) {
 		adminUsers.DELETE("/:id", userHandler.AdminDeleteUser)
 		adminUsers.GET("/analytics/growth", userHandler.AdminGetUserGrowthAnalytics)
 	}
+
+	// Admin Bulk Email and Team Names Routes
+	{
+		adminBulk := mustAuth.Group("/admin")
+		adminBulk.Use(authMiddleware.MustAdmin)
+
+		adminBulk.GET("/teams/names", dashboards.GetTeamNames)
+		adminBulk.GET("/emails/templates", dashboards.GetEmailTemplates)
+		adminBulk.POST("/emails/bulk", dashboards.SendBulkEmail)
+	}
+
 
 	// Audit Log Routes
 	{

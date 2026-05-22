@@ -1,12 +1,14 @@
 package handler
 
 import (
+	"errors"
 	"gcw/dto"
 	"gcw/helper"
 	"gcw/service"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type hackathonHandler struct {
@@ -42,13 +44,17 @@ func (h *hackathonHandler) SubmissionHackaton(c *gin.Context) {
 
 	var request dto.RequestHackathon
 	if err := c.ShouldBindJSON(&request); err != nil {
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", err.Error()))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", helper.FormatValidationError(err)))
 		return
 	}
 
 	result, err := h.service.Create(join_code, stage, request)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("pengumpulan sudah di tutup", err.Error()))
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, helper.CreateNotFoundResponse("Tim tidak ditemukan"))
+			return
+		}
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse(err.Error(), helper.FormatValidationError(err)))
 		return
 	}
 
@@ -56,7 +62,7 @@ func (h *hackathonHandler) SubmissionHackaton(c *gin.Context) {
 	c.Set("target_name", result.Team.TeamName)
 	c.Set("target_id", result.ID_HackathonTeam)
 
-	c.JSON(http.StatusCreated, helper.CreateSuccessResponse("CREATED", result))
+	c.JSON(http.StatusCreated, helper.CreateMutationResponse("Data berhasil dibuat", result))
 }
 
 // @Summary Get Hackathon Stage Status
@@ -73,9 +79,14 @@ func (h *hackathonHandler) HackathonStageStatus(c *gin.Context) {
 
 	stageStatus, err := h.service.Get(join_code)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", err.Error()))
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, helper.CreateNotFoundResponse("Tim tidak ditemukan"))
+			return
+		}
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", helper.FormatValidationError(err)))
 		return
 	}
 
-	c.JSON(http.StatusOK, helper.CreateSuccessResponse("SUCCESS", stageStatus))
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Permintaan berhasil diproses", stageStatus))
 }
+

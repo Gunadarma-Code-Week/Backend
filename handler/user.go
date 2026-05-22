@@ -34,7 +34,7 @@ func (h *UserHandler) GetMyProfile(c *gin.Context) {
 	userAuth, ok := c.MustGet("user").(*entity.User)
 	if !ok {
 		logging.Low("AuthHandler.Login", "BAD_REQUEST", "user not found in context")
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", "user not found in context"))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", "user not found in context"))
 		return
 	}
 
@@ -42,7 +42,7 @@ func (h *UserHandler) GetMyProfile(c *gin.Context) {
 	smapping.FillStruct(user, smapping.MapFields(userAuth))
 	user.HasPassword = userAuth.Password != ""
 
-	c.JSON(http.StatusOK, helper.CreateSuccessResponse("success", user))
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Permintaan berhasil diproses", user))
 }
 
 // @Summary Update My Profile Data
@@ -56,14 +56,14 @@ func (h *UserHandler) UpdateMyProfile(c *gin.Context) {
 	userUpdateDTO := &dto.UpdateUserProfileDTO{}
 	if err := c.Bind(userUpdateDTO); err != nil {
 		logging.Low("AuthHandler.Login", "BAD_REQUEST", err.Error())
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", helper.FormatValidationError(err)))
 		return
 	}
 
 	userAuth, ok := c.MustGet("user").(*entity.User)
 	if !ok {
 		logging.Low("AuthHandler.Login", "BAD_REQUEST", "user not found in context")
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", "user not found in context"))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", "user not found in context"))
 		return
 	}
 
@@ -74,6 +74,28 @@ func (h *UserHandler) UpdateMyProfile(c *gin.Context) {
 
 	oldUser, err := h.userService.FindById(userAuth.ID)
 	if err == nil {
+		if oldUser.DataHasVerified {
+			errs := make(map[string][]string)
+			if userUpdateDTO.NIM != "" && (oldUser.NIM == nil || userUpdateDTO.NIM != *oldUser.NIM) {
+				errs["nim"] = []string{"IS_ALREADY"}
+			}
+			if userUpdateDTO.Major != "" && userUpdateDTO.Major != oldUser.Major {
+				errs["major"] = []string{"IS_ALREADY"}
+			}
+			if userUpdateDTO.Institusi != "" && userUpdateDTO.Institusi != oldUser.Institusi {
+				errs["institusi"] = []string{"IS_ALREADY"}
+			}
+			if userUpdateDTO.SocMedDocument != "" && userUpdateDTO.SocMedDocument != oldUser.SocMedDocument {
+				errs["socmed_document"] = []string{"IS_ALREADY"}
+			}
+
+			if len(errs) > 0 {
+				logging.Low("UserHandler.UpdateMyProfile", "CONFLICT", "Data has been verified, cannot update restricted fields")
+				c.JSON(http.StatusConflict, helper.CreateConflictResponse("Data sudah terverifikasi, tidak dapat mengubah field ini"))
+				return
+			}
+		}
+
 		var changes []string
 		if userUpdateDTO.Name != "" && userUpdateDTO.Name != oldUser.Name { changes = append(changes, "nama") }
 		if userUpdateDTO.NIM != "" && (oldUser.NIM == nil || userUpdateDTO.NIM != *oldUser.NIM) { changes = append(changes, "ktm/krs") }
@@ -90,14 +112,14 @@ func (h *UserHandler) UpdateMyProfile(c *gin.Context) {
 	err = h.userService.Update(userUpdate, userAuth.ID)
 	if err != nil {
 		logging.High("AuthHandler.Login", "INTERNAL_SERVER_ERROR", err.Error())
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", helper.FormatValidationError(err)))
 		return
 	}
 
 	user, err := h.userService.FindById(userAuth.ID)
 	if err != nil {
 		logging.High("AuthHandler.Login", "INTERNAL_SERVER_ERROR", err.Error())
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", helper.FormatValidationError(err)))
 		return
 	}
 
@@ -105,7 +127,7 @@ func (h *UserHandler) UpdateMyProfile(c *gin.Context) {
 	smapping.FillStruct(userResponse, smapping.MapFields(user))
 	userResponse.HasPassword = user.Password != ""
 
-	c.JSON(http.StatusOK, helper.CreateSuccessResponse("success", userResponse))
+	c.JSON(http.StatusCreated, helper.CreateMutationResponse("Data berhasil diperbarui", userResponse))
 }
 
 // @Summary Change Password
@@ -119,25 +141,25 @@ func (h *UserHandler) ChangePassword(c *gin.Context) {
 	changePasswordDTO := &dto.ChangePasswordDTO{}
 	if err := c.Bind(changePasswordDTO); err != nil {
 		logging.Low("UserHandler.ChangePassword", "BAD_REQUEST", err.Error())
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", helper.FormatValidationError(err)))
 		return
 	}
 
 	userAuth, ok := c.MustGet("user").(*entity.User)
 	if !ok {
 		logging.Low("UserHandler.ChangePassword", "BAD_REQUEST", "user not found in context")
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", "user not found in context"))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", "user not found in context"))
 		return
 	}
 
 	err := h.userService.ChangePassword(userAuth.ID, changePasswordDTO.OldPassword, changePasswordDTO.NewPassword)
 	if err != nil {
 		logging.Low("UserHandler.ChangePassword", "BAD_REQUEST", err.Error())
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", helper.FormatValidationError(err)))
 		return
 	}
 
-	c.JSON(http.StatusOK, helper.CreateSuccessResponse("success", "Password successfully changed"))
+	c.JSON(http.StatusCreated, helper.CreateMutationResponse("Data berhasil diperbarui", "Password berhasil diubah"))
 }
 
 func (h *UserHandler) GetAllUser(c *gin.Context) {
@@ -149,26 +171,26 @@ func (h *UserHandler) GetAllUser(c *gin.Context) {
 	// Convert 'count' and 'page' to integers
 	count, err := strconv.Atoi(countStr)
 	if err != nil || count <= 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid count parameter"})
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", "Invalid count parameter"))
 		return
 	}
 
 	page, err := strconv.Atoi(pageStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid page parameter"})
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", "Invalid page parameter"))
 		return
 	}
 
 	// Parse start_date and end_date into time.Time
 	startDate, err := time.Parse("2006-01-02", startDateStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid start_date format"})
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", "Invalid start_date format"))
 		return
 	}
 
 	endDate, err := time.Parse("2006-01-02", endDateStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid end_date format"})
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", "Invalid end_date format"))
 		return
 	}
 
@@ -178,7 +200,7 @@ func (h *UserHandler) GetAllUser(c *gin.Context) {
 	// Fetch paginated data from the service
 	users, totalUsers, err := h.userService.GetUsersByDateRange(startDate, endDate, count, offset)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error fetching users"})
+		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", "Error fetching users"))
 		return
 	}
 
@@ -188,7 +210,7 @@ func (h *UserHandler) GetAllUser(c *gin.Context) {
 		var userResponse dto.UserResponseDTO
 		err := smapping.FillStruct(&userResponse, smapping.MapFields(user))
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error mapping user data"})
+			c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", "Error mapping user data"))
 			return
 		}
 		userResponses = append(userResponses, userResponse)
@@ -214,7 +236,7 @@ func (h *UserHandler) GetAllUser(c *gin.Context) {
 	}
 
 	// Return a paginated response
-	c.JSON(http.StatusOK, helper.CreateSuccessResponse("success", response))
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Permintaan berhasil diproses", response))
 }
 
 // @Summary Get User Events
@@ -226,17 +248,17 @@ func (h *UserHandler) GetEvents(c *gin.Context) {
 	userAuth, ok := c.MustGet("user").(*entity.User)
 	if !ok {
 		logging.Low("UserHandler.GetEvents", "BAD_REQUEST", "user not found in context")
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", "user not found in context"))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", "user not found in context"))
 		return
 	}
 
 	dataEvent, err := h.userService.GetEvents(userAuth.ID)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("BAD_REQUEST", "data not found"))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", "data not found"))
 		return
 	}
 
-	c.JSON(http.StatusOK, helper.CreateSuccessResponse("FOUND", dataEvent))
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Data berhasil ditemukan", dataEvent))
 }
 
 // Admin User Management Handlers
@@ -269,7 +291,7 @@ func (h *UserHandler) AdminGetAllUsers(c *gin.Context) {
 	// Bind query parameters
 	if err := c.ShouldBindQuery(&query); err != nil {
 		logging.Low("UserHandler.AdminGetAllUsers", "BAD_REQUEST", err.Error())
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", helper.FormatValidationError(err)))
 		return
 	}
 
@@ -277,11 +299,11 @@ func (h *UserHandler) AdminGetAllUsers(c *gin.Context) {
 	response, err := h.userService.AdminGetAllUsers(query)
 	if err != nil {
 		logging.High("UserHandler.AdminGetAllUsers", "INTERNAL_SERVER_ERROR", err.Error())
-		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("error", err.Error()))
+		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", helper.FormatValidationError(err)))
 		return
 	}
 
-	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Users retrieved successfully", response))
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Daftar user berhasil diambil", response))
 }
 
 // @Summary Get User by ID (Admin)
@@ -297,22 +319,22 @@ func (h *UserHandler) AdminGetUserById(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", "Invalid user ID"))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", map[string][]string{"user_id": {"IS_INVALID"}}))
 		return
 	}
 
 	response, err := h.userService.AdminGetUserById(id)
 	if err != nil {
 		if err.Error() == "record not found" {
-			c.JSON(http.StatusNotFound, helper.CreateErrorResponse("error", "User not found"))
+			c.JSON(http.StatusNotFound, helper.CreateNotFoundResponse("User tidak ditemukan"))
 			return
 		}
 		logging.High("UserHandler.AdminGetUserById", "INTERNAL_SERVER_ERROR", err.Error())
-		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("error", err.Error()))
+		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", helper.FormatValidationError(err)))
 		return
 	}
 
-	c.JSON(http.StatusOK, helper.CreateSuccessResponse("User retrieved successfully", response))
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("User berhasil ditemukan", response))
 }
 
 // @Summary Update User (Admin)
@@ -330,30 +352,30 @@ func (h *UserHandler) AdminUpdateUser(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", "Invalid user ID"))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", map[string][]string{"user_id": {"IS_INVALID"}}))
 		return
 	}
 
 	var updateData dto.AdminUpdateUserDTO
 	if err := c.ShouldBindJSON(&updateData); err != nil {
 		logging.Low("UserHandler.AdminUpdateUser", "BAD_REQUEST", err.Error())
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", helper.FormatValidationError(err)))
 		return
 	}
 
 	response, err := h.userService.AdminUpdateUser(id, updateData)
 	if err != nil {
 		if err.Error() == "record not found" {
-			c.JSON(http.StatusNotFound, helper.CreateErrorResponse("error", "User not found"))
+			c.JSON(http.StatusNotFound, helper.CreateNotFoundResponse("User tidak ditemukan"))
 			return
 		}
 		logging.High("UserHandler.AdminUpdateUser", "INTERNAL_SERVER_ERROR", err.Error())
-		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("error", err.Error()))
+		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", helper.FormatValidationError(err)))
 		return
 	}
 
 	c.Set("target_email", response.Email)
-	c.JSON(http.StatusOK, helper.CreateSuccessResponse("User updated successfully", response))
+	c.JSON(http.StatusCreated, helper.CreateMutationResponse("User berhasil diperbarui", response))
 }
 
 // @Summary Delete User (Admin)
@@ -369,13 +391,13 @@ func (h *UserHandler) AdminDeleteUser(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", "Invalid user ID"))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", map[string][]string{"user_id": {"IS_INVALID"}}))
 		return
 	}
 
 	var deleteRequest dto.AdminDeleteUserDTO
 	if err := c.ShouldBindJSON(&deleteRequest); err != nil {
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", "Alasan penghapusan user wajib diisi"))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", map[string][]string{"alasan": {"IS_REQUIRED"}}))
 		return
 	}
 
@@ -388,15 +410,15 @@ func (h *UserHandler) AdminDeleteUser(c *gin.Context) {
 	err = h.userService.AdminDeleteUser(id, deleteRequest.Alasan)
 	if err != nil {
 		if err.Error() == "record not found" {
-			c.JSON(http.StatusNotFound, helper.CreateErrorResponse("error", "User not found"))
+			c.JSON(http.StatusNotFound, helper.CreateNotFoundResponse("User tidak ditemukan"))
 			return
 		}
 		logging.High("UserHandler.AdminDeleteUser", "INTERNAL_SERVER_ERROR", err.Error())
-		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("error", err.Error()))
+		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", helper.FormatValidationError(err)))
 		return
 	}
 
-	c.JSON(http.StatusOK, helper.CreateSuccessResponse("User deleted successfully", "User has been deleted"))
+	c.JSON(http.StatusCreated, helper.CreateMutationResponse("User berhasil dihapus", "User berhasil dihapus"))
 }
 
 // @Summary Get User Growth Analytics (Admin)
@@ -414,16 +436,16 @@ func (h *UserHandler) AdminGetUserGrowthAnalytics(c *gin.Context) {
 
 	if err := c.ShouldBindQuery(&query); err != nil {
 		logging.Low("UserHandler.AdminGetUserGrowthAnalytics", "BAD_REQUEST", err.Error())
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("error", err.Error()))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", helper.FormatValidationError(err)))
 		return
 	}
 
 	response, err := h.userService.AdminGetUserGrowthAnalytics(query)
 	if err != nil {
 		logging.High("UserHandler.AdminGetUserGrowthAnalytics", "INTERNAL_SERVER_ERROR", err.Error())
-		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("error", err.Error()))
+		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", helper.FormatValidationError(err)))
 		return
 	}
 
-	c.JSON(http.StatusOK, helper.CreateSuccessResponse("User growth analytics retrieved successfully", response))
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Analitik pertumbuhan user berhasil diambil", response))
 }
