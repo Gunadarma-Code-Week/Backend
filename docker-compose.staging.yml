@@ -94,6 +94,7 @@ services:
       - "8001:8000"
     networks:
       - gcw-network
+      - dokploy-network
     depends_on:
       db:
         condition: service_healthy
@@ -110,3 +111,5 @@ volumes:
 networks:
   gcw-network:
     driver: bridge
+  dokploy-network:
+    external: true
