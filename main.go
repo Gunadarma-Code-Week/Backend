@@ -92,6 +92,10 @@ func main() {
 	r.Use(middleware.RateLimiter())
 	r.Use(middleware.ETagMiddleware())
 
+	r.GET("/", func(c *gin.Context) {
+		c.String(http.StatusOK, "hello world")
+	})
+
 	router.SetupRouter(r)
 
 	// GRACEFULL SHUTDOWN
