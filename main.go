@@ -79,8 +79,11 @@ func main() {
 	fmt.Printf("[DEBUG] Loaded CORS Origins: %v\n", origins)
 
 	corsConfig := cors.DefaultConfig()
-	corsConfig.AllowOrigins = origins
-	corsConfig.AllowHeaders = []string{"Origin", "Content-Type", "Accept", "x-token", "cache-control", "Authorization", "If-None-Match", "X-Requested-With", "X-App-Version"}
+	corsConfig.AllowOriginFunc = func(origin string) bool {
+		fmt.Printf("[DEBUG] CORS request from Origin: %s\n", origin)
+		return true // Allow all origins for staging, or add logic here
+	}
+	corsConfig.AllowHeaders = []string{"Origin", "Content-Type", "Accept", "x-token", "cache-control", "Authorization", "If-None-Match", "X-Requested-With", "X-App-Version", "sentry-trace", "baggage", "x-client-id"}
 	corsConfig.AllowCredentials = true
 	corsConfig.AllowMethods = []string{"POST", "DELETE", "GET", "PUT", "PATCH", "OPTIONS"}
 	corsConfig.ExposeHeaders = []string{"ETag"}
