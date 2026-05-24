@@ -32,11 +32,10 @@ services:
       retries: 5
 
   app:
-    image: golang:1.24-alpine
+    build:
+      context: .
+      dockerfile: Dockerfile.staging
     restart: unless-stopped
-    working_dir: /src
-    volumes:
-      - ./:/src
     environment:
       ENVIRONMENT: ${ENVIRONMENT}
       VERSION: ${VERSION}
@@ -89,9 +88,6 @@ services:
       AUDIT_PRIVATE_KEY_PATH: ${AUDIT_PRIVATE_KEY_PATH}
       AUDIT_DESCRIPTION_KEY_PATH: ${AUDIT_DESCRIPTION_KEY_PATH}
 
-    command: /bin/sh -c "go mod download && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -p 1 -o /src/gcw main.go && /src/gcw"
-    ports:
-      - "8001:8000"
     networks:
       - gcw-network
       - dokploy-network
