@@ -282,8 +282,8 @@ func (h *dashboardController) SendBulkEmail(c *gin.Context) {
 		Event      string `json:"event" binding:"max=50"`
 		Stage      string `json:"stage" binding:"max=50"`
 		TargetRole string `json:"target_role" binding:"max=50"`
-		Subject    string `json:"subject" binding:"max=50"`
-		Content    string `json:"content" binding:"max=50"`
+		Subject    string `json:"subject" binding:"max=150"`
+		Content    string `json:"content"`
 	}
 
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -302,7 +302,11 @@ func (h *dashboardController) SendBulkEmail(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, helper.CreateMutationResponse("Permintaan berhasil diproses", "Email berhasil dimasukkan ke dalam antrean pengiriman"))
+	c.JSON(http.StatusCreated, gin.H{
+		"message": "Permintaan berhasil diproses",
+		"data":    "Email berhasil dimasukkan ke dalam antrean pengiriman",
+		"errors":  "nil",
+	})
 }
 
 func (h *dashboardController) GetEmailTemplates(c *gin.Context) {

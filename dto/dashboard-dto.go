@@ -36,7 +36,7 @@ type Hackaton struct {
 	NamaTim      string    `json:"nama_tim" binding:"max=50"`
 	JoinCode     string    `json:"join_code" binding:"max=50"`
 	Members      []Anggota `json:"members"`
-	KomitmenFee  string    `json:"komitmen_fee" binding:"max=50"`
+	KomitmenFee  string    `json:"komitmen_fee" binding:"max=255"`
 	ProposalUrl  string    `json:"proposal_url"`
 	PitchDeckUrl string    `json:"pitch_deck_url"`
 	GithubUrl    string    `json:"github_url"`
@@ -55,7 +55,7 @@ type Cp struct {
 	NamaTim     string    `json:"nama_tim" binding:"max=50"`
 	JoinCode    string    `json:"join_code" binding:"max=50"`
 	Members     []Anggota `json:"members"`
-	KomitmenFee string    `json:"komitmen_fee" binding:"max=50"`
+	KomitmenFee string    `json:"komitmen_fee" binding:"max=255"`
 	Username    string    `json:"username" binding:"max=50"`
 	Password    string    `json:"password" binding:"max=50"`
 	Stage       string    `json:"stage" binding:"max=50"`
@@ -73,7 +73,7 @@ type Ctf struct {
 	NamaTim     string    `json:"nama_tim" binding:"max=50"`
 	JoinCode     string    `json:"join_code" binding:"max=50"`
 	Members     []Anggota `json:"members"`
-	KomitmenFee string    `json:"komitmen_fee" binding:"max=50"`
+	KomitmenFee string    `json:"komitmen_fee" binding:"max=255"`
 	Username    string    `json:"username" binding:"max=50"`
 	Password    string    `json:"password" binding:"max=50"`
 	Stage       string    `json:"stage" binding:"max=50"`

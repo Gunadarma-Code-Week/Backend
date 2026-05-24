@@ -34,7 +34,7 @@ type RegistraionTeamResponse struct {
 	QRString string   `json:"qr_string,omitempty"`
 	OrderID  string   `json:"order_id,omitempty" binding:"max=50"`
 	PaymentStatus string `json:"payment_status,omitempty" binding:"max=50"`
-	KomitmenFee   string `json:"komitmen_fee" binding:"max=50"`
+	KomitmenFee   string `json:"komitmen_fee" binding:"max=255"`
 	RegistraionTeamRequest
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
