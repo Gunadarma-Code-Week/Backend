@@ -20,7 +20,7 @@ services:
       POSTGRES_PASSWORD: ${DB_PASS}
       POSTGRES_DB: ${DB_NAME}
     volumes:
-      - db-data-staging-v2:/var/lib/postgresql/data
+      - db-data-staging-v3:/var/lib/postgresql/data
     ports:
       - "5433:5432"
     networks:
@@ -103,7 +103,7 @@ services:
       - "traefik.docker.network=dokploy-network"
 
 volumes:
-  db-data-staging-v2:
+  db-data-staging-v3:
     driver: local
 
 networks:
