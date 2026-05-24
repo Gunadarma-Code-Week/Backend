@@ -65,8 +65,19 @@ func main() {
 
 	r := gin.Default()
 
-	ginSwagger.URL("/swagger/doc.json") // The url pointing to API definition
-	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	envMode := os.Getenv("BE_MODE")
+	if envMode == "" {
+		envMode = os.Getenv("ENVIRONMENT")
+	}
+	if envMode == "" {
+		envMode = os.Getenv("MODE")
+	}
+
+	// Show Swagger for dev/staging, hide for main/production
+	if envMode != "main" && envMode != "production" && envMode != "release" {
+		ginSwagger.URL("/swagger/doc.json") // The url pointing to API definition
+		r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	}
 
 	origin := os.Getenv("CORS_ORIGIN")
 	if origin == "" {
