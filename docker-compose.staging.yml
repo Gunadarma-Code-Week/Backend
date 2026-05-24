@@ -103,6 +103,8 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+    labels:
+      - "traefik.docker.network=dokploy-network"
 
 volumes:
   db-data-staging-v2:
