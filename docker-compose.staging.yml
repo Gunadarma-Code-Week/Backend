@@ -103,7 +103,7 @@ services:
       - "traefik.docker.network=dokploy-network"
 
 volumes:
-  db-data-staging-v3:
+  db-data-staging-v4:
     driver: local
 
 networks:
