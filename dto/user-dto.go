@@ -7,7 +7,7 @@ type UserResponseDTO struct {
 	Name              string `json:"name" binding:"max=50"`
 	Major             string `json:"major" binding:"max=50"`
 	ProfilePicture    string `json:"profile_picture" binding:"max=255"`
-	NIM               string `json:"nim" binding:"max=50"`
+	NIM               string `json:"nim" binding:"max=255"`
 	Institusi         string `json:"institusi" binding:"max=50"`
 	Phone             string `json:"phone" binding:"max=50"`
 	SocMedDocument    string `json:"socmed_document" binding:"max=255"`
@@ -19,7 +19,7 @@ type UserResponseDTO struct {
 
 type UpdateUserProfileDTO struct {
 	Name       string `json:"name" binding:"required,max=50"`
-	NIM        string `json:"nim" binding:"required,max=50"`
+	NIM        string `json:"nim" binding:"required,max=255"`
 	Phone      string `json:"phone" binding:"required,max=50"`
 	Major      string `json:"major" binding:"required,max=50"`
 	Institusi  string `json:"institusi" binding:"required,max=50"`
@@ -46,7 +46,7 @@ type AdminUpdateUserDTO struct {
 	Phone             string `json:"phone" binding:"max=50"`
 	Jenjang           string `json:"jenjang" binding:"max=50"`
 	Major             string `json:"major" binding:"max=50"`
-	NIM               string `json:"nim" binding:"max=50"`
+	NIM               string `json:"nim" binding:"max=255"`
 	SocMedDocument    string `json:"soc_med_document" binding:"max=255"`
 	DokumenFilename   string `json:"dokumen_filename" binding:"max=255"`
 	ProfilePicture    string `json:"profile_picture" binding:"max=255"`
@@ -67,7 +67,7 @@ type AdminUserResponseDTO struct {
 	Phone             string `json:"phone" binding:"max=50"`
 	Jenjang           string `json:"jenjang" binding:"max=50"`
 	Major             string `json:"major" binding:"max=50"`
-	NIM               string `json:"nim" binding:"max=50"`
+	NIM               string `json:"nim" binding:"max=255"`
 	SocMedDocument    string `json:"soc_med_document" binding:"max=255"`
 	DokumenFilename   string `json:"dokumen_filename" binding:"max=255"`
 	ProfilePicture    string `json:"profile_picture" binding:"max=255"`

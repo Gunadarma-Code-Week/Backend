@@ -12,7 +12,7 @@ type User struct {
 	Password string `gorm:"type:varchar(255)" json:"-"`
 
 	Name            string     `gorm:"varchar(55); not null" json:"name"`
-	NIM             *string    `gorm:"varchar(55);" json:"nim"`
+	NIM             *string    `gorm:"varchar(255);" json:"nim"`
 	Institusi       string     `gorm:"varchar(55);" json:"institusi"`
 	Phone           string     `gorm:"type:varchar(16)" json:"phone"`
 	DokumenFilename string     `gorm:"type:varchar(255)" json:"dokumen_filename"`
