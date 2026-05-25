@@ -77,6 +77,13 @@ func main() {
 	if envMode != "main" && envMode != "production" && envMode != "release" {
 		ginSwagger.URL("/swagger/doc.json") // The url pointing to API definition
 		r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	} else {
+		r.GET("/swagger/*any", func(c *gin.Context) {
+			c.JSON(http.StatusNotFound, gin.H{
+				"status":  http.StatusNotFound,
+				"message": "Not Found",
+			})
+		})
 	}
 
 	origin := os.Getenv("CORS_ORIGIN")
