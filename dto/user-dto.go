@@ -6,12 +6,12 @@ type UserResponseDTO struct {
 	Role              string `json:"role" binding:"max=50"`
 	Name              string `json:"name" binding:"max=50"`
 	Major             string `json:"major" binding:"max=50"`
-	ProfilePicture    string `json:"profile_picture" binding:"max=50"`
-	NIM               string `json:"nim" binding:"max=50"`
+	ProfilePicture    string `json:"profile_picture" binding:"max=255"`
+	NIM               string `json:"nim" binding:"max=255"`
 	Institusi         string `json:"institusi" binding:"max=50"`
 	Phone             string `json:"phone" binding:"max=50"`
-	SocMedDocument    string `json:"socmed_document" binding:"max=50"`
-	DokumenFilename   string `json:"dokumen_filename" binding:"max=50"`
+	SocMedDocument    string `json:"socmed_document" binding:"max=255"`
+	DokumenFilename   string `json:"dokumen_filename" binding:"max=255"`
 	ProfileHasUpdated bool   `json:"profile_has_updated"`
 	DataHasVerified   bool   `json:"data_has_verified"`
 	HasPassword       bool   `json:"has_password"`
@@ -19,12 +19,12 @@ type UserResponseDTO struct {
 
 type UpdateUserProfileDTO struct {
 	Name       string `json:"name" binding:"required,max=50"`
-	NIM        string `json:"nim" binding:"required,max=50"`
+	NIM        string `json:"nim" binding:"required,max=255"`
 	Phone      string `json:"phone" binding:"required,max=50"`
 	Major      string `json:"major" binding:"required,max=50"`
 	Institusi  string `json:"institusi" binding:"required,max=50"`
 
-	SocMedDocument string `json:"socmed_document" binding:"required,max=50"`
+	SocMedDocument string `json:"socmed_document" binding:"required,max=255"`
 }
 
 // Admin User Management DTOs
@@ -46,10 +46,10 @@ type AdminUpdateUserDTO struct {
 	Phone             string `json:"phone" binding:"max=50"`
 	Jenjang           string `json:"jenjang" binding:"max=50"`
 	Major             string `json:"major" binding:"max=50"`
-	NIM               string `json:"nim" binding:"max=50"`
-	SocMedDocument    string `json:"soc_med_document" binding:"max=50"`
-	DokumenFilename   string `json:"dokumen_filename" binding:"max=50"`
-	ProfilePicture    string `json:"profile_picture" binding:"max=50"`
+	NIM               string `json:"nim" binding:"max=255"`
+	SocMedDocument    string `json:"soc_med_document" binding:"max=255"`
+	DokumenFilename   string `json:"dokumen_filename" binding:"max=255"`
+	ProfilePicture    string `json:"profile_picture" binding:"max=255"`
 	ProfileHasUpdated *bool  `json:"profile_has_updated"`
 	DataHasVerified   *bool  `json:"data_has_verified"`
 }
@@ -67,10 +67,10 @@ type AdminUserResponseDTO struct {
 	Phone             string `json:"phone" binding:"max=50"`
 	Jenjang           string `json:"jenjang" binding:"max=50"`
 	Major             string `json:"major" binding:"max=50"`
-	NIM               string `json:"nim" binding:"max=50"`
-	SocMedDocument    string `json:"soc_med_document" binding:"max=50"`
-	DokumenFilename   string `json:"dokumen_filename" binding:"max=50"`
-	ProfilePicture    string `json:"profile_picture" binding:"max=50"`
+	NIM               string `json:"nim" binding:"max=255"`
+	SocMedDocument    string `json:"soc_med_document" binding:"max=255"`
+	DokumenFilename   string `json:"dokumen_filename" binding:"max=255"`
+	ProfilePicture    string `json:"profile_picture" binding:"max=255"`
 	ProfileHasUpdated bool   `json:"profile_has_updated"`
 	DataHasVerified   bool   `json:"data_has_verified"`
 	IDTeam            uint64 `json:"id_team"`

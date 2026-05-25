@@ -20,7 +20,6 @@ type DashboardControllerInterface interface {
 	Update(*gin.Context)
 	Delete(*gin.Context)
 	GetTeamNames(*gin.Context)
-	SendBulkEmail(*gin.Context)
 	GetEmailTemplates(*gin.Context)
 	// GetEvent(*gin.Context)
 }
@@ -277,33 +276,6 @@ func (h *dashboardController) GetTeamNames(c *gin.Context) {
 	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Permintaan berhasil diproses", names))
 }
 
-func (h *dashboardController) SendBulkEmail(c *gin.Context) {
-	var input struct {
-		Event      string `json:"event" binding:"max=50"`
-		Stage      string `json:"stage" binding:"max=50"`
-		TargetRole string `json:"target_role" binding:"max=50"`
-		Subject    string `json:"subject" binding:"max=50"`
-		Content    string `json:"content" binding:"max=50"`
-	}
-
-	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", helper.FormatValidationError(err)))
-		return
-	}
-
-	if input.Event == "" || input.Subject == "" || input.Content == "" {
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", "Parameter event, subject, dan content wajib diisi"))
-		return
-	}
-
-	err := h.Service.SendBulkEmail(input.Event, input.Stage, input.TargetRole, input.Subject, input.Content)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", helper.FormatValidationError(err)))
-		return
-	}
-
-	c.JSON(http.StatusOK, helper.CreateMutationResponse("Permintaan berhasil diproses", "Email berhasil dimasukkan ke dalam antrean pengiriman"))
-}
 
 func (h *dashboardController) GetEmailTemplates(c *gin.Context) {
 	templates, err := h.Service.GetEmailTemplates()

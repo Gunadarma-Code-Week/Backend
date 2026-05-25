@@ -43,6 +43,7 @@ services:
       APP_NAME: ${APP_NAME}
       PORT: ${PORT}
       MODE: ${MODE}
+      BE_MODE: ${BE_MODE}
       HOST_HEADER: ${HOST_HEADER}
       CORS_ORIGIN: ${CORS_ORIGIN}
       DB_CONNECTION: ${DB_CONNECTION}

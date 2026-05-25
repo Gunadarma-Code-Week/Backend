@@ -65,8 +65,19 @@ func main() {
 
 	r := gin.Default()
 
-	ginSwagger.URL("/swagger/doc.json") // The url pointing to API definition
-	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	envMode := os.Getenv("BE_MODE")
+	if envMode == "" {
+		envMode = os.Getenv("ENVIRONMENT")
+	}
+	if envMode == "" {
+		envMode = os.Getenv("MODE")
+	}
+
+	// Show Swagger for dev/staging, hide for main/production
+	if envMode != "main" && envMode != "production" && envMode != "release" {
+		ginSwagger.URL("/swagger/doc.json") // The url pointing to API definition
+		r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	}
 
 	origin := os.Getenv("CORS_ORIGIN")
 	if origin == "" {
@@ -76,11 +87,12 @@ func main() {
 	for i, o := range origins {
 		origins[i] = strings.TrimSpace(o)
 	}
-	fmt.Printf("[DEBUG] Loaded CORS Origins: %v\n", origins)
 
 	corsConfig := cors.DefaultConfig()
-	corsConfig.AllowOrigins = origins
-	corsConfig.AllowHeaders = []string{"Origin", "Content-Type", "Accept", "x-token", "cache-control", "Authorization", "If-None-Match", "X-Requested-With", "X-App-Version"}
+	corsConfig.AllowOriginFunc = func(origin string) bool {
+		return true // Allow all origins for staging, or add logic here
+	}
+	corsConfig.AllowHeaders = []string{"Origin", "Content-Type", "Accept", "x-token", "cache-control", "Authorization", "If-None-Match", "X-Requested-With", "X-App-Version", "sentry-trace", "baggage", "x-client-id"}
 	corsConfig.AllowCredentials = true
 	corsConfig.AllowMethods = []string{"POST", "DELETE", "GET", "PUT", "PATCH", "OPTIONS"}
 	corsConfig.ExposeHeaders = []string{"ETag"}
@@ -88,6 +100,10 @@ func main() {
 	r.Use(cors.New(corsConfig))
 	r.Use(middleware.RateLimiter())
 	r.Use(middleware.ETagMiddleware())
+
+	r.GET("/", func(c *gin.Context) {
+		c.String(http.StatusOK, "hello world")
+	})
 
 	router.SetupRouter(r)
 
