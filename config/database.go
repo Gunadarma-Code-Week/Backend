@@ -25,7 +25,8 @@ func SetupDatabaseConnection() *gorm.DB {
 		panic("Failed to create a connection to database")
 	}
 
-	if os.Getenv("ENVIRONMENT") != "production" {
+	// Always run AutoMigrate and Seed in all environments to ensure schema is updated
+	if true {
 		if err := db.AutoMigrate(
 			&entity.User{},
 			&entity.UserRole{},
