@@ -154,7 +154,6 @@ func SetupRouter(r *gin.Engine) {
 
 		adminBulk.GET("/teams/names", dashboards.GetTeamNames)
 		adminBulk.GET("/emails/templates", dashboards.GetEmailTemplates)
-		adminBulk.POST("/emails/bulk", dashboards.SendBulkEmail)
 	}
 
 
