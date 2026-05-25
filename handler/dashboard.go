@@ -120,7 +120,7 @@ func (h *dashboardController) GetAllDashboard(c *gin.Context) {
 		respondData = map[string]interface{}{}
 	}
 
-	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Permintaan berhasil diproses", respondData))
+	c.JSON(http.StatusCreated, helper.CreateSuccessResponse("Permintaan berhasil diproses", respondData))
 }
 
 // @Summary Update Dashboard Event
@@ -149,7 +149,7 @@ func (h *dashboardController) Update(c *gin.Context) {
 
 		targetName, err := h.Service.UpdateSeminarService(id, input)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("Gagal memperbarui seminar", helper.FormatValidationError(err)))
+			c.JSON(http.StatusInternalServerError, helper.CreateInternalErrorResponse("Gagal memperbarui seminar"))
 			return
 		}
 		c.Set("target_name", targetName)
@@ -163,7 +163,7 @@ func (h *dashboardController) Update(c *gin.Context) {
 
 		targetName, err := h.Service.UpdateHackatonService(id, input)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("Gagal memperbarui hackathon", helper.FormatValidationError(err)))
+			c.JSON(http.StatusInternalServerError, helper.CreateInternalErrorResponse("Gagal memperbarui hackathon"))
 			return
 		}
 		c.Set("target_name", targetName)
@@ -177,7 +177,7 @@ func (h *dashboardController) Update(c *gin.Context) {
 
 		targetName, err := h.Service.UpdateCpService(id, input)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("Gagal memperbarui CP", helper.FormatValidationError(err)))
+			c.JSON(http.StatusInternalServerError, helper.CreateInternalErrorResponse("Gagal memperbarui CP"))
 			return
 		}
 		c.Set("target_name", targetName)
@@ -191,7 +191,7 @@ func (h *dashboardController) Update(c *gin.Context) {
 
 		targetName, err := h.Service.UpdateCtfService(id, input)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("Gagal memperbarui CTF", helper.FormatValidationError(err)))
+			c.JSON(http.StatusInternalServerError, helper.CreateInternalErrorResponse("Gagal memperbarui CTF"))
 			return
 		}
 		c.Set("target_name", targetName)
@@ -201,7 +201,7 @@ func (h *dashboardController) Update(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, helper.CreateMutationResponse("Data berhasil diperbarui", id))
+	c.JSON(http.StatusCreated, helper.CreateMutationResponse("Data berhasil diperbarui", id))
 }
 
 // @Summary Delete Dashboard Event
@@ -236,7 +236,7 @@ func (h *dashboardController) Delete(c *gin.Context) {
 	}
 	c.Set("target_name", targetName)
 
-	c.JSON(http.StatusOK, helper.CreateMutationResponse("Peserta berhasil dihapus", targetName))
+	c.JSON(http.StatusCreated, helper.CreateMutationResponse("Peserta berhasil dihapus", targetName))
 }
 
 // @Summary Get User Events
@@ -257,7 +257,7 @@ func (h *dashboardController) Delete(c *gin.Context) {
 // 		return
 // 	}
 
-// 	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Data berhasil ditemukan", dataEvent))
+// 	c.JSON(http.StatusCreated, helper.CreateSuccessResponse("Data berhasil ditemukan", dataEvent))
 // }
 
 func (h *dashboardController) GetTeamNames(c *gin.Context) {
@@ -269,19 +269,19 @@ func (h *dashboardController) GetTeamNames(c *gin.Context) {
 
 	names, err := h.Service.GetTeamNames(event)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("Terjadi kesalahan pada server", helper.FormatValidationError(err)))
+		c.JSON(http.StatusInternalServerError, helper.CreateInternalErrorResponse("Terjadi kesalahan pada server"))
 		return
 	}
 
-	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Permintaan berhasil diproses", names))
+	c.JSON(http.StatusCreated, helper.CreateSuccessResponse("Permintaan berhasil diproses", names))
 }
 
 
 func (h *dashboardController) GetEmailTemplates(c *gin.Context) {
 	templates, err := h.Service.GetEmailTemplates()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("Terjadi kesalahan pada server", helper.FormatValidationError(err)))
+		c.JSON(http.StatusInternalServerError, helper.CreateInternalErrorResponse("Terjadi kesalahan pada server"))
 		return
 	}
-	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Permintaan berhasil diproses", templates))
+	c.JSON(http.StatusCreated, helper.CreateSuccessResponse("Permintaan berhasil diproses", templates))
 }

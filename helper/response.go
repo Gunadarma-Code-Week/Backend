@@ -1,65 +1,74 @@
 package helper
 
 type Response struct {
-	Success bool        `json:"success"`
-	Message string      `json:"message"`
-	Errors  interface{} `json:"errors"`
-	Data    interface{} `json:"data"`
-}
-
-type MutationResponse struct {
-	Message string      `json:"message"`
-	Data    interface{} `json:"data"`
-}
-
-type ErrorResponse struct {
 	Message string      `json:"message"`
 	Data    interface{} `json:"data"`
 	Errors  interface{} `json:"errors"`
 }
 
-type ConflictResponse struct {
-	Message string      `json:"message"`
-	Data    interface{} `json:"data"`
-}
-
-func CreateConflictResponse(message string) ConflictResponse {
-	return ConflictResponse{
-		Message: message,
-		Data:    "nil",
-	}
-}
-
-func CreateNotFoundResponse(message string) ErrorResponse {
-	return ErrorResponse{
+func CreateConflictResponse(message string) Response {
+	return Response{
 		Message: message,
 		Data:    "nil",
 		Errors:  "nil",
 	}
 }
 
-var NotFoundResponse ErrorResponse = CreateNotFoundResponse("Data yang dicari tidak ditemukan")
-
-func CreateSuccessResponse(message string, data interface{}) Response {
+func CreateNotFoundResponse(message string) Response {
 	return Response{
-		Success: true,
-		Message: message,
-		Errors:  nil,
-		Data:    data,
-	}
-}
-
-func CreateMutationResponse(message string, data interface{}) MutationResponse {
-	return MutationResponse{
-		Message: message,
-		Data:    data,
-	}
-}
-
-func CreateErrorResponse(message string, errors interface{}) ErrorResponse {
-	return ErrorResponse{
 		Message: message,
 		Data:    "nil",
-		Errors:  errors,
+		Errors:  "nil",
 	}
 }
+
+var NotFoundResponse Response = CreateNotFoundResponse("Data yang dicari tidak ditemukan")
+
+func standardizeData(d interface{}) interface{} {
+	if d == nil {
+		return "nil"
+	}
+	return d
+}
+
+// CreateSuccessResponse returns a 201 response with data and nil errors.
+func CreateSuccessResponse(message string, data interface{}) Response {
+	return Response{
+		Message: message,
+		Data:    standardizeData(data),
+		Errors:  "nil",
+	}
+}
+
+// CreateMutationResponse returns a 201 response with data and nil errors.
+func CreateMutationResponse(message string, data interface{}) Response {
+	return Response{
+		Message: message,
+		Data:    standardizeData(data),
+		Errors:  "nil",
+	}
+}
+
+// CreateErrorResponse returns a 400 response.
+// errors must be a map[string][]string (dictionary per AGENTS.md).
+func CreateErrorResponse(message string, errors interface{}) Response {
+	e := errors
+	if e == nil {
+		e = "nil"
+	}
+	return Response{
+		Message: message,
+		Data:    "nil",
+		Errors:  e,
+	}
+}
+
+// CreateInternalErrorResponse returns a 500 response with nil data and nil errors.
+func CreateInternalErrorResponse(message string) Response {
+	return Response{
+		Message: message,
+		Data:    "nil",
+		Errors:  "nil",
+	}
+}
+

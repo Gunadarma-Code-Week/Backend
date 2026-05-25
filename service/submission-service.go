@@ -25,34 +25,7 @@ func NewSubmissionService(db *gorm.DB) SubmissionService {
 	return &submissionService{db: db}
 }
 
-func parseDeadline(deadlineStr string) (time.Time, error) {
-	if deadlineStr == "" {
-		return time.Time{}, fmt.Errorf("empty deadline")
-	}
-	wib := time.FixedZone("WIB", 7*60*60)
 
-	// 1. Try ISO8601 / RFC3339 (e.g. 2026-05-19T12:00:00+07:00)
-	if t, err := time.Parse(time.RFC3339, deadlineStr); err == nil {
-		return t.In(wib), nil
-	}
-
-	// 2. Try datetime-local format with seconds (e.g. 2026-05-19T12:00:00)
-	if t, err := time.ParseInLocation("2006-01-02T15:04:05", deadlineStr, wib); err == nil {
-		return t, nil
-	}
-
-	// 3. Try datetime-local format without seconds (e.g. 2026-05-19T12:00)
-	if t, err := time.ParseInLocation("2006-01-02T15:04", deadlineStr, wib); err == nil {
-		return t, nil
-	}
-
-	// 4. Try date-only format (e.g. 2026-05-19)
-	if t, err := time.ParseInLocation("2006-01-02", deadlineStr, wib); err == nil {
-		return t, nil
-	}
-
-	return time.Time{}, fmt.Errorf("unknown format: %s", deadlineStr)
-}
 
 func (s *submissionService) Create(join_code, stage string, submissionDTO dto.RequestHackathon) (entity.HackathonTeam, error) {
 	var submission entity.HackathonTeam
@@ -74,12 +47,8 @@ func (s *submissionService) Create(join_code, stage string, submissionDTO dto.Re
 			if setting.HackathonProposalDisabled {
 				return entity.HackathonTeam{}, fmt.Errorf("pengumpulan proposal (Stage 1) telah ditutup oleh administrator")
 			}
-			deadlineStr := setting.HackathonProposalDeadline
-			if deadlineStr == "" {
-				deadlineStr = "2026-05-24T23:59:59" // Fallback ke default deadline
-			}
-			if t, err := parseDeadline(deadlineStr); err == nil {
-				if time.Now().After(t) {
+			if setting.HackathonProposalDeadline != nil {
+				if time.Now().After(*setting.HackathonProposalDeadline) {
 					return entity.HackathonTeam{}, fmt.Errorf("batas waktu (deadline) pengumpulan proposal telah berakhir")
 				}
 			}
@@ -89,12 +58,8 @@ func (s *submissionService) Create(join_code, stage string, submissionDTO dto.Re
 			if setting.HackathonVideoDisabled {
 				return entity.HackathonTeam{}, fmt.Errorf("pengumpulan video (Stage 2) telah ditutup oleh administrator")
 			}
-			deadlineStr := setting.HackathonVideoDeadline
-			if deadlineStr == "" {
-				deadlineStr = "2026-06-06T23:59:59" // Fallback ke default deadline
-			}
-			if t, err := parseDeadline(deadlineStr); err == nil {
-				if time.Now().After(t) {
+			if setting.HackathonVideoDeadline != nil {
+				if time.Now().After(*setting.HackathonVideoDeadline) {
 					return entity.HackathonTeam{}, fmt.Errorf("batas waktu (deadline) pengumpulan video telah berakhir")
 				}
 			}
@@ -104,12 +69,8 @@ func (s *submissionService) Create(join_code, stage string, submissionDTO dto.Re
 			if setting.HackathonFinalDisabled {
 				return entity.HackathonTeam{}, fmt.Errorf("pengumpulan presentasi final telah ditutup oleh administrator")
 			}
-			deadlineStr := setting.HackathonFinalDeadline
-			if deadlineStr == "" {
-				deadlineStr = "2026-06-20T23:59:59" // Fallback ke default deadline
-			}
-			if t, err := parseDeadline(deadlineStr); err == nil {
-				if time.Now().After(t) {
+			if setting.HackathonFinalDeadline != nil {
+				if time.Now().After(*setting.HackathonFinalDeadline) {
 					return entity.HackathonTeam{}, fmt.Errorf("batas waktu (deadline) pengumpulan presentasi final telah berakhir")
 				}
 			}

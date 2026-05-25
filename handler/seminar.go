@@ -38,7 +38,7 @@ func (h *SeminarHandler) JoinSeminar(c *gin.Context) {
 	userAuth, ok := c.MustGet("user").(*entity.User)
 	if !ok {
 		logging.Low("SeminarHandler.JoinSeminar", "BAD_REQUEST", "user not found in context")
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", "User tidak ditemukan di context"))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", map[string][]string{"user": {"IS_INVALID"}}))
 		return
 	}
 
@@ -74,7 +74,7 @@ func (h *SeminarHandler) GetMyTicket(c *gin.Context) {
 	userAuth, ok := c.MustGet("user").(*entity.User)
 	if !ok {
 		logging.Low("SeminarHandler.GetMyTicket", "BAD_REQUEST", "user not found in context")
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", "User tidak ditemukan di context"))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", map[string][]string{"user": {"IS_INVALID"}}))
 		return
 	}
 
@@ -85,12 +85,11 @@ func (h *SeminarHandler) GetMyTicket(c *gin.Context) {
 			c.JSON(http.StatusNotFound, helper.CreateNotFoundResponse("Tiket seminar tidak ditemukan"))
 			return
 		}
-		logging.Low("SeminarHandler.GetMyTicket", "INTERNAL_SERVER_ERROR", err.Error())
-		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("Gagal mengambil tiket seminar", helper.FormatValidationError(err)))
+		c.JSON(http.StatusInternalServerError, helper.CreateInternalErrorResponse("Gagal mengambil tiket seminar"))
 		return
 	}
 
-	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Detail tiket seminar berhasil ditemukan", response))
+	c.JSON(http.StatusCreated, helper.CreateSuccessResponse("Detail tiket seminar berhasil ditemukan", response))
 }
 
 // @Summary Get Seminar Ticket by ID
@@ -116,12 +115,11 @@ func (h *SeminarHandler) GetTicketByID(c *gin.Context) {
 			c.JSON(http.StatusNotFound, helper.CreateNotFoundResponse("Tiket seminar tidak ditemukan"))
 			return
 		}
-		logging.Low("SeminarHandler.GetTicketByID", "INTERNAL_SERVER_ERROR", err.Error())
-		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("Gagal mengambil tiket seminar", helper.FormatValidationError(err)))
+		c.JSON(http.StatusInternalServerError, helper.CreateInternalErrorResponse("Gagal mengambil tiket seminar"))
 		return
 	}
 
-	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Detail tiket seminar berhasil ditemukan", response))
+	c.JSON(http.StatusCreated, helper.CreateSuccessResponse("Detail tiket seminar berhasil ditemukan", response))
 }
 
 // @Summary Admin Add Participant to Seminar

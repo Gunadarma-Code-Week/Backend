@@ -175,7 +175,7 @@ func SetupRouter(r *gin.Engine) {
 	}
 
 	{
-		mustAuth.GET("/settings", settingHandler.GetSettings)
+		router.GET("/settings", settingHandler.GetSettings)
 
 		adminSettings := mustAuth.Group("/admin/settings")
 		adminSettings.Use(authMiddleware.MustAdmin)
