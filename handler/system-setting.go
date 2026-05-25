@@ -28,10 +28,10 @@ func NewSystemSettingHandler(ss *service.SystemSettingService) *SystemSettingHan
 func (h *SystemSettingHandler) GetSettings(c *gin.Context) {
 	settings, err := h.settingService.GetSettings()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", "Gagal mengambil konfigurasi sistem"))
+		c.JSON(http.StatusInternalServerError, helper.CreateInternalErrorResponse("Terdapat kesalahan pada permintaan"))
 		return
 	}
-	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Permintaan berhasil diproses", settings))
+	c.JSON(http.StatusCreated, helper.CreateSuccessResponse("Permintaan berhasil diproses", settings))
 }
 
 // @Summary Update System Settings (Admin)
@@ -122,7 +122,7 @@ func (h *SystemSettingHandler) UpdateSettings(c *gin.Context) {
 
 	updatedSettings, err := h.settingService.UpdateSettings(newSettings)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", "Gagal memperbarui konfigurasi sistem"))
+		c.JSON(http.StatusInternalServerError, helper.CreateInternalErrorResponse("Terdapat kesalahan pada permintaan"))
 		return
 	}
 

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"gcw/entity"
 	"os"
+	"time"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -36,6 +37,7 @@ func SetupDatabaseConnection() *gorm.DB {
 			&entity.NewsLetter{},
 			&entity.AuditLog{},
 			&entity.SystemSetting{},
+			&entity.Timeline{},
 		); err != nil {
 			fmt.Println("AutoMigrate error (ignored):", err)
 		}
@@ -44,6 +46,10 @@ func SetupDatabaseConnection() *gorm.DB {
 		var count int64
 		db.Model(&entity.SystemSetting{}).Count(&count)
 		if count == 0 {
+			proposalDeadline, _ := time.Parse("2006-01-02T15:04:05", "2026-05-24T23:59:59")
+			videoDeadline, _ := time.Parse("2006-01-02T15:04:05", "2026-06-06T23:59:59")
+			finalDeadline, _ := time.Parse("2006-01-02T15:04:05", "2026-06-20T23:59:59")
+			
 			initialSettings := entity.SystemSetting{
 				ID:                            1,
 				HackathonRegistrationDisabled: false,
@@ -52,9 +58,9 @@ func SetupDatabaseConnection() *gorm.DB {
 				HackathonProposalDisabled:     false,
 				HackathonVideoDisabled:        false,
 				HackathonFinalDisabled:        false,
-				HackathonProposalDeadline:     "2026-05-24T23:59:59",
-				HackathonVideoDeadline:        "2026-06-06T23:59:59",
-				HackathonFinalDeadline:        "2026-06-20T23:59:59",
+				HackathonProposalDeadline:     &proposalDeadline,
+				HackathonVideoDeadline:        &videoDeadline,
+				HackathonFinalDeadline:        &finalDeadline,
 			}
 			if err := db.Create(&initialSettings).Error; err != nil {
 				fmt.Println("Failed to seed initial system settings:", err)

@@ -50,11 +50,11 @@ func (h *auditLogHandler) GetAllAuditLogs(c *gin.Context) {
 
 	logs, total, err := h.auditLogService.GetAllActivityLogs(limit, offset, role, query)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", "Failed to retrieve audit logs"))
+		c.JSON(http.StatusInternalServerError, helper.CreateInternalErrorResponse("Terdapat kesalahan pada permintaan"))
 		return
 	}
 
-	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Successfully retrieved audit logs", gin.H{
+	c.JSON(http.StatusCreated, helper.CreateSuccessResponse("Successfully retrieved audit logs", gin.H{
 		"logs":        logs,
 		"total":       total,
 		"page":        page,
@@ -91,11 +91,11 @@ func (h *auditLogHandler) GetUserAuditLogs(c *gin.Context) {
 
 	logs, total, err := h.auditLogService.GetUserActivityLogs(userID, limit, offset)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", "Failed to retrieve audit logs"))
+		c.JSON(http.StatusInternalServerError, helper.CreateInternalErrorResponse("Terdapat kesalahan pada permintaan"))
 		return
 	}
 
-	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Successfully retrieved user audit logs", gin.H{
+	c.JSON(http.StatusCreated, helper.CreateSuccessResponse("Successfully retrieved user audit logs", gin.H{
 		"logs":        logs,
 		"total":       total,
 		"page":        page,
@@ -110,19 +110,19 @@ func (h *auditLogHandler) GetAuditLogsByDateRange(c *gin.Context) {
 	endDateStr := c.Query("end_date")
 
 	if startDateStr == "" || endDateStr == "" {
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", "start_date and end_date are required"))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", map[string][]string{"start_date": {"IS_REQUIRED"}, "end_date": {"IS_REQUIRED"}}))
 		return
 	}
 
 	startDate, err := time.Parse("2006-01-02", startDateStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", "Invalid start_date format. Use YYYY-MM-DD"))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", map[string][]string{"start_date": {"IS_INVALID"}}))
 		return
 	}
 
 	endDate, err := time.Parse("2006-01-02", endDateStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", "Invalid end_date format. Use YYYY-MM-DD"))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", map[string][]string{"end_date": {"IS_INVALID"}}))
 		return
 	}
 
@@ -157,18 +157,18 @@ func (h *auditLogHandler) GetAuditLogsByDateRange(c *gin.Context) {
 
 		logs, total, err = h.auditLogService.GetUserActivityLogsByDateRange(userID, startDate, endDate, limit, offset)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", "Failed to retrieve audit logs"))
+			c.JSON(http.StatusInternalServerError, helper.CreateInternalErrorResponse("Terdapat kesalahan pada permintaan"))
 			return
 		}
 	} else {
 		logs, total, err = h.auditLogService.GetActivityLogsByDateRange(startDate, endDate, limit, offset)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", "Failed to retrieve audit logs"))
+			c.JSON(http.StatusInternalServerError, helper.CreateInternalErrorResponse("Terdapat kesalahan pada permintaan"))
 			return
 		}
 	}
 
-	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Successfully retrieved audit logs", gin.H{
+	c.JSON(http.StatusCreated, helper.CreateSuccessResponse("Successfully retrieved audit logs", gin.H{
 		"logs":        logs,
 		"total":       total,
 		"page":        page,
@@ -180,9 +180,9 @@ func (h *auditLogHandler) GetAuditLogsByDateRange(c *gin.Context) {
 func (h *auditLogHandler) GetAuditLogStats(c *gin.Context) {
 	stats, err := h.auditLogService.GetAuditLogStats()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", "Failed to retrieve audit log stats"))
+		c.JSON(http.StatusInternalServerError, helper.CreateInternalErrorResponse("Terdapat kesalahan pada permintaan"))
 		return
 	}
 
-	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Successfully retrieved audit log stats", stats))
+	c.JSON(http.StatusCreated, helper.CreateSuccessResponse("Successfully retrieved audit log stats", stats))
 }
