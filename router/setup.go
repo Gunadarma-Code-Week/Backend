@@ -19,6 +19,7 @@ var (
 	// profileRepository      = repository.GateProfileRepository(database)
 	registrationRepository = repository.GateRegistrationRepository(database)
 	auditLogRepository     = repository.NewAuditLogRepository(database)
+	timelineRepository     = repository.NewTimelineRepository(database)
 
 	jwtService          = service.NewJwtService()
 	emailService        = service.NewEmailService()
@@ -36,6 +37,7 @@ var (
 	ctfService        = service.NewCtfService(database)
 	seminarService    = service.NewSeminarService(database)
 	auditLogService   = service.NewAuditLogService(auditLogRepository, userRepository, stellarService)
+	timelineService   = service.NewTimelineService(timelineRepository)
 
 	authHandler         = handler.NewAuthHandler(authService, jwtService, emailService)
 	userHandler         = handler.NewUserHandler(userService)
@@ -50,6 +52,7 @@ var (
 	auditLogHandler   = handler.NewAuditLogHandler(auditLogService)
 	settingService    = service.NewSystemSettingService(database)
 	settingHandler    = handler.NewSystemSettingHandler(settingService)
+	timelineHandler   = handler.NewTimelineHandler(timelineService)
 
 	authMiddleware  = middleware.NewAuthMiddleware(authService, jwtService)
 	auditMiddleware = middleware.NewAuditMiddleware(auditLogService)
@@ -180,6 +183,16 @@ func SetupRouter(r *gin.Engine) {
 		adminSettings := mustAuth.Group("/admin/settings")
 		adminSettings.Use(authMiddleware.MustAdmin)
 		adminSettings.PUT("", settingHandler.UpdateSettings)
+	}
+
+	{
+		router.GET("/timeline/:category", timelineHandler.GetTimelinesByCategory)
+
+		adminTimeline := mustAuth.Group("/admin/timeline")
+		adminTimeline.Use(authMiddleware.MustAdmin)
+		adminTimeline.POST("", timelineHandler.CreateTimeline)
+		adminTimeline.PUT("/:id", timelineHandler.UpdateTimeline)
+		adminTimeline.DELETE("/:id", timelineHandler.DeleteTimeline)
 	}
 
 	{

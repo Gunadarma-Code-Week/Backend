@@ -37,6 +37,7 @@ func SetupDatabaseConnection() *gorm.DB {
 			&entity.NewsLetter{},
 			&entity.AuditLog{},
 			&entity.SystemSetting{},
+			&entity.Timeline{},
 		); err != nil {
 			fmt.Println("AutoMigrate error (ignored):", err)
 		}
