@@ -15,16 +15,15 @@ func NewSystemSettingService(db *gorm.DB) *SystemSettingService {
 
 func (s *SystemSettingService) GetSettings() (entity.SystemSetting, error) {
 	var setting entity.SystemSetting
-	err := s.db.First(&setting, 1).Error
+	err := s.db.First(&setting).Error
 	return setting, err
 }
 
 func (s *SystemSettingService) UpdateSettings(newSettings entity.SystemSetting) (entity.SystemSetting, error) {
 	var setting entity.SystemSetting
-	err := s.db.First(&setting, 1).Error
+	err := s.db.First(&setting).Error
 	if err != nil {
 		// If settings don't exist yet, create the first record
-		newSettings.ID = 1
 		err = s.db.Create(&newSettings).Error
 		return newSettings, err
 	}

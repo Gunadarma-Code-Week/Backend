@@ -52,6 +52,9 @@ func (h *registrationHandler) RegistrationCPTeam(c *gin.Context) {
 		} else if err.Error() == "USER ALREADY HAVE TEAM" {
 			c.JSON(http.StatusConflict, helper.CreateConflictResponse("User sudah memiliki tim"))
 			return
+		} else if err.Error() == "Pendaftaran Competitive Programming telah ditutup" {
+			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse(err.Error(), map[string][]string{"registration": {"IS_INVALID"}}))
+			return
 		}
 		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", helper.FormatValidationError(err)))
 		return
@@ -88,6 +91,9 @@ func (h *registrationHandler) RegistrationHackathonTeam(c *gin.Context) {
 			return
 		} else if err.Error() == "USER ALREADY HAVE TEAM" {
 			c.JSON(http.StatusConflict, helper.CreateConflictResponse("User sudah memiliki tim"))
+			return
+		} else if err.Error() == "Pendaftaran Hackathon telah ditutup" {
+			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse(err.Error(), map[string][]string{"registration": {"IS_INVALID"}}))
 			return
 		}
 		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", helper.FormatValidationError(err)))
@@ -126,6 +132,9 @@ func (h *registrationHandler) RegistrationCTFTeam(c *gin.Context) {
 		} else if err.Error() == "USER ALREADY HAVE TEAM" {
 			c.JSON(http.StatusConflict, helper.CreateConflictResponse("User sudah memiliki tim"))
 			return
+		} else if err.Error() == "Pendaftaran Capture The Flag telah ditutup" {
+			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse(err.Error(), map[string][]string{"registration": {"IS_INVALID"}}))
+			return
 		}
 		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", helper.FormatValidationError(err)))
 		return
@@ -156,7 +165,7 @@ func (h *registrationHandler) FindTeam(c *gin.Context) {
 	err = smapping.FillStruct(registrationTeamResponse, smapping.MapFields(team))
 	if err != nil {
 		logging.Low("RegistrationHandler.FindTeam", "INTERNAL_SERVER_ERROR", err.Error())
-		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", helper.FormatValidationError(err)))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", helper.FormatValidationError(err)))
 		return
 	}
 
@@ -211,6 +220,9 @@ func (h *registrationHandler) UserJoinTeam(c *gin.Context) {
 			return
 		} else if err.Error() == "TEAM NOT FOUND" {
 			c.JSON(http.StatusNotFound, helper.CreateNotFoundResponse("Tim tidak ditemukan"))
+			return
+		} else if err.Error() == "Pendaftaran Hackathon telah ditutup" || err.Error() == "Pendaftaran Competitive Programming telah ditutup" || err.Error() == "Pendaftaran Capture The Flag telah ditutup" {
+			c.JSON(http.StatusBadRequest, helper.CreateErrorResponse(err.Error(), map[string][]string{"registration": {"IS_INVALID"}}))
 			return
 		}
 		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", helper.FormatValidationError(err)))

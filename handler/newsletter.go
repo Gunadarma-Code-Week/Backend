@@ -3,7 +3,6 @@ package handler
 import (
 	"gcw/dto"
 	"gcw/helper"
-	"gcw/helper/logging"
 	"gcw/service"
 	"net/http"
 	"strconv"
@@ -33,7 +32,7 @@ func (h *newsletterHandler) GetNewsLetter(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("ID tidak valid", helper.FormatValidationError(err)))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", map[string][]string{"id": {"IS_INVALID"}}))
 		return
 	}
 
@@ -65,8 +64,7 @@ func (h *newsletterHandler) CreateNewsletter(c *gin.Context) {
 
 	newsletter, err := h.service.Create(input)
 	if err != nil {
-		logging.Warn("CreateNewsletter", "error create newsletter", err.Error())
-		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("Gagal membuat newsletter", helper.FormatValidationError(err)))
+		c.JSON(http.StatusInternalServerError, helper.CreateInternalErrorResponse("Gagal membuat newsletter"))
 		return
 	}
 
@@ -88,7 +86,7 @@ func (h *newsletterHandler) UpdateNewsLetter(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("ID tidak valid", helper.FormatValidationError(err)))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", map[string][]string{"id": {"IS_INVALID"}}))
 		return
 	}
 
@@ -100,7 +98,7 @@ func (h *newsletterHandler) UpdateNewsLetter(c *gin.Context) {
 
 	newsletter, err := h.service.Update(id, input)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("Gagal memperbarui newsletter", helper.FormatValidationError(err)))
+		c.JSON(http.StatusInternalServerError, helper.CreateInternalErrorResponse("Gagal memperbarui newsletter"))
 		return
 	}
 
@@ -121,12 +119,12 @@ func (h *newsletterHandler) DeleteNewsLetter(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("ID tidak valid", helper.FormatValidationError(err)))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", map[string][]string{"id": {"IS_INVALID"}}))
 		return
 	}
 
 	if err := h.service.Delete(id); err != nil {
-		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("Gagal menghapus newsletter", helper.FormatValidationError(err)))
+		c.JSON(http.StatusInternalServerError, helper.CreateInternalErrorResponse("Gagal menghapus newsletter"))
 		return
 	}
 

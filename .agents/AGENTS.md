@@ -1,25 +1,41 @@
 # 1. Response API
 ## 1.1 Response Status Code :
 ### 1.1.1 untuk method post:
-- jika berhasil kembalikan status code 201
-- jika validasi gagal kembalikan status code 400
-- jika database conflict kembalikan status code 409
-- jika data tidak ditemukan kembalikan status code 404
+- jika berhasil kembalikan status code 201 (wajib)
+- jika validasi gagal kembalikan status code 400 (wajib)
+- jika database conflict kembalikan status code 409 (wajib)
+- jika data tidak ditemukan kembalikan status code 404 (wajib)
 
 ### 1.1.2 untuk method put:
-- jika berhasil kembalikan status code 201
-- jika validasi gagal kembalikan status code 400
-- jika database conflict kembalikan status code 409
-- jika data tidak ditemukan kembalikan status code 404
+- jika berhasil kembalikan status code 201 (wajib)
+- jika validasi gagal kembalikan status code 400 (wajib)
+- jika database conflict kembalikan status code 409 (wajib)
+- jika data tidak ditemukan kembalikan status code 404 (wajib)
+- untuk method put digunakan untuk update sebagian data
 
-### 1.1.3 untuk method get:
-- jika berhasil kembalikan status code 201
-- jika validasi gagal kembalikan status code 400
-- jika database conflict kembalikan status code 409
-- jika data tidak ditemukan kembalikan status code 404
+### 1.1.3 untuk method patch:
+- jika berhasil kembalikan status code 201 (wajib)
+- jika validasi gagal kembalikan status code 400 (wajib)
+- jika database conflict kembalikan status code 409 (wajib)
+- jika data tidak ditemukan kembalikan status code 404 (wajib)
+- untuk method patch digunakan untuk update seluruh data
+
+### 1.1.4 untuk method get:
+- jika berhasil kembalikan status code 200 (wajib)
+- jika validasi gagal kembalikan status code 400 (wajib)
+- jika database conflict kembalikan status code 409 (wajib)
+- jika data tidak ditemukan kembalikan status code 404 (wajib)
+- untuk method get digunakan untuk mengambil data
+
+### 1.1.5 penjelasan atribut2 api:
+- message: pesan informasi (wajib)
+- data: data yang dikirimkan jika tidak ada data maka kembalikan nil (wajib)
+- errors: data error yang dikirimkan wajib berupa dictionary atau nil (wajib)
 
 ## 1.2 Format Response API:
 ### 1.2.1 untuk status code 201:
+- status code digunakan untuk method post, put, patch, dan delete
+
 ```json
 {
   "message": "string",
@@ -28,7 +44,21 @@
 }
 ```
 
+contoh :
+```json
+{
+	"message": "Permintaan berhasil diproses",
+	"data": {
+    "username": "adit"
+  },
+	"errors": null
+}
+```
+
 ### 1.2.2 untuk status code 400:
+- status code digunakan untuk method post, put, patch, dan delete
+- di gunakan jika ada validasi error
+
 ```json
 {
   "message": "string",
@@ -37,7 +67,21 @@
 }
 ```
 
+contoh :
+```json
+{
+	"message": "gagal memproses permintaan",
+	"data": null,
+	"errors": {
+    "key": "IS_REQUIRED"
+  }
+}
+```
+
 ### 1.2.3 untuk status code 409:
+- status code digunakan untuk method post, put, patch, dan delete
+- di gunakan jika ada database conflict
+
 ```json
 {
   "message": "string",
@@ -47,6 +91,21 @@
 ```
 
 ### 1.2.4 untuk status code 404:
+- status code digunakan untuk method post, put, patch, get, dan delete
+- di gunakan jika data tidak ditemukan
+
+```json
+{
+  "message": "string",
+  "data": "nil",
+  "errors": "nil"
+}
+```
+
+### 1.2.5 untuk status code 500:
+- status code digunakan untuk method post, put, patch, get, dan delete
+- di gunakan jika ada error
+
 ```json
 {
   "message": "string",

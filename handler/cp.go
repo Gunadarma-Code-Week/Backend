@@ -39,7 +39,7 @@ func (h *CompetitiveHandler) GetDetail(c *gin.Context) {
 			c.JSON(http.StatusNotFound, helper.CreateNotFoundResponse("Detail tim kompetitif tidak ditemukan"))
 			return
 		}
-		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("Gagal mengambil detail tim kompetitif", helper.FormatValidationError(err)))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Gagal mengambil detail tim kompetitif", helper.FormatValidationError(err)))
 		return
 	}
 	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Permintaan berhasil diproses", result))

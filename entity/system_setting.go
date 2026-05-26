@@ -1,14 +1,16 @@
 package entity
 
+
+
 type SystemSetting struct {
-	ID                        uint `gorm:"primaryKey" json:"id"`
-	HackathonRegistrationDisabled bool   `gorm:"default:false" json:"hackathon_registration_disabled"`
-	CPRegistrationDisabled        bool   `gorm:"default:false" json:"cp_registration_disabled"`
-	CTFRegistrationDisabled       bool   `gorm:"default:false" json:"ctf_registration_disabled"`
-	HackathonProposalDisabled     bool   `gorm:"default:false" json:"hackathon_proposal_disabled"`
-	HackathonVideoDisabled        bool   `gorm:"default:false" json:"hackathon_video_disabled"`
-	HackathonFinalDisabled        bool   `gorm:"default:false" json:"hackathon_final_disabled"`
-	HackathonProposalDeadline     string `gorm:"default:''" json:"hackathon_proposal_deadline"`
-	HackathonVideoDeadline        string `gorm:"default:''" json:"hackathon_video_deadline"`
-	HackathonFinalDeadline        string `gorm:"default:''" json:"hackathon_final_deadline"`
+	ID                            uint       `gorm:"primaryKey" json:"id"`
+	HackathonRegistrationDisabled bool       `gorm:"default:false" json:"hackathon_registration_disabled"`
+	CPRegistrationDisabled        bool       `gorm:"default:false" json:"cp_registration_disabled"`
+	CTFRegistrationDisabled       bool       `gorm:"default:false" json:"ctf_registration_disabled"`
+	HackathonProposalDisabled     bool       `gorm:"default:false" json:"hackathon_proposal_disabled"`
+	HackathonVideoDisabled        bool       `gorm:"default:false" json:"hackathon_video_disabled"`
+	HackathonFinalDisabled        bool       `gorm:"default:false" json:"hackathon_final_disabled"`
+	HackathonProposalDeadline     *string `json:"hackathon_proposal_deadline"`
+	HackathonVideoDeadline        *string `json:"hackathon_video_deadline"`
+	HackathonFinalDeadline        *string `json:"hackathon_final_deadline"`
 }

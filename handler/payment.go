@@ -45,7 +45,7 @@ func (h *paymentHandler) UpdateTeamDetails(c *gin.Context) {
 			c.JSON(http.StatusConflict, helper.CreateConflictResponse("Nama tim sudah digunakan"))
 			return
 		}
-		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("Gagal memperbarui detail tim", helper.FormatValidationError(err)))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Gagal memperbarui detail tim", helper.FormatValidationError(err)))
 		return
 	}
 
@@ -53,7 +53,7 @@ func (h *paymentHandler) UpdateTeamDetails(c *gin.Context) {
 	c.Set("target_name", payload.TeamName)
 	c.Set("audit_changes", changes)
 
-	c.JSON(http.StatusOK, helper.CreateMutationResponse("Detail tim berhasil diperbarui", gin.H{
+	c.JSON(http.StatusCreated, helper.CreateMutationResponse("Detail tim berhasil diperbarui", gin.H{
 		"team_name":       payload.TeamName,
 		"supervisor":      payload.Supervisor,
 		"supervisor_nidn": payload.SupervisorNIDN,

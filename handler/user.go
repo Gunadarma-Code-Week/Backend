@@ -34,7 +34,7 @@ func (h *UserHandler) GetMyProfile(c *gin.Context) {
 	userAuth, ok := c.MustGet("user").(*entity.User)
 	if !ok {
 		logging.Low("AuthHandler.Login", "BAD_REQUEST", "user not found in context")
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", "user not found in context"))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", map[string][]string{"user": {"IS_INVALID"}}))
 		return
 	}
 
@@ -63,7 +63,7 @@ func (h *UserHandler) UpdateMyProfile(c *gin.Context) {
 	userAuth, ok := c.MustGet("user").(*entity.User)
 	if !ok {
 		logging.Low("AuthHandler.Login", "BAD_REQUEST", "user not found in context")
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", "user not found in context"))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", map[string][]string{"user": {"IS_INVALID"}}))
 		return
 	}
 
@@ -148,7 +148,7 @@ func (h *UserHandler) ChangePassword(c *gin.Context) {
 	userAuth, ok := c.MustGet("user").(*entity.User)
 	if !ok {
 		logging.Low("UserHandler.ChangePassword", "BAD_REQUEST", "user not found in context")
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", "user not found in context"))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", map[string][]string{"user": {"IS_INVALID"}}))
 		return
 	}
 
@@ -200,7 +200,7 @@ func (h *UserHandler) GetAllUser(c *gin.Context) {
 	// Fetch paginated data from the service
 	users, totalUsers, err := h.userService.GetUsersByDateRange(startDate, endDate, count, offset)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", "Error fetching users"))
+		c.JSON(http.StatusInternalServerError, helper.CreateInternalErrorResponse("Terdapat kesalahan pada permintaan"))
 		return
 	}
 
@@ -210,7 +210,7 @@ func (h *UserHandler) GetAllUser(c *gin.Context) {
 		var userResponse dto.UserResponseDTO
 		err := smapping.FillStruct(&userResponse, smapping.MapFields(user))
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", "Error mapping user data"))
+			c.JSON(http.StatusInternalServerError, helper.CreateInternalErrorResponse("Terdapat kesalahan pada permintaan"))
 			return
 		}
 		userResponses = append(userResponses, userResponse)
@@ -248,13 +248,13 @@ func (h *UserHandler) GetEvents(c *gin.Context) {
 	userAuth, ok := c.MustGet("user").(*entity.User)
 	if !ok {
 		logging.Low("UserHandler.GetEvents", "BAD_REQUEST", "user not found in context")
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", "user not found in context"))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", map[string][]string{"user": {"IS_INVALID"}}))
 		return
 	}
 
 	dataEvent, err := h.userService.GetEvents(userAuth.ID)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", "data not found"))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", map[string][]string{"data": {"IS_INVALID"}}))
 		return
 	}
 
@@ -299,7 +299,7 @@ func (h *UserHandler) AdminGetAllUsers(c *gin.Context) {
 	response, err := h.userService.AdminGetAllUsers(query)
 	if err != nil {
 		logging.High("UserHandler.AdminGetAllUsers", "INTERNAL_SERVER_ERROR", err.Error())
-		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", helper.FormatValidationError(err)))
+		c.JSON(http.StatusInternalServerError, helper.CreateInternalErrorResponse("Terdapat kesalahan pada permintaan"))
 		return
 	}
 
@@ -330,7 +330,7 @@ func (h *UserHandler) AdminGetUserById(c *gin.Context) {
 			return
 		}
 		logging.High("UserHandler.AdminGetUserById", "INTERNAL_SERVER_ERROR", err.Error())
-		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", helper.FormatValidationError(err)))
+		c.JSON(http.StatusInternalServerError, helper.CreateInternalErrorResponse("Terdapat kesalahan pada permintaan"))
 		return
 	}
 
@@ -370,7 +370,7 @@ func (h *UserHandler) AdminUpdateUser(c *gin.Context) {
 			return
 		}
 		logging.High("UserHandler.AdminUpdateUser", "INTERNAL_SERVER_ERROR", err.Error())
-		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", helper.FormatValidationError(err)))
+		c.JSON(http.StatusInternalServerError, helper.CreateInternalErrorResponse("Terdapat kesalahan pada permintaan"))
 		return
 	}
 
@@ -414,7 +414,7 @@ func (h *UserHandler) AdminDeleteUser(c *gin.Context) {
 			return
 		}
 		logging.High("UserHandler.AdminDeleteUser", "INTERNAL_SERVER_ERROR", err.Error())
-		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", helper.FormatValidationError(err)))
+		c.JSON(http.StatusInternalServerError, helper.CreateInternalErrorResponse("Terdapat kesalahan pada permintaan"))
 		return
 	}
 
@@ -443,7 +443,7 @@ func (h *UserHandler) AdminGetUserGrowthAnalytics(c *gin.Context) {
 	response, err := h.userService.AdminGetUserGrowthAnalytics(query)
 	if err != nil {
 		logging.High("UserHandler.AdminGetUserGrowthAnalytics", "INTERNAL_SERVER_ERROR", err.Error())
-		c.JSON(http.StatusInternalServerError, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", helper.FormatValidationError(err)))
+		c.JSON(http.StatusInternalServerError, helper.CreateInternalErrorResponse("Terdapat kesalahan pada permintaan"))
 		return
 	}
 

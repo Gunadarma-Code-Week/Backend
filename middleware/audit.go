@@ -442,6 +442,27 @@ func (m *auditMiddleware) generateDescription(method, path string, body interfac
 		return desc, 0
 	}
 
+	// Timeline Update
+	if strings.Contains(path, "/admin/timeline") {
+		action := "mengakses"
+		switch method {
+		case "POST":
+			action = "membuat"
+		case "PUT", "PATCH":
+			action = "memperbarui"
+		case "DELETE":
+			action = "menghapus"
+		}
+		
+		desc := userLabel + " " + action + " data timeline"
+		if len(segments) > 0 && segments[len(segments)-1] != "timeline" {
+			id := segments[len(segments)-1]
+			targetResourceID, _ = strconv.ParseUint(id, 10, 64)
+			desc += " dengan ID " + id
+		}
+		return desc, targetResourceID
+	}
+
 	// Fallback: generic description
 	actionMap := map[string]string{
 		"POST":   "membuat",

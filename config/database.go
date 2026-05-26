@@ -5,6 +5,7 @@ import (
 	"gcw/entity"
 	"os"
 
+
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -24,8 +25,9 @@ func SetupDatabaseConnection() *gorm.DB {
 		panic("Failed to create a connection to database")
 	}
 
-	if os.Getenv("ENVIRONMENT") != "production" {
-		if err := db.AutoMigrate(
+	// Always run AutoMigrate and Seed in all environments to ensure schema is updated
+	if true {
+		models := []interface{}{
 			&entity.User{},
 			&entity.UserRole{},
 			&entity.Team{},
@@ -36,14 +38,31 @@ func SetupDatabaseConnection() *gorm.DB {
 			&entity.NewsLetter{},
 			&entity.AuditLog{},
 			&entity.SystemSetting{},
-		); err != nil {
-			fmt.Println("AutoMigrate error (ignored):", err)
+			&entity.Timeline{},
+		}
+		for _, model := range models {
+			if err := db.AutoMigrate(model); err != nil {
+				fmt.Printf("AutoMigrate error for %T (ignored): %v\n", model, err)
+			}
 		}
 
 		// Seed initial global settings row (ID: 1) if settings table is empty
 		var count int64
 		db.Model(&entity.SystemSetting{}).Count(&count)
 		if count == 0 {
+			proposalDeadline := os.Getenv("HACKATHON_PROPOSAL_DEADLINE")
+			if proposalDeadline == "" {
+				proposalDeadline = "2026-05-24T23:59:59"
+			}
+			videoDeadline := os.Getenv("HACKATHON_VIDEO_DEADLINE")
+			if videoDeadline == "" {
+				videoDeadline = "2026-06-06T23:59:59"
+			}
+			finalDeadline := os.Getenv("HACKATHON_FINAL_DEADLINE")
+			if finalDeadline == "" {
+				finalDeadline = "2026-06-20T23:59:59"
+			}
+			
 			initialSettings := entity.SystemSetting{
 				ID:                            1,
 				HackathonRegistrationDisabled: false,
@@ -52,9 +71,9 @@ func SetupDatabaseConnection() *gorm.DB {
 				HackathonProposalDisabled:     false,
 				HackathonVideoDisabled:        false,
 				HackathonFinalDisabled:        false,
-				HackathonProposalDeadline:     "2026-05-24T23:59:59",
-				HackathonVideoDeadline:        "2026-06-06T23:59:59",
-				HackathonFinalDeadline:        "2026-06-20T23:59:59",
+				HackathonProposalDeadline:     &proposalDeadline,
+				HackathonVideoDeadline:        &videoDeadline,
+				HackathonFinalDeadline:        &finalDeadline,
 			}
 			if err := db.Create(&initialSettings).Error; err != nil {
 				fmt.Println("Failed to seed initial system settings:", err)

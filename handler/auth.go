@@ -52,15 +52,15 @@ func (h *authHandler) ValidateGoogleIdToken(c *gin.Context) {
 	if err != nil {
 		logging.High("AuthHandler.Login", "AUTH_ERROR", err.Error())
 		
-		// If it's a deletion error, use 403 Forbidden
-		statusCode := http.StatusBadRequest
-		errorCode := "BAD_REQUEST"
+		statuscode := http.StatusBadRequest
+		var errorPayload interface{}
 		if strings.Contains(err.Error(), "dinonaktifkan") {
-			statusCode = http.StatusForbidden
-			errorCode = "USER_DELETED"
+			statuscode = http.StatusBadRequest
+			errorPayload = map[string][]string{"account": {"IS_INVALID"}}
+		} else {
+			errorPayload = map[string][]string{"credential": {"IS_INVALID"}}
 		}
-		
-		c.JSON(statusCode, helper.CreateErrorResponse(err.Error(), errorCode))
+		c.JSON(statuscode, helper.CreateErrorResponse(err.Error(), errorPayload))
 		return
 	}
 
@@ -75,7 +75,7 @@ func (h *authHandler) ValidateGoogleIdToken(c *gin.Context) {
 	response.RefreshToken = refreshToken
 	response.User = *userResponse
 
-	c.JSON(http.StatusOK, helper.CreateMutationResponse("Data berhasil diperbarui", response))
+	c.JSON(http.StatusCreated, helper.CreateMutationResponse("Data berhasil diperbarui", response))
 }
 
 // @Summary Refresh Token
@@ -104,7 +104,7 @@ func (h *authHandler) RefreshToken(c *gin.Context) {
 	userId := uint64(payload["id"].(float64))
 	if userId == 0 {
 		logging.High("AuthHandler.RefreshToken", "INTERNAL_SERVER_ERROR", "user_id not found in payload")
-		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", "user_id not found in payload"))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Terdapat kesalahan pada permintaan", map[string][]string{"user_id": {"IS_INVALID"}}))
 		return
 	}
 
@@ -125,7 +125,7 @@ func (h *authHandler) RefreshToken(c *gin.Context) {
 	response.RefreshToken = newRefreshToken
 	response.User = *userResponse
 
-	c.JSON(http.StatusOK, helper.CreateMutationResponse("Data berhasil diperbarui", response))
+	c.JSON(http.StatusCreated, helper.CreateMutationResponse("Data berhasil diperbarui", response))
 }
 
 // @Summary Register new account
@@ -163,7 +163,7 @@ func (h *authHandler) Registration(c *gin.Context) {
 	response.RefreshToken = refreshToken
 	response.User = *userResponse
 
-	c.JSON(http.StatusOK, helper.CreateMutationResponse("Data berhasil diperbarui", response))
+	c.JSON(http.StatusCreated, helper.CreateMutationResponse("Data berhasil diperbarui", response))
 }
 
 // @Summary Login
@@ -182,19 +182,17 @@ func (h *authHandler) Login(c *gin.Context) {
 
 	user, err := h.authService.LoginService(loginDTO)
 	if err != nil {
-		// If it's a deletion error, use 403 Forbidden
-		statusCode := http.StatusBadRequest
-		errorCode := "BAD_REQUEST"
+		var errorPayload interface{}
 		if strings.Contains(err.Error(), "dinonaktifkan") {
-			statusCode = http.StatusForbidden
-			errorCode = "USER_DELETED"
+			errorPayload = map[string][]string{"account": {"IS_INVALID"}}
+		} else {
+			errorPayload = map[string][]string{"credential": {"IS_INVALID"}}
 		}
-		
 		msg := err.Error()
 		if msg == "email or password is wrong" {
 			msg = "Email atau password salah"
 		}
-		c.JSON(statusCode, helper.CreateErrorResponse(msg, errorCode))
+		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse(msg, errorPayload))
 		return
 	}
 
@@ -209,7 +207,7 @@ func (h *authHandler) Login(c *gin.Context) {
 	response.RefreshToken = refreshToken
 	response.User = *userResponse
 
-	c.JSON(http.StatusOK, helper.CreateMutationResponse("Data berhasil diperbarui", response))
+	c.JSON(http.StatusCreated, helper.CreateMutationResponse("Data berhasil diperbarui", response))
 }
 
 // THIS JUST EXAMPLE, CAN USE THIS ON ANYWHERE
@@ -220,5 +218,5 @@ func (h *authHandler) SendEmailVerificationExample(c *gin.Context) {
 		"Code": "123456",
 	})
 
-	c.JSON(http.StatusOK, helper.CreateMutationResponse("Data berhasil diperbarui", "Email verification has been sent, wait or try again"))
+	c.JSON(http.StatusCreated, helper.CreateMutationResponse("Data berhasil diperbarui", "Email verification has been sent, wait or try again"))
 }
