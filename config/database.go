@@ -27,7 +27,7 @@ func SetupDatabaseConnection() *gorm.DB {
 
 	// Always run AutoMigrate and Seed in all environments to ensure schema is updated
 	if true {
-		if err := db.AutoMigrate(
+		models := []interface{}{
 			&entity.User{},
 			&entity.UserRole{},
 			&entity.Team{},
@@ -39,8 +39,11 @@ func SetupDatabaseConnection() *gorm.DB {
 			&entity.AuditLog{},
 			&entity.SystemSetting{},
 			&entity.Timeline{},
-		); err != nil {
-			fmt.Println("AutoMigrate error (ignored):", err)
+		}
+		for _, model := range models {
+			if err := db.AutoMigrate(model); err != nil {
+				fmt.Printf("AutoMigrate error for %T (ignored): %v\n", model, err)
+			}
 		}
 
 		// Seed initial global settings row (ID: 1) if settings table is empty

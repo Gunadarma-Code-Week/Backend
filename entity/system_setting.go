@@ -10,7 +10,7 @@ type SystemSetting struct {
 	HackathonProposalDisabled     bool       `gorm:"default:false" json:"hackathon_proposal_disabled"`
 	HackathonVideoDisabled        bool       `gorm:"default:false" json:"hackathon_video_disabled"`
 	HackathonFinalDisabled        bool       `gorm:"default:false" json:"hackathon_final_disabled"`
-	HackathonProposalDeadline     *time.Time `gorm:"default:null" json:"hackathon_proposal_deadline"`
-	HackathonVideoDeadline        *time.Time `gorm:"default:null" json:"hackathon_video_deadline"`
-	HackathonFinalDeadline        *time.Time `gorm:"default:null" json:"hackathon_final_deadline"`
+	HackathonProposalDeadline     *time.Time `json:"hackathon_proposal_deadline"`
+	HackathonVideoDeadline        *time.Time `json:"hackathon_video_deadline"`
+	HackathonFinalDeadline        *time.Time `json:"hackathon_final_deadline"`
 }
