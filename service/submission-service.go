@@ -47,8 +47,9 @@ func (s *submissionService) Create(join_code, stage string, submissionDTO dto.Re
 			if setting.HackathonProposalDisabled {
 				return entity.HackathonTeam{}, fmt.Errorf("pengumpulan proposal (Stage 1) telah ditutup oleh administrator")
 			}
-			if setting.HackathonProposalDeadline != nil {
-				if time.Now().After(*setting.HackathonProposalDeadline) {
+			if setting.HackathonProposalDeadline != nil && *setting.HackathonProposalDeadline != "" {
+				parsedTime, err := time.Parse("2006-01-02T15:04:05", *setting.HackathonProposalDeadline)
+				if err == nil && time.Now().After(parsedTime) {
 					return entity.HackathonTeam{}, fmt.Errorf("batas waktu (deadline) pengumpulan proposal telah berakhir")
 				}
 			}
@@ -58,8 +59,9 @@ func (s *submissionService) Create(join_code, stage string, submissionDTO dto.Re
 			if setting.HackathonVideoDisabled {
 				return entity.HackathonTeam{}, fmt.Errorf("pengumpulan video (Stage 2) telah ditutup oleh administrator")
 			}
-			if setting.HackathonVideoDeadline != nil {
-				if time.Now().After(*setting.HackathonVideoDeadline) {
+			if setting.HackathonVideoDeadline != nil && *setting.HackathonVideoDeadline != "" {
+				parsedTime, err := time.Parse("2006-01-02T15:04:05", *setting.HackathonVideoDeadline)
+				if err == nil && time.Now().After(parsedTime) {
 					return entity.HackathonTeam{}, fmt.Errorf("batas waktu (deadline) pengumpulan video telah berakhir")
 				}
 			}
@@ -69,8 +71,9 @@ func (s *submissionService) Create(join_code, stage string, submissionDTO dto.Re
 			if setting.HackathonFinalDisabled {
 				return entity.HackathonTeam{}, fmt.Errorf("pengumpulan presentasi final telah ditutup oleh administrator")
 			}
-			if setting.HackathonFinalDeadline != nil {
-				if time.Now().After(*setting.HackathonFinalDeadline) {
+			if setting.HackathonFinalDeadline != nil && *setting.HackathonFinalDeadline != "" {
+				parsedTime, err := time.Parse("2006-01-02T15:04:05", *setting.HackathonFinalDeadline)
+				if err == nil && time.Now().After(parsedTime) {
 					return entity.HackathonTeam{}, fmt.Errorf("batas waktu (deadline) pengumpulan presentasi final telah berakhir")
 				}
 			}

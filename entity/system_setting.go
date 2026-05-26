@@ -1,6 +1,6 @@
 package entity
 
-import "time"
+
 
 type SystemSetting struct {
 	ID                            uint       `gorm:"primaryKey" json:"id"`
@@ -10,7 +10,7 @@ type SystemSetting struct {
 	HackathonProposalDisabled     bool       `gorm:"default:false" json:"hackathon_proposal_disabled"`
 	HackathonVideoDisabled        bool       `gorm:"default:false" json:"hackathon_video_disabled"`
 	HackathonFinalDisabled        bool       `gorm:"default:false" json:"hackathon_final_disabled"`
-	HackathonProposalDeadline     *time.Time `json:"hackathon_proposal_deadline"`
-	HackathonVideoDeadline        *time.Time `json:"hackathon_video_deadline"`
-	HackathonFinalDeadline        *time.Time `json:"hackathon_final_deadline"`
+	HackathonProposalDeadline     *string `json:"hackathon_proposal_deadline"`
+	HackathonVideoDeadline        *string `json:"hackathon_video_deadline"`
+	HackathonFinalDeadline        *string `json:"hackathon_final_deadline"`
 }

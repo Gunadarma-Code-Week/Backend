@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"gcw/entity"
 	"os"
-	"time"
+
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -50,9 +50,18 @@ func SetupDatabaseConnection() *gorm.DB {
 		var count int64
 		db.Model(&entity.SystemSetting{}).Count(&count)
 		if count == 0 {
-			proposalDeadline, _ := time.Parse("2006-01-02T15:04:05", "2026-05-24T23:59:59")
-			videoDeadline, _ := time.Parse("2006-01-02T15:04:05", "2026-06-06T23:59:59")
-			finalDeadline, _ := time.Parse("2006-01-02T15:04:05", "2026-06-20T23:59:59")
+			proposalDeadline := os.Getenv("HACKATHON_PROPOSAL_DEADLINE")
+			if proposalDeadline == "" {
+				proposalDeadline = "2026-05-24T23:59:59"
+			}
+			videoDeadline := os.Getenv("HACKATHON_VIDEO_DEADLINE")
+			if videoDeadline == "" {
+				videoDeadline = "2026-06-06T23:59:59"
+			}
+			finalDeadline := os.Getenv("HACKATHON_FINAL_DEADLINE")
+			if finalDeadline == "" {
+				finalDeadline = "2026-06-20T23:59:59"
+			}
 			
 			initialSettings := entity.SystemSetting{
 				ID:                            1,
