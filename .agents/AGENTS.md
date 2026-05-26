@@ -25,6 +25,8 @@
 
 ## 1.2 Format Response API:
 ### 1.2.1 untuk status code 201:
+- status code digunakan untuk method post, put, patch, dan delete
+
 ```json
 {
   "message": "string",
@@ -45,6 +47,9 @@ contoh :
 ```
 
 ### 1.2.2 untuk status code 400:
+- status code digunakan untuk method post, put, patch, dan delete
+- di gunakan jika ada validasi error
+
 ```json
 {
   "message": "string",
@@ -65,6 +70,9 @@ contoh :
 ```
 
 ### 1.2.3 untuk status code 409:
+- status code digunakan untuk method post, put, patch, dan delete
+- di gunakan jika ada database conflict
+
 ```json
 {
   "message": "string",
@@ -74,6 +82,9 @@ contoh :
 ```
 
 ### 1.2.4 untuk status code 404:
+- status code digunakan untuk method post, put, patch, get, dan delete
+- di gunakan jika data tidak ditemukan
+
 ```json
 {
   "message": "string",
@@ -83,6 +94,9 @@ contoh :
 ```
 
 ### 1.2.5 untuk status code 500:
+- status code digunakan untuk method post, put, patch, get, dan delete
+- di gunakan jika ada error
+
 ```json
 {
   "message": "string",

@@ -1,0 +1,129 @@
+
+2026/05/26 09:24:41 [31;1m/home/adit/Documents/coding/gcw/gcw-be/config/database.go:44 [35;1mERROR: default for column "hackathon_proposal_deadline" cannot be cast automatically to type timestamp with time zone (SQLSTATE 42804)
+[0m[33m[0.695ms] [34;1m[rows:0][0m ALTER TABLE "system_settings" ALTER COLUMN "hackathon_proposal_deadline" TYPE timestamptz USING "hackathon_proposal_deadline"::timestamptz
+AutoMigrate error for *entity.SystemSetting (ignored): ERROR: default for column "hackathon_proposal_deadline" cannot be cast automatically to type timestamp with time zone (SQLSTATE 42804)
+
+2026/05/26 09:24:41 [31;1m/home/adit/Documents/coding/gcw/gcw-be/config/database.go:89 [35;1msql: Scan error on column index 0, name "pg_get_serial_sequence": converting NULL to string is unsupported
+[0m[33m[0.647ms] [34;1m[rows:1][0m SELECT pg_get_serial_sequence('"seminars"', 'id_seminar')
+Successfully synced sequence for seminars (seq: "seminars_id_seminar_seq")
+
+2026/05/26 09:24:41 [31;1m/home/adit/Documents/coding/gcw/gcw-be/config/database.go:89 [35;1msql: Scan error on column index 0, name "pg_get_serial_sequence": converting NULL to string is unsupported
+[0m[33m[0.511ms] [34;1m[rows:1][0m SELECT pg_get_serial_sequence('"audit_logs"', 'id')
+Successfully synced sequence for audit_logs (seq: "audit_logs_id_seq")
+
+2026/05/26 09:24:41 [31;1m/home/adit/Documents/coding/gcw/gcw-be/config/database.go:89 [35;1msql: Scan error on column index 0, name "pg_get_serial_sequence": converting NULL to string is unsupported
+[0m[33m[0.552ms] [34;1m[rows:1][0m SELECT pg_get_serial_sequence('"user_roles"', 'id_role')
+Successfully synced sequence for user_roles (seq: "user_roles_id_role_seq")
+
+2026/05/26 09:24:41 [31;1m/home/adit/Documents/coding/gcw/gcw-be/config/database.go:89 [35;1msql: Scan error on column index 0, name "pg_get_serial_sequence": converting NULL to string is unsupported
+[0m[33m[1.234ms] [34;1m[rows:1][0m SELECT pg_get_serial_sequence('"teams"', 'id_team')
+Successfully synced sequence for teams (seq: "teams_id_team_seq")
+
+2026/05/26 09:24:41 [31;1m/home/adit/Documents/coding/gcw/gcw-be/config/database.go:89 [35;1msql: Scan error on column index 0, name "pg_get_serial_sequence": converting NULL to string is unsupported
+[0m[33m[1.162ms] [34;1m[rows:1][0m SELECT pg_get_serial_sequence('"users"', 'id')
+Successfully synced sequence for users (seq: "users_id_seq")
+
+2026/05/26 09:24:41 [31;1m/home/adit/Documents/coding/gcw/gcw-be/config/database.go:89 [35;1msql: Scan error on column index 0, name "pg_get_serial_sequence": converting NULL to string is unsupported
+[0m[33m[1.254ms] [34;1m[rows:1][0m SELECT pg_get_serial_sequence('"hackathon_teams"', 'id_hackathon_team')
+Successfully synced sequence for hackathon_teams (seq: "hackathon_teams_id_hackathon_team_seq")
+
+2026/05/26 09:24:41 [31;1m/home/adit/Documents/coding/gcw/gcw-be/config/database.go:89 [35;1msql: Scan error on column index 0, name "pg_get_serial_sequence": converting NULL to string is unsupported
+[0m[33m[0.516ms] [34;1m[rows:1][0m SELECT pg_get_serial_sequence('"cp_teams"', 'id_cp_team')
+Successfully synced sequence for cp_teams (seq: "cp_teams_id_cp_team_seq")
+
+2026/05/26 09:24:41 [31;1m/home/adit/Documents/coding/gcw/gcw-be/config/database.go:89 [35;1msql: Scan error on column index 0, name "pg_get_serial_sequence": converting NULL to string is unsupported
+[0m[33m[1.311ms] [34;1m[rows:1][0m SELECT pg_get_serial_sequence('"ctf_teams"', 'id_ctf_team')
+Successfully synced sequence for ctf_teams (seq: "ctf_teams_id_ctf_team_seq")
+Stellar Service initialized: network=public, rpc=https://stellar-soroban-public.nodies.app, horizon=https://horizon.stellar.org, contract=CD6V2HGMR5XQDH5IVBTJ43LFEQ4YKS5NZ6TFT6USIBKTAK3FDWEH5GAC
+
+2026/05/26 09:24:41 [31;1m/home/adit/Documents/coding/gcw/gcw-be/config/database.go:44 [35;1mERROR: default for column "hackathon_proposal_deadline" cannot be cast automatically to type timestamp with time zone (SQLSTATE 42804)
+[0m[33m[0.571ms] [34;1m[rows:0][0m ALTER TABLE "system_settings" ALTER COLUMN "hackathon_proposal_deadline" TYPE timestamptz USING "hackathon_proposal_deadline"::timestamptz
+AutoMigrate error for *entity.SystemSetting (ignored): ERROR: default for column "hackathon_proposal_deadline" cannot be cast automatically to type timestamp with time zone (SQLSTATE 42804)
+
+2026/05/26 09:24:41 [31;1m/home/adit/Documents/coding/gcw/gcw-be/config/database.go:89 [35;1msql: Scan error on column index 0, name "pg_get_serial_sequence": converting NULL to string is unsupported
+[0m[33m[0.384ms] [34;1m[rows:1][0m SELECT pg_get_serial_sequence('"seminars"', 'id_seminar')
+Successfully synced sequence for seminars (seq: "seminars_id_seminar_seq")
+
+2026/05/26 09:24:41 [31;1m/home/adit/Documents/coding/gcw/gcw-be/config/database.go:89 [35;1msql: Scan error on column index 0, name "pg_get_serial_sequence": converting NULL to string is unsupported
+[0m[33m[0.455ms] [34;1m[rows:1][0m SELECT pg_get_serial_sequence('"audit_logs"', 'id')
+Successfully synced sequence for audit_logs (seq: "audit_logs_id_seq")
+
+2026/05/26 09:24:41 [31;1m/home/adit/Documents/coding/gcw/gcw-be/config/database.go:89 [35;1msql: Scan error on column index 0, name "pg_get_serial_sequence": converting NULL to string is unsupported
+[0m[33m[0.275ms] [34;1m[rows:1][0m SELECT pg_get_serial_sequence('"user_roles"', 'id_role')
+Successfully synced sequence for user_roles (seq: "user_roles_id_role_seq")
+
+2026/05/26 09:24:41 [31;1m/home/adit/Documents/coding/gcw/gcw-be/config/database.go:89 [35;1msql: Scan error on column index 0, name "pg_get_serial_sequence": converting NULL to string is unsupported
+[0m[33m[0.225ms] [34;1m[rows:1][0m SELECT pg_get_serial_sequence('"teams"', 'id_team')
+Successfully synced sequence for teams (seq: "teams_id_team_seq")
+
+2026/05/26 09:24:41 [31;1m/home/adit/Documents/coding/gcw/gcw-be/config/database.go:89 [35;1msql: Scan error on column index 0, name "pg_get_serial_sequence": converting NULL to string is unsupported
+[0m[33m[0.229ms] [34;1m[rows:1][0m SELECT pg_get_serial_sequence('"users"', 'id')
+Successfully synced sequence for users (seq: "users_id_seq")
+
+2026/05/26 09:24:41 [31;1m/home/adit/Documents/coding/gcw/gcw-be/config/database.go:89 [35;1msql: Scan error on column index 0, name "pg_get_serial_sequence": converting NULL to string is unsupported
+[0m[33m[0.226ms] [34;1m[rows:1][0m SELECT pg_get_serial_sequence('"hackathon_teams"', 'id_hackathon_team')
+Successfully synced sequence for hackathon_teams (seq: "hackathon_teams_id_hackathon_team_seq")
+
+2026/05/26 09:24:41 [31;1m/home/adit/Documents/coding/gcw/gcw-be/config/database.go:89 [35;1msql: Scan error on column index 0, name "pg_get_serial_sequence": converting NULL to string is unsupported
+[0m[33m[0.215ms] [34;1m[rows:1][0m SELECT pg_get_serial_sequence('"cp_teams"', 'id_cp_team')
+Successfully synced sequence for cp_teams (seq: "cp_teams_id_cp_team_seq")
+
+2026/05/26 09:24:41 [31;1m/home/adit/Documents/coding/gcw/gcw-be/config/database.go:89 [35;1msql: Scan error on column index 0, name "pg_get_serial_sequence": converting NULL to string is unsupported
+[0m[33m[0.239ms] [34;1m[rows:1][0m SELECT pg_get_serial_sequence('"ctf_teams"', 'id_ctf_team')
+Successfully synced sequence for ctf_teams (seq: "ctf_teams_id_ctf_team_seq")
+[GIN-debug] [WARNING] Creating an Engine instance with the Logger and Recovery middleware already attached.
+
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /swagger/*any             --> github.com/swaggo/gin-swagger.CustomWrapHandler.func1 (3 handlers)
+[GIN-debug] GET    /                         --> main.main.func2 (6 handlers)
+[GIN-debug] GET    /api/v1/gcw/resources/ping --> gcw/handler.(*authHandler).Ping-fm (6 handlers)
+[GIN-debug] POST   /api/v1/gcw/resources/auth/validate-google-id-token --> gcw/handler.(*authHandler).ValidateGoogleIdToken-fm (6 handlers)
+[GIN-debug] POST   /api/v1/gcw/resources/auth/refresh-token --> gcw/handler.(*authHandler).RefreshToken-fm (6 handlers)
+[GIN-debug] POST   /api/v1/gcw/resources/auth/send-mail-test --> gcw/handler.(*authHandler).SendEmailVerificationExample-fm (6 handlers)
+[GIN-debug] POST   /api/v1/gcw/resources/auth/login --> gcw/handler.(*authHandler).Login-fm (7 handlers)
+[GIN-debug] POST   /api/v1/gcw/resources/auth/registration --> gcw/handler.(*authHandler).Registration-fm (7 handlers)
+[GIN-debug] GET    /api/v1/gcw/resources/mustauth/ping --> gcw/handler.(*authHandler).Ping-fm (8 handlers)
+[GIN-debug] GET    /api/v1/gcw/resources/profile/my --> gcw/handler.(*UserHandler).GetMyProfile-fm (8 handlers)
+[GIN-debug] POST   /api/v1/gcw/resources/profile/my --> gcw/handler.(*UserHandler).UpdateMyProfile-fm (8 handlers)
+[GIN-debug] POST   /api/v1/gcw/resources/profile/change-password --> gcw/handler.(*UserHandler).ChangePassword-fm (8 handlers)
+[GIN-debug] GET    /api/v1/gcw/resources/profile/events --> gcw/handler.(*UserHandler).GetEvents-fm (8 handlers)
+[GIN-debug] GET    /api/v1/gcw/resources/profile/all/:start_date/:end_date/:count/:page --> gcw/handler.(*UserHandler).GetAllUser-fm (6 handlers)
+[GIN-debug] GET    /api/v1/gcw/resources/mustauth/authupdate/ping --> gcw/handler.(*authHandler).Ping-fm (9 handlers)
+[GIN-debug] POST   /api/v1/gcw/resources/team/registration/hackathon --> gcw/handler.(*registrationHandler).RegistrationHackathonTeam-fm (10 handlers)
+[GIN-debug] POST   /api/v1/gcw/resources/team/registration/cp --> gcw/handler.(*registrationHandler).RegistrationCPTeam-fm (10 handlers)
+[GIN-debug] POST   /api/v1/gcw/resources/team/registration/ctf --> gcw/handler.(*registrationHandler).RegistrationCTFTeam-fm (10 handlers)
+[GIN-debug] GET    /api/v1/gcw/resources/team/registration/find/:join_code --> gcw/handler.(*registrationHandler).FindTeam-fm (10 handlers)
+[GIN-debug] POST   /api/v1/gcw/resources/team/registration/join/:join_code --> gcw/handler.(*registrationHandler).UserJoinTeam-fm (10 handlers)
+[GIN-debug] POST   /api/v1/gcw/resources/payment/update-team-details --> gcw/handler.(*paymentHandler).UpdateTeamDetails-fm (8 handlers)
+[GIN-debug] GET    /api/v1/gcw/resources/dashboard/:acara/:count/:page --> gcw/handler.DashboardControllerInterface.GetAllDashboard-fm (9 handlers)
+[GIN-debug] DELETE /api/v1/gcw/resources/dashboard/:acara/:id --> gcw/handler.DashboardControllerInterface.Delete-fm (9 handlers)
+[GIN-debug] PUT    /api/v1/gcw/resources/dashboard/:acara/:id --> gcw/handler.DashboardControllerInterface.Update-fm (9 handlers)
+[GIN-debug] GET    /api/v1/gcw/resources/admin/users --> gcw/handler.(*UserHandler).AdminGetAllUsers-fm (9 handlers)
+[GIN-debug] GET    /api/v1/gcw/resources/admin/users/:id --> gcw/handler.(*UserHandler).AdminGetUserById-fm (9 handlers)
+[GIN-debug] PUT    /api/v1/gcw/resources/admin/users/:id --> gcw/handler.(*UserHandler).AdminUpdateUser-fm (9 handlers)
+[GIN-debug] DELETE /api/v1/gcw/resources/admin/users/:id --> gcw/handler.(*UserHandler).AdminDeleteUser-fm (9 handlers)
+[GIN-debug] GET    /api/v1/gcw/resources/admin/users/analytics/growth --> gcw/handler.(*UserHandler).AdminGetUserGrowthAnalytics-fm (9 handlers)
+[GIN-debug] GET    /api/v1/gcw/resources/admin/teams/names --> gcw/handler.DashboardControllerInterface.GetTeamNames-fm (9 handlers)
+[GIN-debug] GET    /api/v1/gcw/resources/admin/emails/templates --> gcw/handler.DashboardControllerInterface.GetEmailTemplates-fm (9 handlers)
+[GIN-debug] GET    /api/v1/gcw/resources/admin/audit-logs --> gcw/handler.AuditLogHandler.GetAllAuditLogs-fm (9 handlers)
+[GIN-debug] GET    /api/v1/gcw/resources/admin/audit-logs/stats --> gcw/handler.AuditLogHandler.GetAuditLogStats-fm (9 handlers)
+[GIN-debug] GET    /api/v1/gcw/resources/admin/audit-logs/user/:user_id --> gcw/handler.AuditLogHandler.GetUserAuditLogs-fm (9 handlers)
+[GIN-debug] GET    /api/v1/gcw/resources/admin/audit-logs/date-range --> gcw/handler.AuditLogHandler.GetAuditLogsByDateRange-fm (9 handlers)
+[GIN-debug] POST   /api/v1/gcw/resources/submission/hackaton/:stage/:join_code --> gcw/handler.HackathonHandler.SubmissionHackaton-fm (8 handlers)
+[GIN-debug] GET    /api/v1/gcw/resources/submission/hackaton/:join_code --> gcw/handler.HackathonHandler.HackathonStageStatus-fm (8 handlers)
+[GIN-debug] GET    /api/v1/gcw/resources/settings --> gcw/handler.(*SystemSettingHandler).GetSettings-fm (6 handlers)
+[GIN-debug] PUT    /api/v1/gcw/resources/admin/settings --> gcw/handler.(*SystemSettingHandler).UpdateSettings-fm (9 handlers)
+[GIN-debug] GET    /api/v1/gcw/resources/timeline/:category --> gcw/handler.TimelineHandler.GetTimelinesByCategory-fm (6 handlers)
+[GIN-debug] POST   /api/v1/gcw/resources/admin/timeline --> gcw/handler.TimelineHandler.CreateTimeline-fm (9 handlers)
+[GIN-debug] PUT    /api/v1/gcw/resources/admin/timeline/:id --> gcw/handler.TimelineHandler.UpdateTimeline-fm (9 handlers)
+[GIN-debug] DELETE /api/v1/gcw/resources/admin/timeline/:id --> gcw/handler.TimelineHandler.DeleteTimeline-fm (9 handlers)
+[GIN-debug] GET    /api/v1/gcw/resources/cp/:join_code --> gcw/handler.(*CompetitiveHandler).GetDetail-fm (6 handlers)
+[GIN-debug] GET    /api/v1/gcw/resources/ctf/:join_code --> gcw/handler.(*CTFHandler).GetDetail-fm (6 handlers)
+[GIN-debug] POST   /api/v1/gcw/resources/seminar/join --> gcw/handler.(*SeminarHandler).JoinSeminar-fm (8 handlers)
+[GIN-debug] GET    /api/v1/gcw/resources/seminar/my-ticket --> gcw/handler.(*SeminarHandler).GetMyTicket-fm (8 handlers)
+[GIN-debug] GET    /api/v1/gcw/resources/seminar/ticket/:ticket_id --> gcw/handler.(*SeminarHandler).GetTicketByID-fm (9 handlers)
+[GIN-debug] POST   /api/v1/gcw/resources/seminar/admin/add-participant --> gcw/handler.(*SeminarHandler).AdminAddParticipant-fm (9 handlers)
+exit status 1
