@@ -196,10 +196,10 @@ func (m *auditMiddleware) generateDescription(method, path string, body interfac
 			targetResourceID = uint64(id)
 		}
 	}
-	// User identifier: use ID if available, otherwise "User"
+	// User identifier: use email if available, otherwise "User"
 	userLabel := "User"
-	if user != nil && user.ID != 0 {
-		userLabel = fmt.Sprintf("User %d", user.ID)
+	if user != nil && user.Email != "" {
+		userLabel = user.Email
 	}
 
 	// Target name/email from context if set by handler
