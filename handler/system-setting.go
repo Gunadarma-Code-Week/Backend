@@ -31,7 +31,7 @@ func (h *SystemSettingHandler) GetSettings(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, helper.CreateInternalErrorResponse("Terdapat kesalahan pada permintaan"))
 		return
 	}
-	c.JSON(http.StatusCreated, helper.CreateSuccessResponse("Permintaan berhasil diproses", settings))
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Permintaan berhasil diproses", settings))
 }
 
 // @Summary Update System Settings (Admin)

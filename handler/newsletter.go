@@ -42,7 +42,7 @@ func (h *newsletterHandler) GetNewsLetter(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, helper.CreateSuccessResponse("Permintaan berhasil diproses", newsletter))
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Permintaan berhasil diproses", newsletter))
 }
 
 // @Summary Create Newsletter

@@ -87,6 +87,6 @@ func (h *hackathonHandler) HackathonStageStatus(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, helper.CreateSuccessResponse("Permintaan berhasil diproses", stageStatus))
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Permintaan berhasil diproses", stageStatus))
 }
 

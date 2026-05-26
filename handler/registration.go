@@ -195,7 +195,7 @@ func (h *registrationHandler) FindTeam(c *gin.Context) {
 	registrationTeamResponse.Members = members
 	registrationTeamResponse.Leader = leaderData
 
-	c.JSON(http.StatusCreated, helper.CreateSuccessResponse("Success Find Team", registrationTeamResponse))
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Success Find Team", registrationTeamResponse))
 }
 
 // @Summary Join Team

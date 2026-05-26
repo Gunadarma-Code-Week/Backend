@@ -54,7 +54,7 @@ func (h *auditLogHandler) GetAllAuditLogs(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, helper.CreateSuccessResponse("Successfully retrieved audit logs", gin.H{
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Successfully retrieved audit logs", gin.H{
 		"logs":        logs,
 		"total":       total,
 		"page":        page,
@@ -95,7 +95,7 @@ func (h *auditLogHandler) GetUserAuditLogs(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, helper.CreateSuccessResponse("Successfully retrieved user audit logs", gin.H{
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Successfully retrieved user audit logs", gin.H{
 		"logs":        logs,
 		"total":       total,
 		"page":        page,
@@ -168,7 +168,7 @@ func (h *auditLogHandler) GetAuditLogsByDateRange(c *gin.Context) {
 		}
 	}
 
-	c.JSON(http.StatusCreated, helper.CreateSuccessResponse("Successfully retrieved audit logs", gin.H{
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Successfully retrieved audit logs", gin.H{
 		"logs":        logs,
 		"total":       total,
 		"page":        page,
@@ -184,5 +184,5 @@ func (h *auditLogHandler) GetAuditLogStats(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, helper.CreateSuccessResponse("Successfully retrieved audit log stats", stats))
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Successfully retrieved audit log stats", stats))
 }
