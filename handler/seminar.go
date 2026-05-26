@@ -89,7 +89,7 @@ func (h *SeminarHandler) GetMyTicket(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, helper.CreateSuccessResponse("Detail tiket seminar berhasil ditemukan", response))
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Detail tiket seminar berhasil ditemukan", response))
 }
 
 // @Summary Get Seminar Ticket by ID
@@ -119,7 +119,7 @@ func (h *SeminarHandler) GetTicketByID(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, helper.CreateSuccessResponse("Detail tiket seminar berhasil ditemukan", response))
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Detail tiket seminar berhasil ditemukan", response))
 }
 
 // @Summary Admin Add Participant to Seminar

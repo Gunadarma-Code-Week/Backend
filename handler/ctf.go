@@ -31,6 +31,6 @@ func (h *CTFHandler) GetDetail(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, helper.CreateErrorResponse("Gagal mengambil detail tim CTF", helper.FormatValidationError(err)))
 		return
 	}
-	c.JSON(http.StatusCreated, helper.CreateSuccessResponse("Permintaan berhasil diproses", result))
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Permintaan berhasil diproses", result))
 }
 

@@ -42,7 +42,7 @@ func (h *UserHandler) GetMyProfile(c *gin.Context) {
 	smapping.FillStruct(user, smapping.MapFields(userAuth))
 	user.HasPassword = userAuth.Password != ""
 
-	c.JSON(http.StatusCreated, helper.CreateSuccessResponse("Permintaan berhasil diproses", user))
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Permintaan berhasil diproses", user))
 }
 
 // @Summary Update My Profile Data
@@ -236,7 +236,7 @@ func (h *UserHandler) GetAllUser(c *gin.Context) {
 	}
 
 	// Return a paginated response
-	c.JSON(http.StatusCreated, helper.CreateSuccessResponse("Permintaan berhasil diproses", response))
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Permintaan berhasil diproses", response))
 }
 
 // @Summary Get User Events
@@ -258,7 +258,7 @@ func (h *UserHandler) GetEvents(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, helper.CreateSuccessResponse("Data berhasil ditemukan", dataEvent))
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Data berhasil ditemukan", dataEvent))
 }
 
 // Admin User Management Handlers
@@ -303,7 +303,7 @@ func (h *UserHandler) AdminGetAllUsers(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, helper.CreateSuccessResponse("Daftar user berhasil diambil", response))
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Daftar user berhasil diambil", response))
 }
 
 // @Summary Get User by ID (Admin)
@@ -334,7 +334,7 @@ func (h *UserHandler) AdminGetUserById(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, helper.CreateSuccessResponse("User berhasil ditemukan", response))
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("User berhasil ditemukan", response))
 }
 
 // @Summary Update User (Admin)
@@ -447,5 +447,5 @@ func (h *UserHandler) AdminGetUserGrowthAnalytics(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, helper.CreateSuccessResponse("Analitik pertumbuhan user berhasil diambil", response))
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Analitik pertumbuhan user berhasil diambil", response))
 }

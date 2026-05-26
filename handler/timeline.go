@@ -127,5 +127,5 @@ func (h *timelineHandler) GetTimelinesByCategory(c *gin.Context) {
 	}
 
 	res := helper.CreateSuccessResponse("Timelines fetched successfully", result)
-	c.JSON(http.StatusCreated, res)
+	c.JSON(http.StatusOK, res)
 }

@@ -29,7 +29,7 @@ func NewAuthHandler(as *service.AuthService, js *service.JwtService, es *service
 
 func (h *authHandler) Ping(c *gin.Context) {
 	log.Printf("Berhasil Ping")
-	c.JSON(http.StatusCreated, helper.CreateSuccessResponse("ping", "ping"))
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("ping", "ping"))
 }
 
 // @Summary Validate Google ID Token

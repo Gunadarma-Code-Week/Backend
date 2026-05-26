@@ -11,14 +11,23 @@
 - jika validasi gagal kembalikan status code 400 (wajib)
 - jika database conflict kembalikan status code 409 (wajib)
 - jika data tidak ditemukan kembalikan status code 404 (wajib)
+- untuk method put digunakan untuk update sebagian data
 
-### 1.1.3 untuk method get:
+### 1.1.3 untuk method patch:
 - jika berhasil kembalikan status code 201 (wajib)
 - jika validasi gagal kembalikan status code 400 (wajib)
 - jika database conflict kembalikan status code 409 (wajib)
 - jika data tidak ditemukan kembalikan status code 404 (wajib)
+- untuk method patch digunakan untuk update seluruh data
 
-### 1.1.4 penjelasan atribut2 api:
+### 1.1.4 untuk method get:
+- jika berhasil kembalikan status code 200 (wajib)
+- jika validasi gagal kembalikan status code 400 (wajib)
+- jika database conflict kembalikan status code 409 (wajib)
+- jika data tidak ditemukan kembalikan status code 404 (wajib)
+- untuk method get digunakan untuk mengambil data
+
+### 1.1.5 penjelasan atribut2 api:
 - message: pesan informasi (wajib)
 - data: data yang dikirimkan jika tidak ada data maka kembalikan nil (wajib)
 - errors: data error yang dikirimkan wajib berupa dictionary atau nil (wajib)

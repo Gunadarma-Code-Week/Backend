@@ -120,7 +120,7 @@ func (h *dashboardController) GetAllDashboard(c *gin.Context) {
 		respondData = map[string]interface{}{}
 	}
 
-	c.JSON(http.StatusCreated, helper.CreateSuccessResponse("Permintaan berhasil diproses", respondData))
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Permintaan berhasil diproses", respondData))
 }
 
 // @Summary Update Dashboard Event
@@ -273,7 +273,7 @@ func (h *dashboardController) GetTeamNames(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, helper.CreateSuccessResponse("Permintaan berhasil diproses", names))
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Permintaan berhasil diproses", names))
 }
 
 
@@ -283,5 +283,5 @@ func (h *dashboardController) GetEmailTemplates(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, helper.CreateInternalErrorResponse("Terjadi kesalahan pada server"))
 		return
 	}
-	c.JSON(http.StatusCreated, helper.CreateSuccessResponse("Permintaan berhasil diproses", templates))
+	c.JSON(http.StatusOK, helper.CreateSuccessResponse("Permintaan berhasil diproses", templates))
 }
