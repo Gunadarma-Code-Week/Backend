@@ -51,6 +51,8 @@ func (h *timelineHandler) CreateTimeline(c *gin.Context) {
 		return
 	}
 
+	c.Set("target_name", result.Title)
+
 	res := helper.CreateMutationResponse("Timeline created successfully", result)
 	c.JSON(http.StatusCreated, res)
 }
@@ -83,6 +85,8 @@ func (h *timelineHandler) UpdateTimeline(c *gin.Context) {
 		return
 	}
 
+	c.Set("target_name", result.Title)
+
 	res := helper.CreateMutationResponse("Timeline updated successfully", result)
 	c.JSON(http.StatusCreated, res)
 }
@@ -94,6 +98,12 @@ func (h *timelineHandler) DeleteTimeline(c *gin.Context) {
 		res := helper.CreateErrorResponse("Invalid ID", map[string][]string{"id": {"IS_INVALID"}})
 		c.JSON(http.StatusBadRequest, res)
 		return
+	}
+
+	// Fetch the timeline before deleting to get its title for audit log
+	timeline, errFetch := h.timelineService.GetTimelineByID(uint(id))
+	if errFetch == nil {
+		c.Set("target_name", timeline.Title)
 	}
 
 	err = h.timelineService.DeleteTimeline(uint(id))
