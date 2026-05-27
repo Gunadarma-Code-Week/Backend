@@ -55,7 +55,11 @@ type SimResponse struct {
 			Auth []string `json:"auth"`
 			XDR  string   `json:"xdr"`
 		} `json:"results"`
-		Error string `json:"error"`
+		Error           string `json:"error"`
+		RestorePreamble *struct {
+			TransactionData string `json:"transactionData"`
+			MinResourceFee  string `json:"minResourceFee"`
+		} `json:"restorePreamble"`
 	} `json:"result"`
 	Error *struct {
 		Code    int    `json:"code"`
@@ -197,6 +201,14 @@ func (s *stellarService) SendAuditHash(auditHash string) (string, string, error)
 	}
 
 	// 5. Ekstraksi Data Simulasi (Footprint & Auth)
+	if simResp.Result.TransactionData == "" {
+		if simResp.Result.RestorePreamble != nil {
+			return "", authorAddress, fmt.Errorf("contract state is archived on the blockchain. Please restore the contract using: stellar contract restore --id %s --network mainnet", s.contractID)
+		}
+		respJson, _ := json.Marshal(simResp)
+		return "", authorAddress, fmt.Errorf("simulation returned empty transactionData. Response: %s", string(respJson))
+	}
+
 	var txData xdr.SorobanTransactionData
 	if err := xdr.SafeUnmarshalBase64(simResp.Result.TransactionData, &txData); err != nil {
 		return "", authorAddress, fmt.Errorf("failed to unmarshal transaction data: %w", err)
