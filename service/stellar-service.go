@@ -88,13 +88,17 @@ func NewStellarService() StellarService {
 
 	rpcURL := os.Getenv("STELLAR_RPC_URL")
 	if rpcURL == "" {
-		rpcURL = "https://stellar-soroban-public.nodies.app"
+		if net == "public" {
+			rpcURL = "https://mainnet.sorobanrpc.com"
+		} else {
+			rpcURL = "https://soroban-testnet.stellar.org"
+		}
 	}
 
 	horizonURL := os.Getenv("STELLAR_HORIZON_URL")
 	if horizonURL == "" {
 		horizonURL = "https://horizon.stellar.org"
-		if net == "testnet" {
+		if net == "testnet" || net != "public" {
 			horizonURL = "https://horizon-testnet.stellar.org"
 		}
 	}
@@ -111,13 +115,18 @@ func NewStellarService() StellarService {
 		}
 	}
 
+	functionName := os.Getenv("STELLAR_FUNCTION_NAME")
+	if functionName == "" {
+		functionName = "record_hash"
+	}
+
 	return &stellarService{
 		horizonClient: &horizonclient.Client{HorizonURL: horizonURL},
 		rpcURL:        rpcURL,
 		secret:        secret,
 		network:       net,
 		contractID:    os.Getenv("STELLAR_CONTRACT_ADDRESS"),
-		functionName:  "record_hash",
+		functionName:  functionName,
 		publicKey:     publicKey,
 	}
 }
@@ -257,9 +266,12 @@ func (s *stellarService) SendAuditHash(auditHash string) (string, string, error)
 	txFinalObj, _ := genericTx.Transaction()
 
 	// 8. Sign dan Kirim
-	networkPassphrase := network.PublicNetworkPassphrase
-	if s.network == "testnet" {
-		networkPassphrase = network.TestNetworkPassphrase
+	networkPassphrase := os.Getenv("STELLAR_NETWORK_PASSPHRASE")
+	if networkPassphrase == "" {
+		networkPassphrase = network.PublicNetworkPassphrase
+		if s.network == "testnet" {
+			networkPassphrase = network.TestNetworkPassphrase
+		}
 	}
 
 	txSigned, err := txFinalObj.Sign(networkPassphrase, kp)
@@ -309,13 +321,34 @@ func (s *stellarService) callRPC(method string, txB64 string, target interface{}
 	}
 	reqBody.Params.Transaction = txB64
 
-	jsonBytes, _ := json.Marshal(reqBody)
+	jsonBytes, err := json.Marshal(reqBody)
+	if err != nil {
+		return fmt.Errorf("failed to marshal request: %w", err)
+	}
+
 	resp, err := http.Post(s.rpcURL, "application/json", bytes.NewBuffer(jsonBytes))
 	if err != nil {
-		return err
+		return fmt.Errorf("HTTP POST failed: %w", err)
 	}
 	defer resp.Body.Close()
 
-	bodyBytes, _ := io.ReadAll(resp.Body)
-	return json.Unmarshal(bodyBytes, target)
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("failed to read response body: %w", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("RPC server returned status %d (%s), body: %s", resp.StatusCode, resp.Status, string(bodyBytes))
+	}
+
+	if len(bodyBytes) == 0 {
+		return fmt.Errorf("RPC server returned empty response body")
+	}
+
+	// For debugging/robustness: if we fail to unmarshal or if target is empty, we have the body
+	if err := json.Unmarshal(bodyBytes, target); err != nil {
+		return fmt.Errorf("failed to unmarshal JSON response (body: %s): %w", string(bodyBytes), err)
+	}
+
+	return nil
 }
