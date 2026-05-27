@@ -458,7 +458,13 @@ func (m *auditMiddleware) generateDescription(method, path string, body interfac
 		if len(segments) > 0 && segments[len(segments)-1] != "timeline" {
 			id := segments[len(segments)-1]
 			targetResourceID, _ = strconv.ParseUint(id, 10, 64)
-			desc += " dengan ID " + id
+			if targetName != "" {
+				desc += " " + targetName
+			} else {
+				desc += " dengan ID " + id
+			}
+		} else if targetName != "" {
+			desc += " " + targetName
 		}
 		return desc, targetResourceID
 	}

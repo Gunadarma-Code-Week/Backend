@@ -101,9 +101,11 @@ func main() {
 	r.Use(middleware.RateLimiter())
 	r.Use(middleware.ETagMiddleware())
 
-	r.GET("/", func(c *gin.Context) {
-		c.String(http.StatusOK, "hello world")
-	})
+	if os.Getenv("BE_MODE") == "staging" || os.Getenv("BE_MODE") == "dev" {
+		r.GET("/", func(c *gin.Context) {
+			c.String(http.StatusOK, "hello world")
+		})
+	}
 
 	router.SetupRouter(r)
 
