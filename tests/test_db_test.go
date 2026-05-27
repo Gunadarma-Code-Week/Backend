@@ -78,9 +78,9 @@ func setupIsolatedPostgresDB(t *testing.T) (*gorm.DB, func()) {
 		HackathonProposalDisabled:     false,
 		HackathonVideoDisabled:        false,
 		HackathonFinalDisabled:        false,
-		HackathonProposalDeadline:     "2026-05-24T23:59:59",
-		HackathonVideoDeadline:        "2026-06-06T23:59:59",
-		HackathonFinalDeadline:        "2026-06-20T23:59:59",
+		HackathonProposalDeadline:     ptr("2026-05-24T23:59:59"),
+		HackathonVideoDeadline:        ptr("2026-06-06T23:59:59"),
+		HackathonFinalDeadline:        ptr("2026-06-20T23:59:59"),
 	}
 	if err := db.Create(&initialSettings).Error; err != nil {
 		_ = baseDB.Exec(fmt.Sprintf(`DROP SCHEMA IF EXISTS "%s" CASCADE`, schema)).Error
@@ -107,4 +107,8 @@ func getEnvOrDefault(key, fallback string) string {
 		return fallback
 	}
 	return v
+}
+
+func ptr(s string) *string {
+	return &s
 }
