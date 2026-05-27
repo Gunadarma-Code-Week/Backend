@@ -673,7 +673,6 @@ func (s *DashboardServices) UpdateHackatonService(id string, input dto.Hackaton)
 		return "", err
 	}
 
-	oldStage := hackaton.Stage
 	tx := s.DB.Begin()
 
 	if input.NamaTim != "" {
@@ -726,7 +725,6 @@ func (s *DashboardServices) UpdateCpService(id string, input dto.Cp) (string, er
 		return "", err
 	}
 
-	oldStage := cp.Stage
 	tx := s.DB.Begin()
 
 	if input.NamaTim != "" {
@@ -778,7 +776,6 @@ func (s *DashboardServices) UpdateCtfService(id string, input dto.Ctf) (string, 
 		return "", err
 	}
 
-	oldStage := ctf.Stage
 	tx := s.DB.Begin()
 
 	if input.NamaTim != "" {
