@@ -717,25 +717,6 @@ func (s *DashboardServices) UpdateHackatonService(id string, input dto.Hackaton)
 		teamName = input.NamaTim
 	}
 
-	if oldStage != input.Stage {
-		var teamMembers []entity.User
-		if err := s.DB.Where("id_team = ?", hackaton.Team.ID_Team).Find(&teamMembers).Error; err == nil {
-			var emails []string
-			for _, m := range teamMembers {
-				if m.Email != "" {
-					emails = append(emails, m.Email)
-				}
-			}
-			if len(emails) > 0 && os.Getenv("AUTO_EMAIL") == "true" {
-				if input.Stage == "Stage-1" {
-					go s.EmailService.SendEmailHTML("Registration Confirmation: GCW 2.0 Hackathon", emails, "template/email/hackathon_stage1.html", map[string]interface{}{"TeamName": hackaton.Team.TeamName})
-				} else if input.Stage != "Registered" {
-					go s.EmailService.SendEmailHTML("Selection Announcement: GCW 2.0 Hackathon", emails, "template/email/hackathon_announcement.html", map[string]interface{}{"TeamName": hackaton.Team.TeamName})
-				}
-			}
-		}
-	}
-
 	return teamName, nil
 }
 
@@ -786,24 +767,7 @@ func (s *DashboardServices) UpdateCpService(id string, input dto.Cp) (string, er
 		teamName = input.NamaTim
 	}
 
-	if oldStage != input.Stage {
-		var teamMembers []entity.User
-		if err := s.DB.Where("id_team = ?", cp.Team.ID_Team).Find(&teamMembers).Error; err == nil {
-			var emails []string
-			for _, m := range teamMembers {
-				if m.Email != "" {
-					emails = append(emails, m.Email)
-				}
-			}
-			if len(emails) > 0 && os.Getenv("AUTO_EMAIL") == "true" {
-				if input.Stage == "Stage-1" {
-					go s.EmailService.SendEmailHTML("Registration Confirmation: GCW 2.0 Competitive Programming", emails, "template/email/cp_stage1.html", map[string]interface{}{"TeamName": cp.Team.TeamName})
-				} else if input.Stage != "Registered" {
-					go s.EmailService.SendEmailHTML("Congratulations! You are selected - GCW 2.0 Competitive Programming", emails, "template/email/cp_announcement.html", map[string]interface{}{"TeamName": cp.Team.TeamName})
-				}
-			}
-		}
-	}
+
 
 	return teamName, nil
 }
@@ -855,24 +819,7 @@ func (s *DashboardServices) UpdateCtfService(id string, input dto.Ctf) (string, 
 		teamName = input.NamaTim
 	}
 
-	if oldStage != input.Stage {
-		var teamMembers []entity.User
-		if err := s.DB.Where("id_team = ?", ctf.Team.ID_Team).Find(&teamMembers).Error; err == nil {
-			var emails []string
-			for _, m := range teamMembers {
-				if m.Email != "" {
-					emails = append(emails, m.Email)
-				}
-			}
-			if len(emails) > 0 && os.Getenv("AUTO_EMAIL") == "true" {
-				if input.Stage == "Stage-1" {
-					go s.EmailService.SendEmailHTML("Registration Confirmation: GCW 2.0 Capture The Flag", emails, "template/email/ctf_stage1.html", map[string]interface{}{"TeamName": ctf.Team.TeamName})
-				} else if input.Stage != "Registered" {
-					go s.EmailService.SendEmailHTML("Congratulations! You are selected - GCW 2.0 Capture The Flag", emails, "template/email/ctf_announcement.html", map[string]interface{}{"TeamName": ctf.Team.TeamName})
-				}
-			}
-		}
-	}
+
 
 	return teamName, nil
 }
