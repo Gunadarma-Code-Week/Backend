@@ -60,7 +60,7 @@ func (s *RegistrationService) CPTeamRegistration(
 	// Check if CP registration is disabled by admin
 	var setting entity.SystemSetting
 	if err = s.registrationRepository.DB.First(&setting, 1).Error; err == nil {
-		if setting.CPRegistrationDisabled {
+		if setting.CPRegistrationDisabled && !userLead.DataHasVerified {
 			logging.Low("RegistrationService.CPTeamRegistration", "BAD_REQUEST", "Pendaftaran Competitive Programming telah ditutup oleh administrator")
 			return nil, fmt.Errorf("Pendaftaran Competitive Programming telah ditutup")
 		}
@@ -186,7 +186,7 @@ func (s *RegistrationService) HackathonTeamRegistration(
 	// Check if Hackathon registration is disabled by admin
 	var setting entity.SystemSetting
 	if err = s.registrationRepository.DB.First(&setting, 1).Error; err == nil {
-		if setting.HackathonRegistrationDisabled {
+		if setting.HackathonRegistrationDisabled && !userLead.DataHasVerified {
 			logging.Low("RegistrationService.HackathonTeamRegistration", "BAD_REQUEST", "Pendaftaran Hackathon telah ditutup oleh administrator")
 			return nil, fmt.Errorf("Pendaftaran Hackathon telah ditutup")
 		}
@@ -321,7 +321,7 @@ func (s *RegistrationService) CTFTeamRegistration(
 	// Check if CTF registration is disabled by admin
 	var setting entity.SystemSetting
 	if err = s.registrationRepository.DB.First(&setting, 1).Error; err == nil {
-		if setting.CTFRegistrationDisabled {
+		if setting.CTFRegistrationDisabled && !userLead.DataHasVerified {
 			logging.Low("RegistrationService.CTFTeamRegistration", "BAD_REQUEST", "Pendaftaran Capture The Flag telah ditutup oleh administrator")
 			return nil, fmt.Errorf("Pendaftaran Capture The Flag telah ditutup")
 		}
@@ -464,15 +464,15 @@ func (s *RegistrationService) JoinTeam(
 	// Check if registration is disabled by admin for this team's event
 	var setting entity.SystemSetting
 	if err = s.registrationRepository.DB.First(&setting, 1).Error; err == nil {
-		if team.Event == "hackathon" && setting.HackathonRegistrationDisabled {
+		if team.Event == "hackathon" && setting.HackathonRegistrationDisabled && !user.DataHasVerified {
 			logging.Low("RegistrationService.JoinTeam", "BAD_REQUEST", "Pendaftaran Hackathon telah ditutup oleh administrator")
 			return nil, fmt.Errorf("Pendaftaran Hackathon telah ditutup")
 		}
-		if team.Event == "cp" && setting.CPRegistrationDisabled {
+		if team.Event == "cp" && setting.CPRegistrationDisabled && !user.DataHasVerified {
 			logging.Low("RegistrationService.JoinTeam", "BAD_REQUEST", "Pendaftaran Competitive Programming telah ditutup oleh administrator")
 			return nil, fmt.Errorf("Pendaftaran Competitive Programming telah ditutup")
 		}
-		if team.Event == "ctf" && setting.CTFRegistrationDisabled {
+		if team.Event == "ctf" && setting.CTFRegistrationDisabled && !user.DataHasVerified {
 			logging.Low("RegistrationService.JoinTeam", "BAD_REQUEST", "Pendaftaran Capture The Flag telah ditutup oleh administrator")
 			return nil, fmt.Errorf("Pendaftaran Capture The Flag telah ditutup")
 		}
