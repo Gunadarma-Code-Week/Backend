@@ -134,11 +134,9 @@ func (h *SystemSettingHandler) UpdateSettings(c *gin.Context) {
 		HackathonProposalDisabled:     input.HackathonProposalDisabled,
 		HackathonVideoDisabled:        input.HackathonVideoDisabled,
 		HackathonFinalDisabled:        input.HackathonFinalDisabled,
-		ProfileUpdateDisabled:         input.ProfileUpdateDisabled,
 		HackathonProposalDeadline:     input.HackathonProposalDeadline,
 		HackathonVideoDeadline:        input.HackathonVideoDeadline,
 		HackathonFinalDeadline:        input.HackathonFinalDeadline,
-		ProfileUpdateDeadline:         input.ProfileUpdateDeadline,
 	}
 
 	updatedSettings, err := h.settingService.UpdateSettings(newSettings)

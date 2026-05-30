@@ -33,11 +33,9 @@ func (s *SystemSettingService) UpdateSettings(newSettings entity.SystemSetting) 
 	setting.HackathonProposalDisabled = newSettings.HackathonProposalDisabled
 	setting.HackathonVideoDisabled = newSettings.HackathonVideoDisabled
 	setting.HackathonFinalDisabled = newSettings.HackathonFinalDisabled
-	setting.ProfileUpdateDisabled = newSettings.ProfileUpdateDisabled
 	setting.HackathonProposalDeadline = newSettings.HackathonProposalDeadline
 	setting.HackathonVideoDeadline = newSettings.HackathonVideoDeadline
 	setting.HackathonFinalDeadline = newSettings.HackathonFinalDeadline
-	setting.ProfileUpdateDeadline = newSettings.ProfileUpdateDeadline
 	err = s.db.Save(&setting).Error
 	return setting, err
 }
