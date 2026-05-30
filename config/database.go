@@ -71,7 +71,6 @@ func SetupDatabaseConnection() *gorm.DB {
 				HackathonProposalDisabled:     false,
 				HackathonVideoDisabled:        false,
 				HackathonFinalDisabled:        false,
-				ProfileUpdateDisabled:         false,
 				HackathonProposalDeadline:     &proposalDeadline,
 				HackathonVideoDeadline:        &videoDeadline,
 				HackathonFinalDeadline:        &finalDeadline,

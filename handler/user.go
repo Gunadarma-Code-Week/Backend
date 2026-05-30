@@ -67,28 +67,6 @@ func (h *UserHandler) UpdateMyProfile(c *gin.Context) {
 		return
 	}
 
-	// Check if profile update is disabled by admin or deadline passed
-	var setting entity.SystemSetting
-	if err := h.userService.DB.First(&setting, 1).Error; err == nil {
-		if setting.ProfileUpdateDisabled && !userAuth.DataHasVerified {
-			logging.Low("UserHandler.UpdateMyProfile", "FORBIDDEN", "Pembaruan profil telah ditutup oleh administrator")
-			c.JSON(http.StatusForbidden, helper.CreateErrorResponse("Pembaruan profil telah ditutup oleh administrator", map[string][]string{"profile": {"PEMBARUAN_PROFIL_DITUTUP"}}))
-			return
-		}
-
-		if setting.ProfileUpdateDeadline != nil && *setting.ProfileUpdateDeadline != "" {
-			parsedTime, err := time.Parse("2006-01-02T15:04:05", *setting.ProfileUpdateDeadline)
-			if err != nil {
-				parsedTime, err = time.Parse(time.RFC3339, *setting.ProfileUpdateDeadline)
-			}
-			if err == nil && time.Now().After(parsedTime) && !userAuth.DataHasVerified {
-				logging.Low("UserHandler.UpdateMyProfile", "FORBIDDEN", "Batas waktu (deadline) pembaruan profil telah berakhir")
-				c.JSON(http.StatusForbidden, helper.CreateErrorResponse("Batas waktu (deadline) pembaruan profil telah berakhir", map[string][]string{"profile": {"PEMBARUAN_PROFIL_MELEWATI_BATAS"}}))
-				return
-			}
-		}
-	}
-
 	userUpdate := &entity.User{}
 	smapping.FillStruct(userUpdate, smapping.MapFields(userUpdateDTO))
 	userUpdate.Phone = userUpdateDTO.Phone

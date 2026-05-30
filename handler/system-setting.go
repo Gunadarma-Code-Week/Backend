@@ -93,13 +93,6 @@ func (h *SystemSettingHandler) UpdateSettings(c *gin.Context) {
 			}
 			changes = append(changes, fmt.Sprintf("final %s", status))
 		}
-		if oldSettings.ProfileUpdateDisabled != input.ProfileUpdateDisabled {
-			status := "dibuka"
-			if input.ProfileUpdateDisabled {
-				status = "ditutup"
-			}
-			changes = append(changes, fmt.Sprintf("pembaruan profil %s", status))
-		}
 		if oldSettings.HackathonProposalDeadline != input.HackathonProposalDeadline {
 			changes = append(changes, fmt.Sprintf("deadline proposal diubah menjadi %s", input.HackathonProposalDeadline))
 		}
@@ -108,13 +101,6 @@ func (h *SystemSettingHandler) UpdateSettings(c *gin.Context) {
 		}
 		if oldSettings.HackathonFinalDeadline != input.HackathonFinalDeadline {
 			changes = append(changes, fmt.Sprintf("deadline final diubah menjadi %s", input.HackathonFinalDeadline))
-		}
-		if oldSettings.ProfileUpdateDeadline != input.ProfileUpdateDeadline {
-			deadlineStr := "kosong"
-			if input.ProfileUpdateDeadline != nil {
-				deadlineStr = *input.ProfileUpdateDeadline
-			}
-			changes = append(changes, fmt.Sprintf("deadline pembaruan profil diubah menjadi %s", deadlineStr))
 		}
 	}
 
@@ -129,11 +115,9 @@ func (h *SystemSettingHandler) UpdateSettings(c *gin.Context) {
 		HackathonProposalDisabled:     input.HackathonProposalDisabled,
 		HackathonVideoDisabled:        input.HackathonVideoDisabled,
 		HackathonFinalDisabled:        input.HackathonFinalDisabled,
-		ProfileUpdateDisabled:         input.ProfileUpdateDisabled,
 		HackathonProposalDeadline:     input.HackathonProposalDeadline,
 		HackathonVideoDeadline:        input.HackathonVideoDeadline,
 		HackathonFinalDeadline:        input.HackathonFinalDeadline,
-		ProfileUpdateDeadline:         input.ProfileUpdateDeadline,
 	}
 
 	updatedSettings, err := h.settingService.UpdateSettings(newSettings)
