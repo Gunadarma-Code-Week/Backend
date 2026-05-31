@@ -70,6 +70,10 @@ func setupIsolatedPostgresDB(t *testing.T) (*gorm.DB, func()) {
 		t.Fatalf("gagal migrate schema test: %v", err)
 	}
 
+	futureProposal := time.Now().Add(24 * time.Hour).Format("2006-01-02T15:04:05")
+	futureVideo := time.Now().Add(48 * time.Hour).Format("2006-01-02T15:04:05")
+	futureFinal := time.Now().Add(72 * time.Hour).Format("2006-01-02T15:04:05")
+
 	initialSettings := entity.SystemSetting{
 		ID:                            1,
 		HackathonRegistrationDisabled: false,
@@ -78,9 +82,12 @@ func setupIsolatedPostgresDB(t *testing.T) (*gorm.DB, func()) {
 		HackathonProposalDisabled:     false,
 		HackathonVideoDisabled:        false,
 		HackathonFinalDisabled:        false,
-		HackathonProposalDeadline:     ptr("2026-05-24T23:59:59"),
-		HackathonVideoDeadline:        ptr("2026-06-06T23:59:59"),
-		HackathonFinalDeadline:        ptr("2026-06-20T23:59:59"),
+		ProfileUpdateDisabled:         false,
+		HackathonProposalDeadline:     ptr(futureProposal),
+		HackathonVideoDeadline:        ptr(futureVideo),
+		HackathonFinalDeadline:        ptr(futureFinal),
+		SeminarRegistrationDisabled:   false,
+		SeminarRequireVerification:    false,
 	}
 	if err := db.Create(&initialSettings).Error; err != nil {
 		_ = baseDB.Exec(fmt.Sprintf(`DROP SCHEMA IF EXISTS "%s" CASCADE`, schema)).Error

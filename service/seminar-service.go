@@ -23,6 +23,25 @@ func NewSeminarService(db *gorm.DB) *SeminarService {
 
 // JoinSeminar - User bergabung ke seminar dengan ID tiket
 func (s *SeminarService) JoinSeminar(userID uint64, request dto.JoinSeminarRequest) (*dto.JoinSeminarResponse, error) {
+	// Load system settings
+	var setting entity.SystemSetting
+	if err := s.DB.First(&setting).Error; err == nil {
+		if setting.SeminarRegistrationDisabled {
+			return nil, errors.New("pendaftaran seminar telah ditutup")
+		}
+		if setting.SeminarRequireVerification {
+			// Load user to check verification
+			var user entity.User
+			if errUser := s.DB.Where("id = ?", userID).First(&user).Error; errUser == nil {
+				if !user.DataHasVerified {
+					return nil, errors.New("pendaftaran seminar hanya diperuntukkan bagi data pengguna yang sudah terverifikasi")
+				}
+			} else {
+				return nil, errUser
+			}
+		}
+	}
+
 	// Cek apakah user sudah terdaftar di seminar
 	var existingSeminar entity.Seminar
 	err := s.DB.Where("id_user = ? AND is_deleted = ?", userID, false).First(&existingSeminar).Error
@@ -160,10 +179,13 @@ func (s *SeminarService) AdminAddParticipant(userID uint64) (*dto.AdminAddPartic
 		return nil, err
 	}
 
-	// // Cek apakah data user sudah terverifikasi
-	// if !user.DataHasVerified {
-	// 	return nil, errors.New("data user belum terverifikasi")
-	// }
+	// Load system settings
+	var setting entity.SystemSetting
+	if errSettings := s.DB.First(&setting).Error; errSettings == nil {
+		if setting.SeminarRequireVerification && !user.DataHasVerified {
+			return nil, errors.New("data user belum terverifikasi")
+		}
+	}
 
 	// Cek apakah user sudah terdaftar di seminar
 	var existingSeminar entity.Seminar

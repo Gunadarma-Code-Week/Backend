@@ -15,4 +15,6 @@ type SystemSetting struct {
 	HackathonVideoDeadline        *string `json:"hackathon_video_deadline"`
 	HackathonFinalDeadline        *string `json:"hackathon_final_deadline"`
 	ProfileUpdateDeadline         *string `json:"profile_update_deadline"`
+	SeminarRegistrationDisabled   bool    `gorm:"default:false" json:"seminar_registration_disabled"`
+	SeminarRequireVerification    bool    `gorm:"default:false" json:"seminar_require_verification"`
 }

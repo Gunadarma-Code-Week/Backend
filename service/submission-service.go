@@ -39,54 +39,41 @@ func (s *submissionService) Create(join_code, stage string, submissionDTO dto.Re
 		return entity.HackathonTeam{}, fmt.Errorf("team tidak terdaftar")
 	}
 
-	// Check if all team members are verified
-	var members []entity.User
-	allMembersVerified := false
-	if err := s.db.Where("id_team = ?", team.ID_Team).Find(&members).Error; err == nil && len(members) > 0 {
-		allMembersVerified = true
-		for _, m := range members {
-			if !m.DataHasVerified {
-				allMembersVerified = false
-				break
-			}
-		}
-	}
-
 	// Enforce dynamic system setting block & deadline date check
 	var setting entity.SystemSetting
 	if err := s.db.First(&setting, 1).Error; err == nil {
 		// Enforce Proposal Block & Deadline (Stage 1)
 		if stage == "stage1" {
-			if setting.HackathonProposalDisabled && !allMembersVerified {
+			if setting.HackathonProposalDisabled {
 				return entity.HackathonTeam{}, fmt.Errorf("pengumpulan proposal (Stage 1) telah ditutup oleh administrator")
 			}
 			if setting.HackathonProposalDeadline != nil && *setting.HackathonProposalDeadline != "" {
 				parsedTime, err := time.Parse("2006-01-02T15:04:05", *setting.HackathonProposalDeadline)
-				if err == nil && time.Now().After(parsedTime) && !allMembersVerified {
+				if err == nil && time.Now().After(parsedTime) {
 					return entity.HackathonTeam{}, fmt.Errorf("batas waktu (deadline) pengumpulan proposal telah berakhir")
 				}
 			}
 		}
 		// Enforce Video Block & Deadline (Stage 2)
 		if stage == "stage2" {
-			if setting.HackathonVideoDisabled && !allMembersVerified {
+			if setting.HackathonVideoDisabled {
 				return entity.HackathonTeam{}, fmt.Errorf("pengumpulan video (Stage 2) telah ditutup oleh administrator")
 			}
 			if setting.HackathonVideoDeadline != nil && *setting.HackathonVideoDeadline != "" {
 				parsedTime, err := time.Parse("2006-01-02T15:04:05", *setting.HackathonVideoDeadline)
-				if err == nil && time.Now().After(parsedTime) && !allMembersVerified {
+				if err == nil && time.Now().After(parsedTime) {
 					return entity.HackathonTeam{}, fmt.Errorf("batas waktu (deadline) pengumpulan video telah berakhir")
 				}
 			}
 		}
 		// Enforce Final Block & Deadline (Final Stage)
 		if stage == "final" {
-			if setting.HackathonFinalDisabled && !allMembersVerified {
+			if setting.HackathonFinalDisabled {
 				return entity.HackathonTeam{}, fmt.Errorf("pengumpulan presentasi final telah ditutup oleh administrator")
 			}
 			if setting.HackathonFinalDeadline != nil && *setting.HackathonFinalDeadline != "" {
 				parsedTime, err := time.Parse("2006-01-02T15:04:05", *setting.HackathonFinalDeadline)
-				if err == nil && time.Now().After(parsedTime) && !allMembersVerified {
+				if err == nil && time.Now().After(parsedTime) {
 					return entity.HackathonTeam{}, fmt.Errorf("batas waktu (deadline) pengumpulan presentasi final telah berakhir")
 				}
 			}
