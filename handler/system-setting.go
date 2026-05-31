@@ -101,6 +101,20 @@ func (h *SystemSettingHandler) UpdateSettings(c *gin.Context) {
 			}
 			changes = append(changes, fmt.Sprintf("pembaruan profil %s", status))
 		}
+		if oldSettings.SeminarRegistrationDisabled != input.SeminarRegistrationDisabled {
+			status := "dibuka"
+			if input.SeminarRegistrationDisabled {
+				status = "ditutup"
+			}
+			changes = append(changes, fmt.Sprintf("pendaftaran seminar %s", status))
+		}
+		if oldSettings.SeminarRequireVerification != input.SeminarRequireVerification {
+			status := "dinonaktifkan"
+			if input.SeminarRequireVerification {
+				status = "diaktifkan"
+			}
+			changes = append(changes, fmt.Sprintf("syarat verifikasi pendaftaran seminar %s", status))
+		}
 		if isStringPtrChanged(oldSettings.HackathonProposalDeadline, input.HackathonProposalDeadline) {
 			changes = append(changes, fmt.Sprintf("deadline proposal diubah dari \"%s\" menjadi \"%s\"",
 				formatDeadline(oldSettings.HackathonProposalDeadline),
@@ -137,6 +151,9 @@ func (h *SystemSettingHandler) UpdateSettings(c *gin.Context) {
 		HackathonProposalDeadline:     input.HackathonProposalDeadline,
 		HackathonVideoDeadline:        input.HackathonVideoDeadline,
 		HackathonFinalDeadline:        input.HackathonFinalDeadline,
+		ProfileUpdateDeadline:         input.ProfileUpdateDeadline,
+		SeminarRegistrationDisabled:   input.SeminarRegistrationDisabled,
+		SeminarRequireVerification:    input.SeminarRequireVerification,
 	}
 
 	updatedSettings, err := h.settingService.UpdateSettings(newSettings)
