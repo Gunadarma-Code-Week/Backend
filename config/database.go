@@ -74,6 +74,8 @@ func SetupDatabaseConnection() *gorm.DB {
 				HackathonProposalDeadline:     &proposalDeadline,
 				HackathonVideoDeadline:        &videoDeadline,
 				HackathonFinalDeadline:        &finalDeadline,
+				SeminarRegistrationDisabled:   false,
+				SeminarRequireVerification:    false,
 			}
 			if err := db.Create(&initialSettings).Error; err != nil {
 				fmt.Println("Failed to seed initial system settings:", err)
