@@ -9,6 +9,7 @@ type UpdateSystemSettingDTO struct {
 	HackathonProposalDisabled     bool       `json:"hackathon_proposal_disabled"`
 	HackathonVideoDisabled        bool       `json:"hackathon_video_disabled"`
 	HackathonFinalDisabled        bool       `json:"hackathon_final_disabled"`
+	ProfileUpdateDisabled         bool       `json:"profile_update_disabled"`
 	HackathonProposalDeadline     *string `json:"hackathon_proposal_deadline"`
 	HackathonVideoDeadline        *string `json:"hackathon_video_deadline"`
 	HackathonFinalDeadline        *string `json:"hackathon_final_deadline"`
