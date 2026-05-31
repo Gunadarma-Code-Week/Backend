@@ -82,6 +82,7 @@ func setupIsolatedPostgresDB(t *testing.T) (*gorm.DB, func()) {
 		HackathonProposalDisabled:     false,
 		HackathonVideoDisabled:        false,
 		HackathonFinalDisabled:        false,
+		ProfileUpdateDisabled:         false,
 		HackathonProposalDeadline:     ptr(futureProposal),
 		HackathonVideoDeadline:        ptr(futureVideo),
 		HackathonFinalDeadline:        ptr(futureFinal),

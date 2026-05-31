@@ -16,7 +16,17 @@ func NewSystemSettingService(db *gorm.DB) *SystemSettingService {
 func (s *SystemSettingService) GetSettings() (entity.SystemSetting, error) {
 	var setting entity.SystemSetting
 	err := s.db.First(&setting).Error
-	return setting, err
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			// Auto save to DB if it doesn't exist
+			if createErr := s.db.Create(&setting).Error; createErr != nil {
+				return setting, createErr
+			}
+			return setting, nil
+		}
+		return setting, err
+	}
+	return setting, nil
 }
 
 func (s *SystemSettingService) UpdateSettings(newSettings entity.SystemSetting) (entity.SystemSetting, error) {
@@ -33,12 +43,16 @@ func (s *SystemSettingService) UpdateSettings(newSettings entity.SystemSetting) 
 	setting.HackathonProposalDisabled = newSettings.HackathonProposalDisabled
 	setting.HackathonVideoDisabled = newSettings.HackathonVideoDisabled
 	setting.HackathonFinalDisabled = newSettings.HackathonFinalDisabled
+	setting.ProfileUpdateDisabled = newSettings.ProfileUpdateDisabled
 	setting.HackathonProposalDeadline = newSettings.HackathonProposalDeadline
 	setting.HackathonVideoDeadline = newSettings.HackathonVideoDeadline
 	setting.HackathonFinalDeadline = newSettings.HackathonFinalDeadline
 	setting.ProfileUpdateDeadline = newSettings.ProfileUpdateDeadline
 	setting.SeminarRegistrationDisabled = newSettings.SeminarRegistrationDisabled
 	setting.SeminarRequireVerification = newSettings.SeminarRequireVerification
+	setting.HackathonProposalChecklist = newSettings.HackathonProposalChecklist
+	setting.HackathonVideoChecklist = newSettings.HackathonVideoChecklist
+	setting.HackathonFinalChecklist = newSettings.HackathonFinalChecklist
 	err = s.db.Save(&setting).Error
 	return setting, err
 }
