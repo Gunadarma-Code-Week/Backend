@@ -8,6 +8,7 @@ import (
 	"gcw/service"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -93,14 +94,32 @@ func (h *SystemSettingHandler) UpdateSettings(c *gin.Context) {
 			}
 			changes = append(changes, fmt.Sprintf("final %s", status))
 		}
-		if oldSettings.HackathonProposalDeadline != input.HackathonProposalDeadline {
-			changes = append(changes, fmt.Sprintf("deadline proposal diubah menjadi %s", input.HackathonProposalDeadline))
+		if oldSettings.ProfileUpdateDisabled != input.ProfileUpdateDisabled {
+			status := "dibuka"
+			if input.ProfileUpdateDisabled {
+				status = "ditutup"
+			}
+			changes = append(changes, fmt.Sprintf("pembaruan profil %s", status))
 		}
-		if oldSettings.HackathonVideoDeadline != input.HackathonVideoDeadline {
-			changes = append(changes, fmt.Sprintf("deadline video diubah menjadi %s", input.HackathonVideoDeadline))
+		if isStringPtrChanged(oldSettings.HackathonProposalDeadline, input.HackathonProposalDeadline) {
+			changes = append(changes, fmt.Sprintf("deadline proposal diubah dari \"%s\" menjadi \"%s\"",
+				formatDeadline(oldSettings.HackathonProposalDeadline),
+				formatDeadline(input.HackathonProposalDeadline)))
 		}
-		if oldSettings.HackathonFinalDeadline != input.HackathonFinalDeadline {
-			changes = append(changes, fmt.Sprintf("deadline final diubah menjadi %s", input.HackathonFinalDeadline))
+		if isStringPtrChanged(oldSettings.HackathonVideoDeadline, input.HackathonVideoDeadline) {
+			changes = append(changes, fmt.Sprintf("deadline video diubah dari \"%s\" menjadi \"%s\"",
+				formatDeadline(oldSettings.HackathonVideoDeadline),
+				formatDeadline(input.HackathonVideoDeadline)))
+		}
+		if isStringPtrChanged(oldSettings.HackathonFinalDeadline, input.HackathonFinalDeadline) {
+			changes = append(changes, fmt.Sprintf("deadline final diubah dari \"%s\" menjadi \"%s\"",
+				formatDeadline(oldSettings.HackathonFinalDeadline),
+				formatDeadline(input.HackathonFinalDeadline)))
+		}
+		if isStringPtrChanged(oldSettings.ProfileUpdateDeadline, input.ProfileUpdateDeadline) {
+			changes = append(changes, fmt.Sprintf("deadline pembaruan profil diubah dari \"%s\" menjadi \"%s\"",
+				formatDeadline(oldSettings.ProfileUpdateDeadline),
+				formatDeadline(input.ProfileUpdateDeadline)))
 		}
 	}
 
@@ -115,9 +134,11 @@ func (h *SystemSettingHandler) UpdateSettings(c *gin.Context) {
 		HackathonProposalDisabled:     input.HackathonProposalDisabled,
 		HackathonVideoDisabled:        input.HackathonVideoDisabled,
 		HackathonFinalDisabled:        input.HackathonFinalDisabled,
+		ProfileUpdateDisabled:         input.ProfileUpdateDisabled,
 		HackathonProposalDeadline:     input.HackathonProposalDeadline,
 		HackathonVideoDeadline:        input.HackathonVideoDeadline,
 		HackathonFinalDeadline:        input.HackathonFinalDeadline,
+		ProfileUpdateDeadline:         input.ProfileUpdateDeadline,
 	}
 
 	updatedSettings, err := h.settingService.UpdateSettings(newSettings)
@@ -127,4 +148,63 @@ func (h *SystemSettingHandler) UpdateSettings(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, helper.CreateMutationResponse("Data berhasil diperbarui", updatedSettings))
+}
+
+func isStringPtrChanged(oldVal, newVal *string) bool {
+	if oldVal == nil && newVal == nil {
+		return false
+	}
+	if oldVal == nil || newVal == nil {
+		return true
+	}
+	return *oldVal != *newVal
+}
+
+func formatDeadline(d *string) string {
+	if d == nil || *d == "" || *d == "null" {
+		return "tidak ada"
+	}
+	val := *d
+	// Try parsing with RFC3339
+	t, err := time.Parse(time.RFC3339, val)
+	if err != nil {
+		// Try standard ISO-like formats
+		layouts := []string{
+			"2006-01-02T15:04:05",
+			"2006-01-02T15:04",
+			"2006-01-02 15:04:05",
+			"2006-01-02 15:04",
+			"2006-01-02",
+		}
+		for _, layout := range layouts {
+			if parsed, parseErr := time.Parse(layout, val); parseErr == nil {
+				t = parsed
+				err = nil
+				break
+			}
+		}
+	}
+
+	if err != nil {
+		// Fallback to raw value if parsing fails
+		return val
+	}
+
+	// Format in Indonesian style: DD MMMM YYYY, HH:mm WIB
+	var indoMonths = map[time.Month]string{
+		time.January:   "Januari",
+		time.February:  "Februari",
+		time.March:     "Maret",
+		time.April:     "April",
+		time.May:       "Mei",
+		time.June:      "Juni",
+		time.July:      "Juli",
+		time.August:    "Agustus",
+		time.September: "September",
+		time.October:   "Oktober",
+		time.November:  "November",
+		time.December:  "Desember",
+	}
+
+	return fmt.Sprintf("%d %s %d, %02d:%02d WIB", t.Day(), indoMonths[t.Month()], t.Year(), t.Hour(), t.Minute())
 }
