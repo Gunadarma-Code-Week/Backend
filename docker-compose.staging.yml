@@ -86,9 +86,6 @@ services:
       # JWT Keys
       JWT_PRIVATE_KEY_PATH: ${JWT_PRIVATE_KEY_PATH}
       JWT_PUBLIC_KEY_PATH: ${JWT_PUBLIC_KEY_PATH}
-      AUDIT_PRIVATE_KEY_PATH: ${AUDIT_PRIVATE_KEY_PATH}
-      AUDIT_DESCRIPTION_KEY_PATH: ${AUDIT_DESCRIPTION_KEY_PATH}
-
     networks:
       - gcw-network
       - dokploy-network

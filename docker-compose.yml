@@ -89,9 +89,6 @@ services:
       # JWT Keys
       JWT_PRIVATE_KEY_PATH: ${JWT_PRIVATE_KEY_PATH}
       JWT_PUBLIC_KEY_PATH: ${JWT_PUBLIC_KEY_PATH}
-      AUDIT_PRIVATE_KEY_PATH: ${AUDIT_PRIVATE_KEY_PATH}
-      AUDIT_DESCRIPTION_KEY_PATH: ${AUDIT_DESCRIPTION_KEY_PATH}
-
     command: /bin/sh -c "go mod download && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /src/gcw main.go && /src/gcw"
     ports:
       - "8000:8000"

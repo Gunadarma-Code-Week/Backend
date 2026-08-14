@@ -1,12 +1,7 @@
 package service
 
 import (
-	"crypto/aes"
-	"crypto/cipher"
-	"crypto/hmac"
-	"crypto/rand"
 	"crypto/sha256"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"gcw/entity"
@@ -23,8 +18,6 @@ type auditLogService struct {
 	auditLogRepository repository.AuditLogRepository
 	userRepository     repository.UserRepository
 	stellarService     StellarService
-	secretKey          []byte
-	descriptionSecretKey []byte
 }
 
 type AuditLogService interface {
@@ -41,62 +34,17 @@ type AuditLogService interface {
 }
 
 func NewAuditLogService(repo repository.AuditLogRepository, userRepo repository.UserRepository, stellar StellarService) AuditLogService {
-	// Load primary audit key
-	auditKeyPath := os.Getenv("AUDIT_PRIVATE_KEY_PATH")
-	secretKey, _ := os.ReadFile(auditKeyPath)
-
-	// Load Description content specific key
-	descriptionKeyPath := os.Getenv("AUDIT_DESCRIPTION_KEY_PATH")
-	descriptionSecretKey, _ := os.ReadFile(descriptionKeyPath)
-
 	return &auditLogService{
-		auditLogRepository:   repo,
-		userRepository:       userRepo,
-		stellarService:       stellar,
-		secretKey:            secretKey,
-		descriptionSecretKey: descriptionSecretKey,
+		auditLogRepository: repo,
+		userRepository:     userRepo,
+		stellarService:     stellar,
 	}
 }
 
 // calculateHash returns SHA256 hash of a string
-func (s *auditLogService) calculateHash(data string) string {
+func calculateHash(data string) string {
 	hash := sha256.Sum256([]byte(data))
 	return fmt.Sprintf("%x", hash)
-}
-
-// calculateHMAC returns HMAC-SHA256 hash of a string using the secret key
-func (s *auditLogService) calculateHMAC(data string) string {
-	h := hmac.New(sha256.New, s.secretKey)
-	h.Write([]byte(data))
-	return fmt.Sprintf("%x", h.Sum(nil))
-}
-
-// calculateAESGCMHash encrypts data with AES-256-GCM then hashes the result with SHA-256
-func (s *auditLogService) calculateAESGCMHash(data string, keyMaterial []byte) string {
-	// 1. Derive 32-byte key for AES-256 from provided keyMaterial
-	key := sha256.Sum256(keyMaterial)
-	
-	block, err := aes.NewCipher(key[:])
-	if err != nil {
-		return s.calculateHMAC(data)
-	}
-
-	gcm, err := cipher.NewGCM(block)
-	if err != nil {
-		return s.calculateHMAC(data)
-	}
-
-	// 2. Create a deterministic nonce from the data itself
-	nonceHash := sha256.Sum256([]byte(data))
-	nonce := nonceHash[:gcm.NonceSize()]
-
-	// 3. Encrypt data
-	ciphertext := gcm.Seal(nil, nonce, []byte(data), nil)
-	
-	// 4. Hash the result (nonce + ciphertext)
-	finalHash := sha256.Sum256(append(nonce, ciphertext...))
-	
-	return fmt.Sprintf("%x", finalHash)
 }
 
 // GetUserIDByEmail retrieves a User ID based on their email
@@ -109,104 +57,80 @@ func (s *auditLogService) GetUserIDByEmail(email string) (uint64, error) {
 	return user.ID, nil
 }
 
-// createAuditLogWithBlockchain adds blockchain hashes and saves the audit log
-func (s *auditLogService) createAuditLogWithBlockchain(auditLog *entity.AuditLog, userEmail string, targetEmail string, targetName string, targetResourceID uint64) error {
-	// Ensure CreatedAt is set before hashing for consistency
-	if auditLog.CreatedAt.IsZero() {
-		auditLog.CreatedAt = time.Now()
+// getStageChangeDescription extracts team name and stage from request body.
+// Returns the blockchain description and true if this is a stage change, or empty string and false otherwise.
+func getStageChangeDescription(auditLog *entity.AuditLog) (string, bool) {
+	if auditLog.Method != "PUT" && auditLog.Method != "PATCH" {
+		return "", false
+	}
+	if !strings.Contains(auditLog.Endpoint, "/dashboard/") {
+		return "", false
+	}
+	if len(auditLog.RequestBody) == 0 {
+		return "", false
 	}
 
-	// Create an anonymized version of the description EXCLUSIVELY for blockchain hashing
-	blockchainDescription := auditLog.Description
-	
-	// 1. Replace Actor's email with ID
-	if userEmail != "" {
-		blockchainDescription = strings.ReplaceAll(blockchainDescription, userEmail, fmt.Sprintf("User (ID: %d)", auditLog.UserID))
+	var body map[string]interface{}
+	if err := json.Unmarshal(auditLog.RequestBody, &body); err != nil {
+		return "", false
 	}
-	
-	// 2. Replace Target's email with ID (if provided)
-	if targetEmail != "" {
-		targetID, err := s.GetUserIDByEmail(targetEmail)
-		if err == nil && targetID != 0 {
-			blockchainDescription = strings.ReplaceAll(blockchainDescription, targetEmail, fmt.Sprintf("User (ID: %d)", targetID))
-		} else {
-			blockchainDescription = strings.ReplaceAll(blockchainDescription, targetEmail, "User (External/Masked)")
+
+	stageVal, hasStage := body["stage"]
+	if !hasStage {
+		return "", false
+	}
+
+	stageName, _ := stageVal.(string)
+	if stageName == "" {
+		stageName = "unknown"
+	}
+
+	teamName := "unknown"
+	if nama, ok := body["nama_tim"]; ok {
+		if s, ok := nama.(string); ok && s != "" {
+			teamName = s
 		}
 	}
 
-	// 3. Replace Target Resource Name with ID (if provided)
-	if targetName != "" && targetResourceID != 0 {
-		blockchainDescription = strings.ReplaceAll(blockchainDescription, targetName, fmt.Sprintf("Tim (ID: %d)", targetResourceID))
-	}
+	return fmt.Sprintf("Tim %s masuk ke stage %s", teamName, stageName), true
+}
 
-	// 4. Generate two unique salts for this record (Maximum Cryptographic Security)
-	// Salt 1: Internal description salt
-	saltBytes := make([]byte, 16)
-	rand.Read(saltBytes)
-	auditLog.Salt = hex.EncodeToString(saltBytes)
-
-	// Salt 2: Public blockchain metadata salt
-	bcSaltBytes := make([]byte, 16)
-	rand.Read(bcSaltBytes)
-	auditLog.BlockchainSalt = hex.EncodeToString(bcSaltBytes)
-
-	// Hash the anonymized description content with the INTERNAL salt
-	descriptionContentHash := s.calculateAESGCMHash(blockchainDescription+auditLog.Salt, s.descriptionSecretKey)
-
-	// Create a dictionary for hashing with the PUBLIC blockchain salt
-	metadata := map[string]string{
-		"timestamp": auditLog.CreatedAt.Format(time.RFC3339),
-		"deskripsi": descriptionContentHash,
-		"salt":      auditLog.BlockchainSalt, // Using a different salt for metadata
-	}
-	metadataJSON, _ := json.Marshal(metadata)
-
-	// 1. Calculate AES-GCM-SHA256 hash of metadata dictionary
-	descriptionHash := s.calculateAESGCMHash(string(metadataJSON), s.secretKey)
-	auditLog.DescriptionHash = descriptionHash
-
-	// 2. Get last audit log to link to
-	lastLog, err := s.auditLogRepository.GetLastAuditLog()
+// createAuditLog saves the audit log to the database.
+// If the log is a stage change, it also submits a SHA256 hash of the description to the Stellar blockchain.
+func (s *auditLogService) createAuditLog(auditLog *entity.AuditLog) error {
+	err := s.auditLogRepository.Create(auditLog)
 	if err != nil {
 		return err
 	}
 
-	lastBlockchainHash := ""
-	if lastLog != nil {
-		lastBlockchainHash = lastLog.BlockchainHash
-	}
+	// Submit to Stellar blockchain only for stage changes
+	if blockchainDesc, ok := getStageChangeDescription(auditLog); ok {
+		auditLog.DescriptionHash = calculateHash(blockchainDesc)
 
-	// 3. Calculate current blockchain hash (Hash Chaining)
-	currentBlockchainHash := s.calculateAESGCMHash(descriptionHash + lastBlockchainHash, s.secretKey)
-	auditLog.BlockchainHash = currentBlockchainHash
-
-	err = s.auditLogRepository.Create(auditLog)
-	if err != nil {
-		return err
-	}
-
-	// 4. Submit to Stellar blockchain in background
-	go func(id uint64, hash string) {
-		txHash, authorAddress, err := s.stellarService.SendAuditHash(hash)
-		if err != nil {
-			fmt.Printf("Stellar background task error: %v\n", err)
-			// Even if it fails, we might still have the author address if the secret was valid
-			if authorAddress != "" {
-				db := s.auditLogRepository.GetDB()
-				db.Model(&entity.AuditLog{}).Where("id = ?", id).Update("author_address", authorAddress)
-			}
-			return
-		}
-
-		// Update database with transaction hash and author address
+		// Update description hash in DB
 		db := s.auditLogRepository.GetDB()
-		if err := db.Model(&entity.AuditLog{}).Where("id = ?", id).Updates(map[string]interface{}{
-			"tx_hash":        txHash,
-			"author_address": authorAddress,
-		}).Error; err != nil {
-			fmt.Printf("Failed to update audit log with tx_hash/author: %v\n", err)
-		}
-	}(auditLog.ID, auditLog.BlockchainHash)
+		db.Model(&entity.AuditLog{}).Where("id = ?", auditLog.ID).Update("description_hash", auditLog.DescriptionHash)
+
+		go func(id uint64, hash string) {
+			txHash, authorAddress, err := s.stellarService.SendAuditHash(hash)
+			if err != nil {
+				fmt.Printf("Stellar background task error: %v\n", err)
+				if authorAddress != "" {
+					db := s.auditLogRepository.GetDB()
+					db.Model(&entity.AuditLog{}).Where("id = ?", id).Update("author_address", authorAddress)
+				}
+				return
+			}
+
+			db := s.auditLogRepository.GetDB()
+			if err := db.Model(&entity.AuditLog{}).Where("id = ?", id).Updates(map[string]interface{}{
+				"tx_hash":        txHash,
+				"author_address": authorAddress,
+			}).Error; err != nil {
+				fmt.Printf("Failed to update audit log with tx_hash/author: %v\n", err)
+			}
+		}(auditLog.ID, auditLog.DescriptionHash)
+	}
 
 	return nil
 }
@@ -235,7 +159,7 @@ func (s *auditLogService) RecordActivity(userID uint64, userEmail string, target
 		UserAgent:   userAgent,
 	}
 
-	return s.createAuditLogWithBlockchain(auditLog, userEmail, targetEmail, targetName, targetResourceID)
+	return s.createAuditLog(auditLog)
 }
 
 // RecordActivityWithResponse records user activity with response data
@@ -276,7 +200,7 @@ func (s *auditLogService) RecordActivityWithResponse(userID uint64, userEmail st
 		UserAgent:    userAgent,
 	}
 
-	return s.createAuditLogWithBlockchain(auditLog, userEmail, targetEmail, targetName, targetResourceID)
+	return s.createAuditLog(auditLog)
 }
 
 // RecordActivityWithError records user activity with error information
@@ -305,7 +229,7 @@ func (s *auditLogService) RecordActivityWithError(userID uint64, userEmail strin
 		UserAgent:    userAgent,
 	}
 
-	return s.createAuditLogWithBlockchain(auditLog, userEmail, targetEmail, targetName, targetResourceID)
+	return s.createAuditLog(auditLog)
 }
 
 // GetUserActivityLogs retrieves activity logs for a specific user
@@ -340,7 +264,7 @@ func (s *auditLogService) GetAllActivityLogs(limit int, offset int, role string,
 
 		// Perform fuzzy search
 		matches := fuzzy.FindFrom(query, auditLogSource(allLogs))
-		
+
 		// Sort by relevance score
 		sort.Slice(matches, func(i, j int) bool {
 			return matches[i].Score > matches[j].Score
@@ -352,18 +276,18 @@ func (s *auditLogService) GetAllActivityLogs(limit int, offset int, role string,
 		}
 
 		total := int64(len(filteredData))
-		
+
 		// Manual pagination
 		start := offset
 		if start > len(filteredData) {
 			return []*entity.AuditLog{}, total, nil
 		}
-		
+
 		end := start + limit
 		if end > len(filteredData) {
 			end = len(filteredData)
 		}
-		
+
 		return filteredData[start:end], total, nil
 	}
 
