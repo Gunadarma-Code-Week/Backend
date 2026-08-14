@@ -29,6 +29,7 @@ type AuditLogService interface {
 	GetActivityLogsByDateRange(startDate time.Time, endDate time.Time, limit int, offset int) ([]*entity.AuditLog, int64, error)
 	GetUserActivityLogsByDateRange(userID uint64, startDate time.Time, endDate time.Time, limit int, offset int) ([]*entity.AuditLog, int64, error)
 	GetAllActivityLogs(limit int, offset int, role string, query string) ([]*entity.AuditLog, int64, error)
+	GetBlockchainLogs(limit int, offset int, query string) ([]*entity.BlockchainLog, int64, error)
 	GetAuditLogStats() (map[string]interface{}, error)
 	GetUserIDByEmail(email string) (uint64, error)
 }
@@ -105,31 +106,39 @@ func (s *auditLogService) createAuditLog(auditLog *entity.AuditLog) error {
 
 	// Submit to Stellar blockchain only for stage changes
 	if blockchainDesc, ok := getStageChangeDescription(auditLog); ok {
-		auditLog.DescriptionHash = calculateHash(blockchainDesc)
+		descHash := calculateHash(blockchainDesc)
 
-		// Update description hash in DB
-		db := s.auditLogRepository.GetDB()
-		db.Model(&entity.AuditLog{}).Where("id = ?", auditLog.ID).Update("description_hash", auditLog.DescriptionHash)
+		blockchainLog := &entity.BlockchainLog{
+			AuditLogID:      auditLog.ID,
+			Description:     blockchainDesc,
+			DescriptionHash: descHash,
+		}
 
-		go func(id uint64, hash string) {
+		err = s.auditLogRepository.CreateBlockchainLog(blockchainLog)
+		if err != nil {
+			fmt.Printf("Failed to create blockchain log entry: %v\n", err)
+			return err
+		}
+
+		go func(auditID uint64, blockchainLogID uint64, hash string) {
 			txHash, authorAddress, err := s.stellarService.SendAuditHash(hash)
+			db := s.auditLogRepository.GetDB()
+
 			if err != nil {
 				fmt.Printf("Stellar background task error: %v\n", err)
 				if authorAddress != "" {
-					db := s.auditLogRepository.GetDB()
-					db.Model(&entity.AuditLog{}).Where("id = ?", id).Update("author_address", authorAddress)
+					db.Model(&entity.BlockchainLog{}).Where("id = ?", blockchainLogID).Update("author_address", authorAddress)
 				}
 				return
 			}
 
-			db := s.auditLogRepository.GetDB()
-			if err := db.Model(&entity.AuditLog{}).Where("id = ?", id).Updates(map[string]interface{}{
+			if err := db.Model(&entity.BlockchainLog{}).Where("id = ?", blockchainLogID).Updates(map[string]interface{}{
 				"tx_hash":        txHash,
 				"author_address": authorAddress,
 			}).Error; err != nil {
-				fmt.Printf("Failed to update audit log with tx_hash/author: %v\n", err)
+				fmt.Printf("Failed to update blockchain log with tx_hash/author: %v\n", err)
 			}
-		}(auditLog.ID, auditLog.DescriptionHash)
+		}(auditLog.ID, blockchainLog.ID, descHash)
 	}
 
 	return nil
@@ -250,6 +259,45 @@ func (s *auditLogService) GetActivityLogsByDateRange(startDate time.Time, endDat
 // GetUserActivityLogsByDateRange retrieves activity logs for a user within a date range
 func (s *auditLogService) GetUserActivityLogsByDateRange(userID uint64, startDate time.Time, endDate time.Time, limit int, offset int) ([]*entity.AuditLog, int64, error) {
 	return s.auditLogRepository.FindByUserIDAndDateRange(userID, startDate, endDate, limit, offset)
+}
+
+// GetBlockchainLogs retrieves all blockchain log entries (both confirmed and pending)
+func (s *auditLogService) GetBlockchainLogs(limit int, offset int, query string) ([]*entity.BlockchainLog, int64, error) {
+	db := s.auditLogRepository.GetDB()
+	var logs []*entity.BlockchainLog
+	var total int64
+
+	// Build a sub-query to get matching IDs (avoids Preload + Joins conflict)
+	idsQuery := db.Model(&entity.BlockchainLog{}).Select("blockchain_logs.id")
+
+	if query != "" {
+		idsQuery = idsQuery.
+			Joins("JOIN audit_logs ON audit_logs.id = blockchain_logs.audit_log_id").
+			Where("blockchain_logs.description ILIKE ? OR audit_logs.description ILIKE ? OR blockchain_logs.tx_hash ILIKE ? OR blockchain_logs.description_hash ILIKE ?",
+				"%"+query+"%", "%"+query+"%", "%"+query+"%", "%"+query+"%")
+	}
+
+	var matchingIDs []uint64
+	if err := idsQuery.Pluck("blockchain_logs.id", &matchingIDs).Error; err != nil {
+		return nil, 0, err
+	}
+	total = int64(len(matchingIDs))
+
+	if total == 0 {
+		return []*entity.BlockchainLog{}, 0, nil
+	}
+
+	err := db.Model(&entity.BlockchainLog{}).
+		Where("id IN ?", matchingIDs).
+		Preload("AuditLog").Preload("AuditLog.User").
+		Order("created_at DESC").
+		Limit(limit).Offset(offset).
+		Find(&logs).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return logs, total, nil
 }
 
 // GetAllActivityLogs retrieves all activity logs with pagination, optional role filter, and smart fuzzy search

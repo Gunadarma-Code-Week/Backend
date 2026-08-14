@@ -73,6 +73,16 @@ func (h *SystemSettingHandler) UpdateSettings(c *gin.Context) {
 			}
 			changes = append(changes, fmt.Sprintf("pendaftaran CTF %s", status))
 		}
+		if isStringPtrChanged(oldSettings.CPRegistrationDeadline, input.CPRegistrationDeadline) {
+			changes = append(changes, fmt.Sprintf("deadline pendaftaran CP diubah dari \"%s\" menjadi \"%s\"",
+				formatDeadline(oldSettings.CPRegistrationDeadline),
+				formatDeadline(input.CPRegistrationDeadline)))
+		}
+		if isStringPtrChanged(oldSettings.CTFRegistrationDeadline, input.CTFRegistrationDeadline) {
+			changes = append(changes, fmt.Sprintf("deadline pendaftaran CTF diubah dari \"%s\" menjadi \"%s\"",
+				formatDeadline(oldSettings.CTFRegistrationDeadline),
+				formatDeadline(input.CTFRegistrationDeadline)))
+		}
 		if oldSettings.HackathonProposalDisabled != input.HackathonProposalDisabled {
 			status := "dibuka"
 			if input.HackathonProposalDisabled {
@@ -152,6 +162,8 @@ func (h *SystemSettingHandler) UpdateSettings(c *gin.Context) {
 		HackathonProposalDeadline:     input.HackathonProposalDeadline,
 		HackathonVideoDeadline:        input.HackathonVideoDeadline,
 		HackathonFinalDeadline:        input.HackathonFinalDeadline,
+		CPRegistrationDeadline:        input.CPRegistrationDeadline,
+		CTFRegistrationDeadline:       input.CTFRegistrationDeadline,
 		ProfileUpdateDeadline:         input.ProfileUpdateDeadline,
 		SeminarRegistrationDisabled:   input.SeminarRegistrationDisabled,
 		SeminarRequireVerification:    input.SeminarRequireVerification,

@@ -13,6 +13,7 @@ type auditLogRepository struct {
 
 type AuditLogRepository interface {
 	Create(auditLog *entity.AuditLog) error
+	CreateBlockchainLog(blockchainLog *entity.BlockchainLog) error
 	FindByUserID(userID uint64, limit int, offset int) ([]*entity.AuditLog, int64, error)
 	FindByEndpoint(endpoint string, limit int, offset int) ([]*entity.AuditLog, int64, error)
 	FindByDateRange(startDate time.Time, endDate time.Time, limit int, offset int) ([]*entity.AuditLog, int64, error)
@@ -36,6 +37,15 @@ func (r *auditLogRepository) GetDB() *gorm.DB {
 // Create a new audit log record
 func (r *auditLogRepository) Create(auditLog *entity.AuditLog) error {
 	res := r.DB.Create(auditLog)
+	if res.Error != nil {
+		return res.Error
+	}
+	return nil
+}
+
+// Create a new blockchain log record
+func (r *auditLogRepository) CreateBlockchainLog(blockchainLog *entity.BlockchainLog) error {
+	res := r.DB.Create(blockchainLog)
 	if res.Error != nil {
 		return res.Error
 	}
@@ -129,7 +139,7 @@ func (r *auditLogRepository) FindAll(limit int, offset int, role string, searchQ
 
 	dbQuery := r.DB.Model(&entity.AuditLog{}).Preload("User").
 		Joins("LEFT JOIN users ON users.id = audit_logs.user_id")
-	
+
 	if role != "" {
 		dbQuery = dbQuery.Where("users.role = ?", role)
 	}
@@ -150,7 +160,7 @@ func (r *auditLogRepository) FindAll(limit int, offset int, role string, searchQ
 
 	countQuery := r.DB.Model(&entity.AuditLog{}).
 		Joins("LEFT JOIN users ON users.id = audit_logs.user_id")
-	
+
 	if role != "" {
 		countQuery = countQuery.Where("users.role = ?", role)
 	}
@@ -159,7 +169,7 @@ func (r *auditLogRepository) FindAll(limit int, offset int, role string, searchQ
 		searchPattern := "%" + searchQuery + "%"
 		countQuery = countQuery.Where("(audit_logs.description ILIKE ? OR users.email ILIKE ?)", searchPattern, searchPattern)
 	}
-	
+
 	countQuery.Count(&total)
 
 	return auditLogs, total, nil

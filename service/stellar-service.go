@@ -2,6 +2,7 @@ package service
 
 import (
 	"bytes"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -25,13 +26,13 @@ type StellarService interface {
 }
 
 type stellarService struct {
-	horizonClient   *horizonclient.Client
-	rpcURL          string
-	secret          string
-	network         string
-	contractID      string
-	functionName    string
-	publicKey       string
+	horizonClient *horizonclient.Client
+	rpcURL        string
+	secret        string
+	network       string
+	contractID    string
+	functionName  string
+	publicKey     string
 }
 
 // Structs for JSON-RPC
@@ -103,7 +104,7 @@ func NewStellarService() StellarService {
 		}
 	}
 
-	fmt.Printf("Stellar Service initialized: network=%s, rpc=%s, horizon=%s, contract=%s\n", 
+	fmt.Printf("Stellar Service initialized: network=%s, rpc=%s, horizon=%s, contract=%s\n",
 		net, rpcURL, horizonURL, os.Getenv("STELLAR_CONTRACT_ADDRESS"))
 
 	secret := os.Getenv("STELLAR_SECRET_KEY")
@@ -117,7 +118,7 @@ func NewStellarService() StellarService {
 
 	functionName := os.Getenv("STELLAR_FUNCTION_NAME")
 	if functionName == "" {
-		functionName = "record_hash"
+		functionName = "log"
 	}
 
 	return &stellarService{
@@ -158,9 +159,16 @@ func (s *stellarService) SendAuditHash(auditHash string) (string, string, error)
 	}
 
 	// Hash data (menggunakan auditHash yang diberikan)
-	// AuditHash kita asumsikan sudah berupa hex string, kita convert balik ke bytes
+	// AuditHash sudah berupa hex string SHA256 (64 chars), convert ke 32 bytes
+	hashBytes, err := hex.DecodeString(auditHash)
+	if err != nil {
+		return "", authorAddress, fmt.Errorf("invalid audit hash hex: %w", err)
+	}
+	if len(hashBytes) != 32 {
+		return "", authorAddress, fmt.Errorf("audit hash must be 32 bytes, got %d", len(hashBytes))
+	}
 	var hashData [32]byte
-	fmt.Sscanf(auditHash, "%x", &hashData)
+	copy(hashData[:], hashBytes)
 	hashBytesXDR := xdr.ScBytes(hashData[:])
 	hashSCVal := xdr.ScVal{Type: xdr.ScValTypeScvBytes, Bytes: &hashBytesXDR}
 

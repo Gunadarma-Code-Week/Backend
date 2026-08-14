@@ -5,7 +5,6 @@ import (
 	"gcw/entity"
 	"os"
 
-
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -31,7 +30,8 @@ func SetupDatabaseConnection() *gorm.DB {
 			&entity.User{},
 			&entity.UserRole{},
 			&entity.Team{},
-			&entity.Seminar{},
+			&entity.AuditLog{},
+			&entity.BlockchainLog{},
 			&entity.HackathonTeam{},
 			&entity.CPTeam{},
 			&entity.CTFTeam{},
@@ -62,7 +62,7 @@ func SetupDatabaseConnection() *gorm.DB {
 			if finalDeadline == "" {
 				finalDeadline = "2026-06-20T23:59:59"
 			}
-			
+
 			initialSettings := entity.SystemSetting{
 				ID:                            1,
 				HackathonRegistrationDisabled: false,
@@ -75,6 +75,8 @@ func SetupDatabaseConnection() *gorm.DB {
 				HackathonProposalDeadline:     &proposalDeadline,
 				HackathonVideoDeadline:        &videoDeadline,
 				HackathonFinalDeadline:        &finalDeadline,
+				CPRegistrationDeadline:        nil,
+				CTFRegistrationDeadline:       nil,
 				SeminarRegistrationDisabled:   false,
 				SeminarRequireVerification:    false,
 			}

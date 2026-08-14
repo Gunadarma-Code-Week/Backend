@@ -9,10 +9,11 @@ import (
 	"gcw/helper/logging"
 	"gcw/repository"
 
-	"github.com/mashingan/smapping"
-	"gorm.io/gorm"
 	"strings"
 	"time"
+
+	"github.com/mashingan/smapping"
+	"gorm.io/gorm"
 )
 
 type RegistrationService struct {
@@ -63,6 +64,14 @@ func (s *RegistrationService) CPTeamRegistration(
 		if setting.CPRegistrationDisabled {
 			logging.Low("RegistrationService.CPTeamRegistration", "BAD_REQUEST", "Pendaftaran Competitive Programming telah ditutup oleh administrator")
 			return nil, fmt.Errorf("Pendaftaran Competitive Programming telah ditutup")
+		}
+		if setting.CPRegistrationDeadline != nil && *setting.CPRegistrationDeadline != "" {
+			if parsedTime, parseErr := time.Parse(time.RFC3339, *setting.CPRegistrationDeadline); parseErr == nil {
+				if time.Now().After(parsedTime) {
+					logging.Low("RegistrationService.CPTeamRegistration", "BAD_REQUEST", "Batas waktu pendaftaran Competitive Programming telah berakhir")
+					return nil, fmt.Errorf("Batas waktu pendaftaran Competitive Programming telah berakhir")
+				}
+			}
 		}
 	}
 
@@ -325,6 +334,14 @@ func (s *RegistrationService) CTFTeamRegistration(
 			logging.Low("RegistrationService.CTFTeamRegistration", "BAD_REQUEST", "Pendaftaran Capture The Flag telah ditutup oleh administrator")
 			return nil, fmt.Errorf("Pendaftaran Capture The Flag telah ditutup")
 		}
+		if setting.CTFRegistrationDeadline != nil && *setting.CTFRegistrationDeadline != "" {
+			if parsedTime, parseErr := time.Parse(time.RFC3339, *setting.CTFRegistrationDeadline); parseErr == nil {
+				if time.Now().After(parsedTime) {
+					logging.Low("RegistrationService.CTFTeamRegistration", "BAD_REQUEST", "Batas waktu pendaftaran Capture The Flag telah berakhir")
+					return nil, fmt.Errorf("Batas waktu pendaftaran Capture The Flag telah berakhir")
+				}
+			}
+		}
 	}
 
 	// Check duplicate team name secara global (hackathon, cp, ctf)
@@ -476,6 +493,22 @@ func (s *RegistrationService) JoinTeam(
 			logging.Low("RegistrationService.JoinTeam", "BAD_REQUEST", "Pendaftaran Capture The Flag telah ditutup oleh administrator")
 			return nil, fmt.Errorf("Pendaftaran Capture The Flag telah ditutup")
 		}
+		if team.Event == "cp" && setting.CPRegistrationDeadline != nil && *setting.CPRegistrationDeadline != "" {
+			if parsedTime, parseErr := time.Parse(time.RFC3339, *setting.CPRegistrationDeadline); parseErr == nil {
+				if time.Now().After(parsedTime) {
+					logging.Low("RegistrationService.JoinTeam", "BAD_REQUEST", "Batas waktu pendaftaran Competitive Programming telah berakhir")
+					return nil, fmt.Errorf("Batas waktu pendaftaran Competitive Programming telah berakhir")
+				}
+			}
+		}
+		if team.Event == "ctf" && setting.CTFRegistrationDeadline != nil && *setting.CTFRegistrationDeadline != "" {
+			if parsedTime, parseErr := time.Parse(time.RFC3339, *setting.CTFRegistrationDeadline); parseErr == nil {
+				if time.Now().After(parsedTime) {
+					logging.Low("RegistrationService.JoinTeam", "BAD_REQUEST", "Batas waktu pendaftaran Capture The Flag telah berakhir")
+					return nil, fmt.Errorf("Batas waktu pendaftaran Capture The Flag telah berakhir")
+				}
+			}
+		}
 	}
 
 	userCount, err := s.registrationRepository.CountUserByTeamID(team.ID_Team)
@@ -516,7 +549,7 @@ func (s *RegistrationService) UpdatePaymentStatus(orderID string, status string)
 	}
 
 	team.PaymentStatus = status
-	
+
 	tx := s.registrationRepository.DB.Begin()
 	if err := tx.Save(team).Error; err != nil {
 		tx.Rollback()

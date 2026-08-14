@@ -86,6 +86,8 @@ func setupIsolatedPostgresDB(t *testing.T) (*gorm.DB, func()) {
 		HackathonProposalDeadline:     ptr(futureProposal),
 		HackathonVideoDeadline:        ptr(futureVideo),
 		HackathonFinalDeadline:        ptr(futureFinal),
+		CPRegistrationDeadline:        nil,
+		CTFRegistrationDeadline:       nil,
 		SeminarRegistrationDisabled:   false,
 		SeminarRequireVerification:    false,
 	}

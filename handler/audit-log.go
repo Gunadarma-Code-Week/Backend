@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"gcw/entity"
 	"gcw/helper"
 	"gcw/service"
 	"net/http"
@@ -46,9 +47,32 @@ func (h *auditLogHandler) GetAllAuditLogs(c *gin.Context) {
 
 	role := c.Query("role")
 	query := c.Query("q")
+	blockchainOnly := c.Query("blockchain_only") == "true"
 	offset := (page - 1) * limit
 
-	logs, total, err := h.auditLogService.GetAllActivityLogs(limit, offset, role, query)
+	var err error
+	var total int64
+
+	if blockchainOnly {
+		var blockchainLogs []*entity.BlockchainLog
+		blockchainLogs, total, err = h.auditLogService.GetBlockchainLogs(limit, offset, query)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, helper.CreateInternalErrorResponse("Terdapat kesalahan pada permintaan"))
+			return
+		}
+
+		c.JSON(http.StatusOK, helper.CreateSuccessResponse("Successfully retrieved audit logs", gin.H{
+			"logs":        blockchainLogs,
+			"total":       total,
+			"page":        page,
+			"limit":       limit,
+			"total_pages": (int(total) + limit - 1) / limit,
+		}))
+		return
+	}
+
+	var logs []*entity.AuditLog
+	logs, total, err = h.auditLogService.GetAllActivityLogs(limit, offset, role, query)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, helper.CreateInternalErrorResponse("Terdapat kesalahan pada permintaan"))
 		return
@@ -59,7 +83,7 @@ func (h *auditLogHandler) GetAllAuditLogs(c *gin.Context) {
 		"total":       total,
 		"page":        page,
 		"limit":       limit,
-		"total_pages": (total + int64(limit) - 1) / int64(limit),
+		"total_pages": (int(total) + limit - 1) / limit,
 	}))
 }
 

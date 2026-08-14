@@ -2,6 +2,7 @@ package service
 
 import (
 	"gcw/entity"
+
 	"gorm.io/gorm"
 )
 
@@ -47,6 +48,8 @@ func (s *SystemSettingService) UpdateSettings(newSettings entity.SystemSetting) 
 	setting.HackathonProposalDeadline = newSettings.HackathonProposalDeadline
 	setting.HackathonVideoDeadline = newSettings.HackathonVideoDeadline
 	setting.HackathonFinalDeadline = newSettings.HackathonFinalDeadline
+	setting.CPRegistrationDeadline = newSettings.CPRegistrationDeadline
+	setting.CTFRegistrationDeadline = newSettings.CTFRegistrationDeadline
 	setting.ProfileUpdateDeadline = newSettings.ProfileUpdateDeadline
 	setting.SeminarRegistrationDisabled = newSettings.SeminarRegistrationDisabled
 	setting.SeminarRequireVerification = newSettings.SeminarRequireVerification
